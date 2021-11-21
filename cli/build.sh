@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONTAINER="oydid"
+CONTAINER="oydid-cli"
 REPOSITORY="oydeu"
 
 # read commandline options

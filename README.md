@@ -7,7 +7,7 @@ OYDID provides a self-sustained environment for managing digital identifiers (DI
 * W3C conform DID Method Specification: https://github.com/OwnYourData/did-cmd/blob/main/docs/did-spec.md    
 * `oydid` commandline tool:    
     * Sources: https://github.com/OwnYourData/oydid/tree/main/cli    
-    * run in a Docker image: https://hub.docker.com/repository/docker/oydeu/oydid-cli     
+    * run in a Docker image: https://hub.docker.com/r/oydeu/oydid-cli     
     * Examples & Tutorial: https://github.com/OwnYourData/oydid/tree/main/cli#example
 * host OYDIDs yourself in a repository:    
     * Sources: https://github.com/OwnYourData/oydid/tree/main/repository    
