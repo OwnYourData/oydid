@@ -1,0 +1,19 @@
+Test switching key
+
+echo '{"test": "key-rotation"}' | oydid create
+created did:oyd:BNj66S5BkZD22maP1C42z9LcA3RaC1gQ9GhmLQ1g3tv
+
+oydid read BNj66S5BkZD22maP1C42z9LcA3RaC1gQ9GhmLQ1g3tv
+{"doc":{"test":"key-rotation"},"key":"4TcvsoAwZWp41PJPKgyMFYz89M94qrU79pcUxtb1djWe:62PmQ7qaBCfep3Y1GxwcV3EnmpkAgHC1YkhL6g7AX6WW","log":"6X7B1i3JU8cVBNSXudo4Mag1d3CwAaz3Hx47nhNSdjbB"}
+
+oydid read BNj66S5BkZD22maP1C42z9LcA3RaC1gQ9GhmLQ1g3tv | jq '."doc"' | oydid update --doc-pwd "test" BNj66S5BkZD22maP1C42z9LcA3RaC1gQ9GhmLQ1g3tv
+updated did:oyd:berhw1NpkZvYvmS7vS8T1UgLu47zwPWKM1qbQrkBcrpM
+
+oydid read berhw1NpkZvYvmS7vS8T1UgLu47zwPWKM1qbQrkBcrpM
+{"doc":{"test":"key-rotation"},"key":"7Zieos7j2JMN6byHC1u5eSRMg9KgCK1xaxmbaCdHqZxo:62PmQ7qaBCfep3Y1GxwcV3EnmpkAgHC1YkhL6g7AX6WW","log":"a6Un2eXCFeroKJcLo9xYBAgixWkm1f2XeWjnXeqGUcjP"}
+
+echo '{"test": "key-rotation2"}' | oydid update berhw1NpkZvYvmS7vS8T1UgLu47zwPWKM1qbQrkBcrpM
+updated did:oyd:dKhrr6MzFiEtZ9WAP6hGuxeVnzq2JKLF2RjkZCmsKytu
+
+oydid read dKhrr6MzFiEtZ9WAP6hGuxeVnzq2JKLF2RjkZCmsKytus
+{"doc":{"test":"key-rotation2"},"key":"7Zieos7j2JMN6byHC1u5eSRMg9KgCK1xaxmbaCdHqZxo:62PmQ7qaBCfep3Y1GxwcV3EnmpkAgHC1YkhL6g7AX6WW","log":"gaJUrc189p6frQU4ra6g3cDExyKhXD2aWfFTTULBNCSh"}

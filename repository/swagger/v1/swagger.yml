@@ -1,0 +1,126 @@
+openapi: 3.0.0
+info:
+  title: OYDID API
+  version: v1
+  description: >-
+     OYDID (Own Your Digital IDentifier) provides a self-sustained environment for managing digital identifiers (DIDs). The oyd:did method links the identifier cryptographically to the DID Document and through also cryptographically linked provenance information in a public log it ensures resolving to the latest valid version of the DID Document.
+
+     Further information:
+     - view other [OwnYourData Service API's](https://api-docs.ownyourdata.eu)
+  contact:
+    email: office@ownyourdata.eu
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+
+servers:
+- url: https://oydid.ownyourdata.eu/
+  description: Official production system hosted by OwnYourData
+security:
+  - BearerAuth: []
+paths:
+  /doc/{did}:
+    get:
+      summary: read latest DID Document
+      tags:
+        - Documents
+      parameters:
+          - name: did
+            in: path
+            required: true
+            schema:
+              type: string
+      responses:
+        "200":
+          description: resolved DID Document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DidResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestBody"
+  /doc:
+    post:
+      summary: create new or update existing DID Document
+      tags:
+        - Documents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DidRequestBody"
+      responses:
+        "200":
+          description: successfully created/update DID Document
+        "400":
+          description: Bad request
+  /log/{id}:
+    get:
+      summary: retrieve log records
+      tags:
+        - Log
+      parameters:
+          - name: id
+            in: path
+            required: true
+            schema:
+              type: string
+      responses:
+        "200":
+          description: success
+  /log/{did}:
+    post:
+      summary: add new log entry
+      tags:
+        - Log
+      parameters:
+          - name: did
+            in: path
+            required: true
+            schema:
+              type: string
+      responses:
+        "200":
+          description: success
+components:
+  schemas:
+    BadRequestBody:
+      properties:
+        status:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: missing input
+      required:
+        - status
+        - error
+    DidRequestBody:
+      properties:
+        did:
+          type: string
+        did-document:
+          type: object
+        logs:
+          type: array
+          items:
+            type: object
+      required:
+        - did
+        - did-document
+        - logs
+    DidResponse:
+      properties:
+        did:
+          description: JSON object with publicly accessible information
+          type: object
+        key:
+          type: string
+          description: public document and revocation key separated by a colon
+        log:
+          type: string
+          description: pointer to provenance information

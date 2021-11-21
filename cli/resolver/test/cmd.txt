@@ -1,0 +1,9 @@
+docker run -d --name=resolver -p 3000:3000 oydeu/oydid-resolver
+
+docker rm -f resolver
+
+curl http://localhost:3000/1.0/identifiers/asdf
+
+curl http://localhost:3000/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj | jq
+
+https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj

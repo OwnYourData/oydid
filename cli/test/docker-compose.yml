@@ -1,0 +1,19 @@
+sc:
+  hostname: oydid
+  image: semcon/sc-base
+  environment:
+    RAILS_LOG_TO_STDOUT: "true"
+    SEMCON_DB: "external"
+    AUTH: "true"
+    IMAGE_NAME: "semcon/sc-base:latest"
+    IMAGE_HASH: "123"
+    SERVICE_ENDPOINT: "http://10.0.0.16:4000"
+  links:
+    - db
+  ports:
+    - 4000:3000
+
+db:
+  image: postgres:12.1
+  volumes:
+    - oydid-postgres:/var/lib/postgresql/data

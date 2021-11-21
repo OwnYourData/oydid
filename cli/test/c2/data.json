@@ -1,0 +1,4 @@
+{
+	"service_endpoint": "/api/data/1?p=id",
+	"scope": "read write"
+}
