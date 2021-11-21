@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONTAINER="did-base"
+CONTAINER="oydid-base"
 REPOSITORY="oydeu"
 
 # read commandline options
