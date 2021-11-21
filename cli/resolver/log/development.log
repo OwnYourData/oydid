@@ -1,0 +1,6 @@
+Started GET "/" for ::1 at 2021-10-24 01:17:01 +0200
+Processing by ApplicationController#missing as */*
+  Parameters: {"not_found"=>""}
+Completed 404 Not Found in 0ms (Views: 0.3ms)
+
+

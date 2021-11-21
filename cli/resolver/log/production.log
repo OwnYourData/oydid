@@ -1,0 +1,219 @@
+I, [2021-10-24T01:24:00.096964 #62868]  INFO -- : [09de4f7b-6d31-4a5a-938d-8b34b3b45071] Started GET "/" for 127.0.0.1 at 2021-10-24 01:24:00 +0200
+I, [2021-10-24T01:24:00.097824 #62868]  INFO -- : [09de4f7b-6d31-4a5a-938d-8b34b3b45071] Processing by ApplicationController#missing as */*
+I, [2021-10-24T01:24:00.097883 #62868]  INFO -- : [09de4f7b-6d31-4a5a-938d-8b34b3b45071]   Parameters: {"not_found"=>""}
+I, [2021-10-24T01:24:00.098498 #62868]  INFO -- : [09de4f7b-6d31-4a5a-938d-8b34b3b45071] Completed 404 Not Found in 1ms (Views: 0.2ms)
+I, [2021-10-24T01:24:14.665987 #62868]  INFO -- : [70a1b15e-bb4e-4d16-a26c-46f5c09026cf] Started GET "/" for 127.0.0.1 at 2021-10-24 01:24:14 +0200
+I, [2021-10-24T01:24:14.666456 #62868]  INFO -- : [70a1b15e-bb4e-4d16-a26c-46f5c09026cf] Processing by ApplicationController#missing as */*
+I, [2021-10-24T01:24:14.666499 #62868]  INFO -- : [70a1b15e-bb4e-4d16-a26c-46f5c09026cf]   Parameters: {"not_found"=>""}
+I, [2021-10-24T01:24:14.666867 #62868]  INFO -- : [70a1b15e-bb4e-4d16-a26c-46f5c09026cf] Completed 404 Not Found in 0ms (Views: 0.1ms)
+I, [2021-10-24T01:24:27.096381 #62953]  INFO -- : [e8cd55f3-a83e-4448-b7d4-49898ef31f88] Started GET "/" for 127.0.0.1 at 2021-10-24 01:24:27 +0200
+I, [2021-10-24T01:24:27.097040 #62953]  INFO -- : [e8cd55f3-a83e-4448-b7d4-49898ef31f88] Processing by ApplicationController#missing as */*
+I, [2021-10-24T01:24:27.097085 #62953]  INFO -- : [e8cd55f3-a83e-4448-b7d4-49898ef31f88]   Parameters: {"not_found"=>""}
+I, [2021-10-24T01:24:27.097593 #62953]  INFO -- : [e8cd55f3-a83e-4448-b7d4-49898ef31f88] Completed 404 Not Found in 0ms (Views: 0.2ms)
+I, [2021-10-24T01:24:47.910358 #63027]  INFO -- : [bd00a90f-f408-4392-975e-63bf91040565] Started GET "/" for 127.0.0.1 at 2021-10-24 01:24:47 +0200
+I, [2021-10-24T01:24:47.911549 #63027]  INFO -- : [bd00a90f-f408-4392-975e-63bf91040565] Processing by ApplicationController#missing as */*
+I, [2021-10-24T01:24:47.911616 #63027]  INFO -- : [bd00a90f-f408-4392-975e-63bf91040565]   Parameters: {"not_found"=>""}
+I, [2021-10-24T01:24:47.912824 #63027]  INFO -- : [bd00a90f-f408-4392-975e-63bf91040565] Completed 404 Not Found in 1ms (Views: 0.2ms)
+I, [2021-10-24T01:36:38.179592 #65454]  INFO -- : [92600d69-daef-47f9-aa09-2b0145aa77fd] Started GET "/1.0/identifiers/asdf" for 127.0.0.1 at 2021-10-24 01:36:38 +0200
+I, [2021-10-24T01:36:38.180355 #65454]  INFO -- : [92600d69-daef-47f9-aa09-2b0145aa77fd] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:36:38.180419 #65454]  INFO -- : [92600d69-daef-47f9-aa09-2b0145aa77fd]   Parameters: {"did"=>"asdf"}
+I, [2021-10-24T01:36:38.318637 #65454]  INFO -- : [92600d69-daef-47f9-aa09-2b0145aa77fd] Completed 500 Internal Server Error in 138ms
+F, [2021-10-24T01:36:38.319190 #65454] FATAL -- : [92600d69-daef-47f9-aa09-2b0145aa77fd]   
+F, [2021-10-24T01:36:38.319255 #65454] FATAL -- : [92600d69-daef-47f9-aa09-2b0145aa77fd] NoMethodError (undefined method `[]' for nil:NilClass):
+F, [2021-10-24T01:36:38.319301 #65454] FATAL -- : [92600d69-daef-47f9-aa09-2b0145aa77fd]   
+F, [2021-10-24T01:36:38.319342 #65454] FATAL -- : [92600d69-daef-47f9-aa09-2b0145aa77fd] app/controllers/dids_controller.rb:18:in `resolve'
+I, [2021-10-24T01:37:02.877831 #65454]  INFO -- : [f8c979f0-7f0b-46cf-9968-2e69c8a6bcde] Started GET "/1.0/identifiers/asdf" for 127.0.0.1 at 2021-10-24 01:37:02 +0200
+I, [2021-10-24T01:37:02.878501 #65454]  INFO -- : [f8c979f0-7f0b-46cf-9968-2e69c8a6bcde] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:37:02.878550 #65454]  INFO -- : [f8c979f0-7f0b-46cf-9968-2e69c8a6bcde]   Parameters: {"did"=>"asdf"}
+I, [2021-10-24T01:37:02.994796 #65454]  INFO -- : [f8c979f0-7f0b-46cf-9968-2e69c8a6bcde] Completed 500 Internal Server Error in 116ms
+F, [2021-10-24T01:37:02.995490 #65454] FATAL -- : [f8c979f0-7f0b-46cf-9968-2e69c8a6bcde]   
+F, [2021-10-24T01:37:02.995577 #65454] FATAL -- : [f8c979f0-7f0b-46cf-9968-2e69c8a6bcde] NoMethodError (undefined method `[]' for nil:NilClass):
+F, [2021-10-24T01:37:02.995633 #65454] FATAL -- : [f8c979f0-7f0b-46cf-9968-2e69c8a6bcde]   
+F, [2021-10-24T01:37:02.995688 #65454] FATAL -- : [f8c979f0-7f0b-46cf-9968-2e69c8a6bcde] app/controllers/dids_controller.rb:18:in `resolve'
+I, [2021-10-24T01:37:20.277264 #65583]  INFO -- : [d8b17dc4-51a6-4a4c-a196-dc0d62120c3f] Started GET "/1.0/identifiers/asdf" for 127.0.0.1 at 2021-10-24 01:37:20 +0200
+I, [2021-10-24T01:37:20.278011 #65583]  INFO -- : [d8b17dc4-51a6-4a4c-a196-dc0d62120c3f] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:37:20.278066 #65583]  INFO -- : [d8b17dc4-51a6-4a4c-a196-dc0d62120c3f]   Parameters: {"did"=>"asdf"}
+I, [2021-10-24T01:37:20.406643 #65583]  INFO -- : [d8b17dc4-51a6-4a4c-a196-dc0d62120c3f] Completed 500 Internal Server Error in 128ms
+F, [2021-10-24T01:37:20.407218 #65583] FATAL -- : [d8b17dc4-51a6-4a4c-a196-dc0d62120c3f]   
+F, [2021-10-24T01:37:20.407313 #65583] FATAL -- : [d8b17dc4-51a6-4a4c-a196-dc0d62120c3f] NoMethodError (undefined method `[]' for nil:NilClass):
+F, [2021-10-24T01:37:20.407356 #65583] FATAL -- : [d8b17dc4-51a6-4a4c-a196-dc0d62120c3f]   
+F, [2021-10-24T01:37:20.407397 #65583] FATAL -- : [d8b17dc4-51a6-4a4c-a196-dc0d62120c3f] app/controllers/dids_controller.rb:21:in `resolve'
+I, [2021-10-24T01:38:13.754816 #65756]  INFO -- : [6ef3553c-2688-4ebd-ad51-803433d391f0] Started GET "/1.0/identifiers/asdf" for 127.0.0.1 at 2021-10-24 01:38:13 +0200
+I, [2021-10-24T01:38:13.755437 #65756]  INFO -- : [6ef3553c-2688-4ebd-ad51-803433d391f0] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:38:13.755483 #65756]  INFO -- : [6ef3553c-2688-4ebd-ad51-803433d391f0]   Parameters: {"did"=>"asdf"}
+I, [2021-10-24T01:38:13.872901 #65756]  INFO -- : [6ef3553c-2688-4ebd-ad51-803433d391f0] Completed 500 Internal Server Error in 117ms
+F, [2021-10-24T01:38:13.873303 #65756] FATAL -- : [6ef3553c-2688-4ebd-ad51-803433d391f0]   
+F, [2021-10-24T01:38:13.873346 #65756] FATAL -- : [6ef3553c-2688-4ebd-ad51-803433d391f0] NoMethodError (undefined method `[]' for nil:NilClass):
+F, [2021-10-24T01:38:13.873372 #65756] FATAL -- : [6ef3553c-2688-4ebd-ad51-803433d391f0]   
+F, [2021-10-24T01:38:13.873400 #65756] FATAL -- : [6ef3553c-2688-4ebd-ad51-803433d391f0] app/controllers/dids_controller.rb:21:in `resolve'
+I, [2021-10-24T01:38:55.742774 #65891]  INFO -- : [2e2beed0-b799-4b13-8a41-36c2e5c1684f] Started GET "/1.0/identifiers/asdf" for 127.0.0.1 at 2021-10-24 01:38:55 +0200
+I, [2021-10-24T01:38:55.743492 #65891]  INFO -- : [2e2beed0-b799-4b13-8a41-36c2e5c1684f] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:38:55.743543 #65891]  INFO -- : [2e2beed0-b799-4b13-8a41-36c2e5c1684f]   Parameters: {"did"=>"asdf"}
+I, [2021-10-24T01:38:55.864604 #65891]  INFO -- : [2e2beed0-b799-4b13-8a41-36c2e5c1684f] Completed 500 Internal Server Error in 121ms
+F, [2021-10-24T01:38:55.865102 #65891] FATAL -- : [2e2beed0-b799-4b13-8a41-36c2e5c1684f]   
+F, [2021-10-24T01:38:55.865148 #65891] FATAL -- : [2e2beed0-b799-4b13-8a41-36c2e5c1684f] NoMethodError (undefined method `[]' for nil:NilClass):
+F, [2021-10-24T01:38:55.865176 #65891] FATAL -- : [2e2beed0-b799-4b13-8a41-36c2e5c1684f]   
+F, [2021-10-24T01:38:55.865206 #65891] FATAL -- : [2e2beed0-b799-4b13-8a41-36c2e5c1684f] app/controllers/dids_controller.rb:21:in `resolve'
+I, [2021-10-24T01:39:34.598030 #66012]  INFO -- : [8ef457cc-a788-4aa4-876b-21db87334ba7] Started GET "/1.0/identifiers/asdf" for 127.0.0.1 at 2021-10-24 01:39:34 +0200
+I, [2021-10-24T01:39:34.598656 #66012]  INFO -- : [8ef457cc-a788-4aa4-876b-21db87334ba7] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:39:34.598713 #66012]  INFO -- : [8ef457cc-a788-4aa4-876b-21db87334ba7]   Parameters: {"did"=>"asdf"}
+I, [2021-10-24T01:39:34.738416 #66012]  INFO -- : [8ef457cc-a788-4aa4-876b-21db87334ba7] Completed 500 Internal Server Error in 140ms
+F, [2021-10-24T01:39:34.739308 #66012] FATAL -- : [8ef457cc-a788-4aa4-876b-21db87334ba7]   
+F, [2021-10-24T01:39:34.739427 #66012] FATAL -- : [8ef457cc-a788-4aa4-876b-21db87334ba7] NoMethodError (undefined method `[]' for nil:NilClass):
+F, [2021-10-24T01:39:34.739494 #66012] FATAL -- : [8ef457cc-a788-4aa4-876b-21db87334ba7]   
+F, [2021-10-24T01:39:34.739553 #66012] FATAL -- : [8ef457cc-a788-4aa4-876b-21db87334ba7] app/controllers/dids_controller.rb:21:in `resolve'
+I, [2021-10-24T01:40:41.086766 #66219]  INFO -- : [69c1fe7c-5dba-47dc-923d-12e27bba0603] Started GET "/1.0/identifiers/asdf" for 127.0.0.1 at 2021-10-24 01:40:41 +0200
+I, [2021-10-24T01:40:41.087366 #66219]  INFO -- : [69c1fe7c-5dba-47dc-923d-12e27bba0603] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:40:41.087473 #66219]  INFO -- : [69c1fe7c-5dba-47dc-923d-12e27bba0603]   Parameters: {"did"=>"asdf"}
+I, [2021-10-24T01:40:41.229062 #66219]  INFO -- : [69c1fe7c-5dba-47dc-923d-12e27bba0603] Completed 500 Internal Server Error in 141ms
+F, [2021-10-24T01:40:41.229544 #66219] FATAL -- : [69c1fe7c-5dba-47dc-923d-12e27bba0603]   
+F, [2021-10-24T01:40:41.229599 #66219] FATAL -- : [69c1fe7c-5dba-47dc-923d-12e27bba0603] NoMethodError (undefined method `[]' for nil:NilClass):
+F, [2021-10-24T01:40:41.229629 #66219] FATAL -- : [69c1fe7c-5dba-47dc-923d-12e27bba0603]   
+F, [2021-10-24T01:40:41.229659 #66219] FATAL -- : [69c1fe7c-5dba-47dc-923d-12e27bba0603] app/controllers/dids_controller.rb:21:in `resolve'
+I, [2021-10-24T01:41:20.738818 #66341]  INFO -- : [cdaff7cb-a0bd-48e3-9f88-72a7f6f17b0f] Started GET "/1.0/identifiers/asdf" for 127.0.0.1 at 2021-10-24 01:41:20 +0200
+I, [2021-10-24T01:41:20.739515 #66341]  INFO -- : [cdaff7cb-a0bd-48e3-9f88-72a7f6f17b0f] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:41:20.739569 #66341]  INFO -- : [cdaff7cb-a0bd-48e3-9f88-72a7f6f17b0f]   Parameters: {"did"=>"asdf"}
+I, [2021-10-24T01:41:21.095343 #66341]  INFO -- : [cdaff7cb-a0bd-48e3-9f88-72a7f6f17b0f] Completed 500 Internal Server Error in 121ms
+F, [2021-10-24T01:41:21.095725 #66341] FATAL -- : [cdaff7cb-a0bd-48e3-9f88-72a7f6f17b0f]   
+F, [2021-10-24T01:41:21.095773 #66341] FATAL -- : [cdaff7cb-a0bd-48e3-9f88-72a7f6f17b0f] NoMethodError (undefined method `[]' for nil:NilClass):
+F, [2021-10-24T01:41:21.095857 #66341] FATAL -- : [cdaff7cb-a0bd-48e3-9f88-72a7f6f17b0f]   
+F, [2021-10-24T01:41:21.095888 #66341] FATAL -- : [cdaff7cb-a0bd-48e3-9f88-72a7f6f17b0f] app/controllers/dids_controller.rb:21:in `resolve'
+I, [2021-10-24T01:42:27.684703 #66341]  INFO -- : [e0534a5b-a692-496c-aa4a-ec7b025d54a3] Started GET "/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj" for 127.0.0.1 at 2021-10-24 01:42:27 +0200
+I, [2021-10-24T01:42:27.690399 #66341]  INFO -- : [e0534a5b-a692-496c-aa4a-ec7b025d54a3] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:42:27.995161 #66341]  INFO -- : [e0534a5b-a692-496c-aa4a-ec7b025d54a3]   Parameters: {"did"=>"did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj"}
+I, [2021-10-24T01:42:28.434334 #66341]  INFO -- : [e0534a5b-a692-496c-aa4a-ec7b025d54a3] Completed 500 Internal Server Error in 380ms
+F, [2021-10-24T01:42:28.436283 #66341] FATAL -- : [e0534a5b-a692-496c-aa4a-ec7b025d54a3]   
+F, [2021-10-24T01:42:28.436349 #66341] FATAL -- : [e0534a5b-a692-496c-aa4a-ec7b025d54a3] ArgumentError (wrong number of arguments (given 1, expected 2)):
+F, [2021-10-24T01:42:28.436387 #66341] FATAL -- : [e0534a5b-a692-496c-aa4a-ec7b025d54a3]   
+F, [2021-10-24T01:42:28.436421 #66341] FATAL -- : [e0534a5b-a692-496c-aa4a-ec7b025d54a3] app/helpers/application_helper.rb:1011:in `w3c_did'
+[e0534a5b-a692-496c-aa4a-ec7b025d54a3] app/controllers/dids_controller.rb:25:in `resolve'
+I, [2021-10-24T01:43:49.104318 #66822]  INFO -- : [8c50ec7e-9696-4e0a-94f7-ef79db430d43] Started GET "/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj" for 127.0.0.1 at 2021-10-24 01:43:49 +0200
+I, [2021-10-24T01:43:49.106423 #66822]  INFO -- : [8c50ec7e-9696-4e0a-94f7-ef79db430d43] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:43:49.106493 #66822]  INFO -- : [8c50ec7e-9696-4e0a-94f7-ef79db430d43]   Parameters: {"did"=>"did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj"}
+I, [2021-10-24T01:43:49.448420 #66822]  INFO -- : [8c50ec7e-9696-4e0a-94f7-ef79db430d43] Completed 500 Internal Server Error in 342ms
+F, [2021-10-24T01:43:49.448902 #66822] FATAL -- : [8c50ec7e-9696-4e0a-94f7-ef79db430d43]   
+F, [2021-10-24T01:43:49.448975 #66822] FATAL -- : [8c50ec7e-9696-4e0a-94f7-ef79db430d43] ArgumentError (wrong number of arguments (given 1, expected 2)):
+F, [2021-10-24T01:43:49.449007 #66822] FATAL -- : [8c50ec7e-9696-4e0a-94f7-ef79db430d43]   
+F, [2021-10-24T01:43:49.449038 #66822] FATAL -- : [8c50ec7e-9696-4e0a-94f7-ef79db430d43] app/helpers/application_helper.rb:1011:in `w3c_did'
+[8c50ec7e-9696-4e0a-94f7-ef79db430d43] app/controllers/dids_controller.rb:27:in `resolve'
+I, [2021-10-24T01:44:21.327938 #66916]  INFO -- : [5301e356-2d40-4335-8894-bd5fcf1d8508] Started GET "/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj" for 127.0.0.1 at 2021-10-24 01:44:21 +0200
+I, [2021-10-24T01:44:21.328600 #66916]  INFO -- : [5301e356-2d40-4335-8894-bd5fcf1d8508] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:44:21.328653 #66916]  INFO -- : [5301e356-2d40-4335-8894-bd5fcf1d8508]   Parameters: {"did"=>"did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj"}
+I, [2021-10-24T01:44:21.647284 #66916]  INFO -- : [5301e356-2d40-4335-8894-bd5fcf1d8508] Completed 500 Internal Server Error in 318ms
+F, [2021-10-24T01:44:21.647873 #66916] FATAL -- : [5301e356-2d40-4335-8894-bd5fcf1d8508]   
+F, [2021-10-24T01:44:21.647935 #66916] FATAL -- : [5301e356-2d40-4335-8894-bd5fcf1d8508] ArgumentError (wrong number of arguments (given 1, expected 2)):
+F, [2021-10-24T01:44:21.647970 #66916] FATAL -- : [5301e356-2d40-4335-8894-bd5fcf1d8508]   
+F, [2021-10-24T01:44:21.648004 #66916] FATAL -- : [5301e356-2d40-4335-8894-bd5fcf1d8508] app/helpers/application_helper.rb:1011:in `w3c_did'
+[5301e356-2d40-4335-8894-bd5fcf1d8508] app/controllers/dids_controller.rb:27:in `resolve'
+I, [2021-10-24T01:45:09.216988 #67069]  INFO -- : [5adc0db1-f6dd-4104-b685-cf10122186eb] Started GET "/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj" for 127.0.0.1 at 2021-10-24 01:45:09 +0200
+I, [2021-10-24T01:45:09.217607 #67069]  INFO -- : [5adc0db1-f6dd-4104-b685-cf10122186eb] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:45:09.217654 #67069]  INFO -- : [5adc0db1-f6dd-4104-b685-cf10122186eb]   Parameters: {"did"=>"did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj"}
+I, [2021-10-24T01:45:09.570948 #67069]  INFO -- : [5adc0db1-f6dd-4104-b685-cf10122186eb] Completed 500 Internal Server Error in 353ms
+F, [2021-10-24T01:45:09.571387 #67069] FATAL -- : [5adc0db1-f6dd-4104-b685-cf10122186eb]   
+F, [2021-10-24T01:45:09.571435 #67069] FATAL -- : [5adc0db1-f6dd-4104-b685-cf10122186eb] ArgumentError (wrong number of arguments (given 1, expected 2)):
+F, [2021-10-24T01:45:09.571464 #67069] FATAL -- : [5adc0db1-f6dd-4104-b685-cf10122186eb]   
+F, [2021-10-24T01:45:09.571498 #67069] FATAL -- : [5adc0db1-f6dd-4104-b685-cf10122186eb] app/helpers/application_helper.rb:1011:in `w3c_did'
+[5adc0db1-f6dd-4104-b685-cf10122186eb] app/controllers/dids_controller.rb:27:in `resolve'
+I, [2021-10-24T01:45:45.935601 #67069]  INFO -- : [81435d80-f3f8-4534-9422-fbdc0462e24f] Started GET "/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj" for 127.0.0.1 at 2021-10-24 01:45:45 +0200
+I, [2021-10-24T01:45:45.936163 #67069]  INFO -- : [81435d80-f3f8-4534-9422-fbdc0462e24f] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:45:45.936214 #67069]  INFO -- : [81435d80-f3f8-4534-9422-fbdc0462e24f]   Parameters: {"did"=>"did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj"}
+I, [2021-10-24T01:45:46.260868 #67069]  INFO -- : [81435d80-f3f8-4534-9422-fbdc0462e24f] Completed 500 Internal Server Error in 325ms
+F, [2021-10-24T01:45:46.261389 #67069] FATAL -- : [81435d80-f3f8-4534-9422-fbdc0462e24f]   
+F, [2021-10-24T01:45:46.261454 #67069] FATAL -- : [81435d80-f3f8-4534-9422-fbdc0462e24f] ArgumentError (wrong number of arguments (given 1, expected 2)):
+F, [2021-10-24T01:45:46.261491 #67069] FATAL -- : [81435d80-f3f8-4534-9422-fbdc0462e24f]   
+F, [2021-10-24T01:45:46.261528 #67069] FATAL -- : [81435d80-f3f8-4534-9422-fbdc0462e24f] app/helpers/application_helper.rb:1011:in `w3c_did'
+[81435d80-f3f8-4534-9422-fbdc0462e24f] app/controllers/dids_controller.rb:27:in `resolve'
+I, [2021-10-24T01:45:56.343201 #67219]  INFO -- : [57da4899-a125-4562-8f87-edcdbcd88013] Started GET "/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj" for 127.0.0.1 at 2021-10-24 01:45:56 +0200
+I, [2021-10-24T01:45:56.343881 #67219]  INFO -- : [57da4899-a125-4562-8f87-edcdbcd88013] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:45:56.343926 #67219]  INFO -- : [57da4899-a125-4562-8f87-edcdbcd88013]   Parameters: {"did"=>"did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj"}
+I, [2021-10-24T01:45:56.729428 #67219]  INFO -- : [57da4899-a125-4562-8f87-edcdbcd88013] Completed 500 Internal Server Error in 385ms
+F, [2021-10-24T01:45:56.729830 #67219] FATAL -- : [57da4899-a125-4562-8f87-edcdbcd88013]   
+F, [2021-10-24T01:45:56.764650 #67219] FATAL -- : [57da4899-a125-4562-8f87-edcdbcd88013] NameError (undefined local variable or method `options' for #<DidsController:0x00007f8b2e77ace8>
+Did you mean?  url_options):
+F, [2021-10-24T01:45:56.764739 #67219] FATAL -- : [57da4899-a125-4562-8f87-edcdbcd88013]   
+F, [2021-10-24T01:45:56.764777 #67219] FATAL -- : [57da4899-a125-4562-8f87-edcdbcd88013] app/helpers/application_helper.rb:1036:in `w3c_did'
+[57da4899-a125-4562-8f87-edcdbcd88013] app/controllers/dids_controller.rb:27:in `resolve'
+I, [2021-10-24T01:46:23.181320 #67219]  INFO -- : [9e87aefd-4a64-4935-a18e-6f1af8307718] Started GET "/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj" for 127.0.0.1 at 2021-10-24 01:46:23 +0200
+I, [2021-10-24T01:46:23.181951 #67219]  INFO -- : [9e87aefd-4a64-4935-a18e-6f1af8307718] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:46:23.182012 #67219]  INFO -- : [9e87aefd-4a64-4935-a18e-6f1af8307718]   Parameters: {"did"=>"did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj"}
+I, [2021-10-24T01:46:23.556341 #67219]  INFO -- : [9e87aefd-4a64-4935-a18e-6f1af8307718] Completed 500 Internal Server Error in 374ms
+F, [2021-10-24T01:46:23.556709 #67219] FATAL -- : [9e87aefd-4a64-4935-a18e-6f1af8307718]   
+F, [2021-10-24T01:46:23.589881 #67219] FATAL -- : [9e87aefd-4a64-4935-a18e-6f1af8307718] NameError (undefined local variable or method `options' for #<DidsController:0x00007f8b2e7ea8b8>
+Did you mean?  url_options):
+F, [2021-10-24T01:46:23.589969 #67219] FATAL -- : [9e87aefd-4a64-4935-a18e-6f1af8307718]   
+F, [2021-10-24T01:46:23.590004 #67219] FATAL -- : [9e87aefd-4a64-4935-a18e-6f1af8307718] app/helpers/application_helper.rb:1036:in `w3c_did'
+[9e87aefd-4a64-4935-a18e-6f1af8307718] app/controllers/dids_controller.rb:27:in `resolve'
+I, [2021-10-24T01:46:51.272722 #67219]  INFO -- : [3abea065-1a8c-414b-88fb-8c936af38dc8] Started GET "/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj" for 127.0.0.1 at 2021-10-24 01:46:51 +0200
+I, [2021-10-24T01:46:51.273591 #67219]  INFO -- : [3abea065-1a8c-414b-88fb-8c936af38dc8] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:46:51.273646 #67219]  INFO -- : [3abea065-1a8c-414b-88fb-8c936af38dc8]   Parameters: {"did"=>"did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj"}
+I, [2021-10-24T01:46:51.666791 #67219]  INFO -- : [3abea065-1a8c-414b-88fb-8c936af38dc8] Completed 500 Internal Server Error in 393ms
+F, [2021-10-24T01:46:51.667201 #67219] FATAL -- : [3abea065-1a8c-414b-88fb-8c936af38dc8]   
+F, [2021-10-24T01:46:51.700531 #67219] FATAL -- : [3abea065-1a8c-414b-88fb-8c936af38dc8] NameError (undefined local variable or method `options' for #<DidsController:0x00007f8b2f29d8c8>
+Did you mean?  url_options):
+F, [2021-10-24T01:46:51.700630 #67219] FATAL -- : [3abea065-1a8c-414b-88fb-8c936af38dc8]   
+F, [2021-10-24T01:46:51.700663 #67219] FATAL -- : [3abea065-1a8c-414b-88fb-8c936af38dc8] app/helpers/application_helper.rb:1036:in `w3c_did'
+[3abea065-1a8c-414b-88fb-8c936af38dc8] app/controllers/dids_controller.rb:27:in `resolve'
+I, [2021-10-24T01:47:31.609143 #67219]  INFO -- : [df511d0b-b1a3-4bd3-8829-5771d280cc4e] Started GET "/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj" for 127.0.0.1 at 2021-10-24 01:47:31 +0200
+I, [2021-10-24T01:47:31.609948 #67219]  INFO -- : [df511d0b-b1a3-4bd3-8829-5771d280cc4e] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:47:31.609997 #67219]  INFO -- : [df511d0b-b1a3-4bd3-8829-5771d280cc4e]   Parameters: {"did"=>"did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj"}
+I, [2021-10-24T01:47:32.002240 #67219]  INFO -- : [df511d0b-b1a3-4bd3-8829-5771d280cc4e] Completed 500 Internal Server Error in 392ms
+F, [2021-10-24T01:47:32.002679 #67219] FATAL -- : [df511d0b-b1a3-4bd3-8829-5771d280cc4e]   
+F, [2021-10-24T01:47:32.036082 #67219] FATAL -- : [df511d0b-b1a3-4bd3-8829-5771d280cc4e] NameError (undefined local variable or method `options' for #<DidsController:0x00007f8b301d3a68>
+Did you mean?  url_options):
+F, [2021-10-24T01:47:32.036162 #67219] FATAL -- : [df511d0b-b1a3-4bd3-8829-5771d280cc4e]   
+F, [2021-10-24T01:47:32.036189 #67219] FATAL -- : [df511d0b-b1a3-4bd3-8829-5771d280cc4e] app/helpers/application_helper.rb:1036:in `w3c_did'
+[df511d0b-b1a3-4bd3-8829-5771d280cc4e] app/controllers/dids_controller.rb:27:in `resolve'
+I, [2021-10-24T01:48:00.186135 #67219]  INFO -- : [ee5feade-b2e5-4827-a63c-87ce1cfeca0e] Started GET "/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj" for 127.0.0.1 at 2021-10-24 01:48:00 +0200
+I, [2021-10-24T01:48:00.186635 #67219]  INFO -- : [ee5feade-b2e5-4827-a63c-87ce1cfeca0e] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:48:00.186680 #67219]  INFO -- : [ee5feade-b2e5-4827-a63c-87ce1cfeca0e]   Parameters: {"did"=>"did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj"}
+I, [2021-10-24T01:48:00.624500 #67219]  INFO -- : [ee5feade-b2e5-4827-a63c-87ce1cfeca0e] Completed 500 Internal Server Error in 438ms
+F, [2021-10-24T01:48:00.624941 #67219] FATAL -- : [ee5feade-b2e5-4827-a63c-87ce1cfeca0e]   
+F, [2021-10-24T01:48:00.655396 #67219] FATAL -- : [ee5feade-b2e5-4827-a63c-87ce1cfeca0e] NameError (undefined local variable or method `options' for #<DidsController:0x00007f8b3042a320>
+Did you mean?  url_options):
+F, [2021-10-24T01:48:00.655486 #67219] FATAL -- : [ee5feade-b2e5-4827-a63c-87ce1cfeca0e]   
+F, [2021-10-24T01:48:00.655527 #67219] FATAL -- : [ee5feade-b2e5-4827-a63c-87ce1cfeca0e] app/helpers/application_helper.rb:1036:in `w3c_did'
+[ee5feade-b2e5-4827-a63c-87ce1cfeca0e] app/controllers/dids_controller.rb:27:in `resolve'
+I, [2021-10-24T01:48:10.797570 #67652]  INFO -- : [fa89a557-7d0b-4fb3-9477-4bbc7fe32eff] Started GET "/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj" for 127.0.0.1 at 2021-10-24 01:48:10 +0200
+I, [2021-10-24T01:48:10.798218 #67652]  INFO -- : [fa89a557-7d0b-4fb3-9477-4bbc7fe32eff] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:48:10.798263 #67652]  INFO -- : [fa89a557-7d0b-4fb3-9477-4bbc7fe32eff]   Parameters: {"did"=>"did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj"}
+I, [2021-10-24T01:48:11.121586 #67652]  INFO -- : [fa89a557-7d0b-4fb3-9477-4bbc7fe32eff] Completed 200 OK in 323ms (Views: 0.2ms)
+I, [2021-10-24T01:48:31.990708 #67652]  INFO -- : [6590819f-29fc-4d23-b252-eca11dee8382] Started GET "/1.0/identifiers/asdf" for 127.0.0.1 at 2021-10-24 01:48:31 +0200
+I, [2021-10-24T01:48:31.991321 #67652]  INFO -- : [6590819f-29fc-4d23-b252-eca11dee8382] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:48:31.991372 #67652]  INFO -- : [6590819f-29fc-4d23-b252-eca11dee8382]   Parameters: {"did"=>"asdf"}
+I, [2021-10-24T01:48:32.099643 #67652]  INFO -- : [6590819f-29fc-4d23-b252-eca11dee8382] Completed 500 Internal Server Error in 108ms
+F, [2021-10-24T01:48:32.100124 #67652] FATAL -- : [6590819f-29fc-4d23-b252-eca11dee8382]   
+F, [2021-10-24T01:48:32.100172 #67652] FATAL -- : [6590819f-29fc-4d23-b252-eca11dee8382] NoMethodError (undefined method `[]' for nil:NilClass):
+F, [2021-10-24T01:48:32.100201 #67652] FATAL -- : [6590819f-29fc-4d23-b252-eca11dee8382]   
+F, [2021-10-24T01:48:32.100230 #67652] FATAL -- : [6590819f-29fc-4d23-b252-eca11dee8382] app/controllers/dids_controller.rb:21:in `resolve'
+I, [2021-10-24T01:50:13.601405 #68027]  INFO -- : [ed65cae1-b7d8-4189-ad78-de0517b10a6a] Started GET "/1.0/identifiers/asdf" for 127.0.0.1 at 2021-10-24 01:50:13 +0200
+I, [2021-10-24T01:50:13.602057 #68027]  INFO -- : [ed65cae1-b7d8-4189-ad78-de0517b10a6a] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:50:13.602105 #68027]  INFO -- : [ed65cae1-b7d8-4189-ad78-de0517b10a6a]   Parameters: {"did"=>"asdf"}
+I, [2021-10-24T01:50:13.737223 #68027]  INFO -- : [ed65cae1-b7d8-4189-ad78-de0517b10a6a] Completed 500 Internal Server Error in 135ms
+F, [2021-10-24T01:50:13.737768 #68027] FATAL -- : [ed65cae1-b7d8-4189-ad78-de0517b10a6a]   
+F, [2021-10-24T01:50:13.737837 #68027] FATAL -- : [ed65cae1-b7d8-4189-ad78-de0517b10a6a] NoMethodError (undefined method `[]' for nil:NilClass):
+F, [2021-10-24T01:50:13.737878 #68027] FATAL -- : [ed65cae1-b7d8-4189-ad78-de0517b10a6a]   
+F, [2021-10-24T01:50:13.737918 #68027] FATAL -- : [ed65cae1-b7d8-4189-ad78-de0517b10a6a] app/controllers/dids_controller.rb:14:in `resolve'
+I, [2021-10-24T01:50:19.422046 #68027]  INFO -- : [19a29548-b48e-4585-a7af-05bf8e40c593] Started GET "/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj" for 127.0.0.1 at 2021-10-24 01:50:19 +0200
+I, [2021-10-24T01:50:19.422582 #68027]  INFO -- : [19a29548-b48e-4585-a7af-05bf8e40c593] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:50:19.422635 #68027]  INFO -- : [19a29548-b48e-4585-a7af-05bf8e40c593]   Parameters: {"did"=>"did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj"}
+I, [2021-10-24T01:50:19.729497 #68027]  INFO -- : [19a29548-b48e-4585-a7af-05bf8e40c593] Completed 200 OK in 307ms (Views: 0.2ms)
+I, [2021-10-24T01:50:23.797014 #68027]  INFO -- : [a1c2be45-062e-4a19-bee4-7d7ccfc41226] Started GET "/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj" for 127.0.0.1 at 2021-10-24 01:50:23 +0200
+I, [2021-10-24T01:50:23.797658 #68027]  INFO -- : [a1c2be45-062e-4a19-bee4-7d7ccfc41226] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:50:23.797725 #68027]  INFO -- : [a1c2be45-062e-4a19-bee4-7d7ccfc41226]   Parameters: {"did"=>"did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj"}
+I, [2021-10-24T01:50:24.092805 #68027]  INFO -- : [a1c2be45-062e-4a19-bee4-7d7ccfc41226] Completed 200 OK in 295ms (Views: 0.1ms)
+I, [2021-10-24T01:52:13.678290 #68027]  INFO -- : [b9387ed2-708d-4ff2-8cf4-a011c24c9618] Started GET "/1.0/identifiers/asdf" for 127.0.0.1 at 2021-10-24 01:52:13 +0200
+I, [2021-10-24T01:52:13.678794 #68027]  INFO -- : [b9387ed2-708d-4ff2-8cf4-a011c24c9618] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:52:13.678842 #68027]  INFO -- : [b9387ed2-708d-4ff2-8cf4-a011c24c9618]   Parameters: {"did"=>"asdf"}
+I, [2021-10-24T01:52:13.811406 #68027]  INFO -- : [b9387ed2-708d-4ff2-8cf4-a011c24c9618] Completed 500 Internal Server Error in 132ms
+F, [2021-10-24T01:52:13.812167 #68027] FATAL -- : [b9387ed2-708d-4ff2-8cf4-a011c24c9618]   
+F, [2021-10-24T01:52:13.812253 #68027] FATAL -- : [b9387ed2-708d-4ff2-8cf4-a011c24c9618] NoMethodError (undefined method `[]' for nil:NilClass):
+F, [2021-10-24T01:52:13.812313 #68027] FATAL -- : [b9387ed2-708d-4ff2-8cf4-a011c24c9618]   
+F, [2021-10-24T01:52:13.812366 #68027] FATAL -- : [b9387ed2-708d-4ff2-8cf4-a011c24c9618] app/controllers/dids_controller.rb:14:in `resolve'
+I, [2021-10-24T01:52:36.869934 #68491]  INFO -- : [50971f9f-1662-461a-9f4a-1399d95a4f9e] Started GET "/1.0/identifiers/asdf" for 127.0.0.1 at 2021-10-24 01:52:36 +0200
+I, [2021-10-24T01:52:36.870861 #68491]  INFO -- : [50971f9f-1662-461a-9f4a-1399d95a4f9e] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:52:36.870940 #68491]  INFO -- : [50971f9f-1662-461a-9f4a-1399d95a4f9e]   Parameters: {"did"=>"asdf"}
+I, [2021-10-24T01:52:36.989358 #68491]  INFO -- : [50971f9f-1662-461a-9f4a-1399d95a4f9e] Completed 404 Not Found in 118ms (Views: 0.3ms)
+I, [2021-10-24T01:52:40.018860 #68491]  INFO -- : [18a35f50-a909-4438-a178-4cd8cd9816ea] Started GET "/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj" for 127.0.0.1 at 2021-10-24 01:52:40 +0200
+I, [2021-10-24T01:52:40.019412 #68491]  INFO -- : [18a35f50-a909-4438-a178-4cd8cd9816ea] Processing by DidsController#resolve as */*
+I, [2021-10-24T01:52:40.019461 #68491]  INFO -- : [18a35f50-a909-4438-a178-4cd8cd9816ea]   Parameters: {"did"=>"did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj"}
+I, [2021-10-24T01:52:40.342926 #68491]  INFO -- : [18a35f50-a909-4438-a178-4cd8cd9816ea] Completed 200 OK in 323ms (Views: 0.1ms)
