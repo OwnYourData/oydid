@@ -1,0 +1,8 @@
+
+Welcome to OYDID (Own Your Decentralized IDentifier)
+
+Installed components:
+* oydid - version: ${oydid}
+* jq - version: ${jq}
+
+More information: https://github.com/OwnYourData/oydid/

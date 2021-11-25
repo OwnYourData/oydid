@@ -14,6 +14,7 @@ require 'uri'
 
 LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
+VERSION = "0.4.1"
 
 def oyd_encode(message)
     Multibases.pack("base58btc", message).to_s
@@ -1207,8 +1208,12 @@ def sc_create(content, did, options)
 
 end
 
+def print_version()
+    puts VERSION
+end
+
 def print_help()
-    puts "oydid - manage DIDs using the oyd:did method [version 0.3.1]"
+    puts "oydid - manage DIDs using the oyd:did method [version " + VERSION + "]"
     puts ""
     puts "Usage: oydid [OPERATION] [OPTION]"
     puts ""
@@ -1257,6 +1262,7 @@ def print_help()
     puts "                                     Semantic Container"
     puts "     --trace                       - display trace/debug information when"
     puts "                                     processing request"
+    puts " -v, --version                     - display version number"
     puts "     --w3c-did                     - display DID Document in W3C conform"
     puts "                                     format"
 end
@@ -1309,6 +1315,10 @@ opt_parser = OptionParser.new do |opt|
   end
   opt.on("-h", "--help") do |h|
     print_help()
+    exit(0)
+  end
+  opt.on("-v", "--version") do |h|
+    print_version()
     exit(0)
   end
 end
