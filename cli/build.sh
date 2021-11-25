@@ -6,6 +6,7 @@ REPOSITORY="oydeu"
 # read commandline options
 BUILD_CLEAN=false
 DOCKER_UPDATE=false
+BUILD_LOCAL=false
 
 
 while [ $# -gt 0 ]; do
@@ -15,6 +16,9 @@ while [ $# -gt 0 ]; do
             ;;
         --dockerhub*)
             DOCKER_UPDATE=true
+            ;;
+        --local*)
+            BUILD_LOCAL=true
             ;;
         *)
             printf "unknown option(s)\n"
@@ -28,9 +32,17 @@ while [ $# -gt 0 ]; do
 done
 
 if $BUILD_CLEAN; then
-    docker build --no-cache -f ./docker/Dockerfile -t $REPOSITORY/$CONTAINER .
+    if $BUILD_LOCAL; then
+        docker build --no-cache -f ./docker/Dockerfile.local -t $REPOSITORY/$CONTAINER .
+    else
+        docker build --no-cache -f ./docker/Dockerfile -t $REPOSITORY/$CONTAINER .
+    fi
 else
-    docker build -f ./docker/Dockerfile -t $REPOSITORY/$CONTAINER .
+    if $BUILD_LOCAL; then
+        docker build -f ./docker/Dockerfile.local -t $REPOSITORY/$CONTAINER .
+    else
+        docker build -f ./docker/Dockerfile -t $REPOSITORY/$CONTAINER .
+    fi
 fi
 
 if $DOCKER_UPDATE; then
