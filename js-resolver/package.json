@@ -5,6 +5,10 @@
   "author": "Gabriel Unterholzer",
   "license": "MIT",
   "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com/OwnYourData/oydid"
+  },
   "files": [
     "dist"
   ],
