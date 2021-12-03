@@ -13,7 +13,8 @@ OYDID provides a self-sustained environment for managing digital identifiers (DI
     * Sources: https://github.com/OwnYourData/oydid/tree/main/repository    
     * use the `oydeu/oydid-base` image on Dockerhub: https://hub.docker.com/r/oydeu/oydid-base    
     * API documentation is available here: https://api-docs.ownyourdata.eu/oydid/    
-* Universal Resolver driver: https://github.com/OwnYourData/oydid/tree/main/repository    
+* Universal Resolver driver: https://github.com/OwnYourData/oydid/tree/main/uniresolver-plugin    
+* JS library for [`did-resolver`](https://github.com/decentralized-identity/did-resolver): https://github.com/OwnYourData/oydid/tree/main/js-resolver     
 
 &nbsp;    
 
