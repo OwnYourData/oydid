@@ -8,6 +8,15 @@
   "files": [
     "dist"
   ],
+  "keywords": [
+    "did:oyd",
+    "DID",
+    "DID document",
+    "resolver",
+    "oydid",
+    "ownyourdata",
+    "registry"
+  ],
   "scripts": {
     "start": "tsc -w",
     "build": "tsc",
