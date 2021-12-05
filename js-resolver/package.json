@@ -1,12 +1,25 @@
 {
   "name": "oydid-did-resolver",
   "description": "OYDID resolver for did-resolve",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Gabriel Unterholzer",
   "license": "MIT",
   "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com/OwnYourData/oydid"
+  },
   "files": [
     "dist"
+  ],
+  "keywords": [
+    "did:oyd",
+    "DID",
+    "DID document",
+    "resolver",
+    "oydid",
+    "ownyourdata",
+    "registry"
   ],
   "scripts": {
     "start": "tsc -w",

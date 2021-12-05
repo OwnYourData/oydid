@@ -4,7 +4,9 @@ This library is intended to use [OYDID](https://github.com/oydeu/oydid) as fully
 
 It supports the proposed [Decentralized Identifiers](https://w3c.github.io/did-core/#identifier) spec from the [W3C Credentials Community Group](https://w3c-ccg.github.io/).
 
-It requires the [`did-resolver`](https://github.com/decentralized-identity/did-resolver) library, which is the primary interface for resolving DIDs.
+It requires the [`did-resolver`](https://github.com/decentralized-identity/did-resolver) library, which is the primary interface for resolving DIDs. Also it is dependent on a hosted resolver that can resolve OYDID DIDs. Such an implementation can be found here: https://github.com/OwnYourData/oydid
+
+There is also a publicly available resolver at https://oydid-resolver.data-container.net, which is used as fallback resolver within this library.
 
 ## DID method
 
@@ -12,6 +14,32 @@ The `did:oyd` method links the identifier cryptographically to the DID Document 
 
 Example:    
 `did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj`
+
+## Installation
+
+Node.js and npm are prerequisites for installation.
+
+```bash
+npm install oydid-did-resolver
+```
+
+## Usage
+
+The library presents a `resolve()` functions that returns a `Promise` returning the  DID document. It is not meant to be used directly but through the **`did-resolver`** aggregator.    
+
+```javascript
+const { Resolver } = require('did-resolver');
+const oydid = require('oydid-did-resolver');
+
+const resolver = new Resolver({
+  ...oydid.getResolver()
+});
+
+// resolve test-did
+resolver.resolve('did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj').then(data =>
+  console.log(JSON.stringify(data, undefined, 2))
+);
+```
 
 ## DID Document
 
@@ -64,24 +92,4 @@ A minimal DID document using the above sample DID looks like this:
 		"termination_log_id": 1
 	}
 }
-```
-
-## Resolving a DID document
-
-the library presents a `resolve()` functions that returns a `Promise` returning the  DID document. It is not meant to be used directly but through the **`did-resolver`** aggregator.    
-
-```
-const { Resolver } = require('did-resolver');
-const oydid = require('../dist/index.js');
-
-const oydidResolver = oydid.getResolver();
-
-const resolver = new Resolver({
-  ...oydidResolver
-});
-
-// resolve test-did
-resolver.resolve('did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj').then(data =>
-  console.log(JSON.stringify(data, undefined, 2))
-);
 ```
