@@ -1,10 +1,8 @@
 const { Resolver } = require('did-resolver');
 const oydid = require('../dist/index.js');
 
-const oydidResolver = oydid.getResolver();
-
 const resolver = new Resolver({
-  ...oydidResolver
+  ...oydid.getResolver()
 });
 
 // resolve test-did
