@@ -13,4 +13,4 @@ USER user
 WORKDIR /home/user
 COPY docker/home .
 
-CMD ["sh"]
+CMD ["bash"]

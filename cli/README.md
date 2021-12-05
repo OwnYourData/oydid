@@ -5,19 +5,19 @@ OYDID (Own Your Digital IDentifier) provides a self-sustained environment for ma
 ## Installation
 Run the following command to copy `oydid.rb` into `~/bin/oydid` (requires Ruby 2.5.7 or higher):
 ```bash
-sh -c "curl -fsSL https://raw.githubusercontent.com/OwnYourData/did-cmd/main/install.sh | sh"
+sh -c "curl -fsSL https://raw.githubusercontent.com/OwnYourData/oydid/main/cli/install.sh | sh"
 ```
 
 ## Run via Docker
 To use the dockerized version of oydid run:
 ```bash
-docker run -it --rm oydeu/oydid
+docker run -it --rm oydeu/oydid-cli
 ```
 
 Often it makes sense to keep private keys and revocation information beyond a Docker session:
 
 * create a local directory, e.g., `mkdir ~/.oydid`
-* mount this directory on startup: `docker run -it --rm -v ~/.oydid:/home/oydid oydeu/oydid`
+* mount this directory on startup: `docker run -it --rm -v ~/.oydid:/home/oydid oydeu/oydid-cli`
 
 
 ## Example
@@ -32,19 +32,21 @@ oydid read {use output from above did:oyd:...}
 ```
 
 ## Further Resources
-Read about the concept and examples: [OYDIDintro.pdf](https://github.com/OwnYourData/did-cmd/blob/main/docs/OYDIDintro.pdf)    
-W3C conform DID Method Specification: https://github.com/OwnYourData/did-cmd/blob/main/docs/did-spec.md    
-`oydid` commandline tool in a Docker image: https://hub.docker.com/repository/docker/oydeu/oydid     
+Read about the concept and examples: [OYDIDintro.pdf](https://github.com/OwnYourData/oydid/blob/main/docs/OYDIDintro.pdf)    
+W3C conform DID Method Specification: https://github.com/OwnYourData/oydid/blob/main/docs/did-spec.md    
+`oydid` commandline tool in a Docker image: https://hub.docker.com/r/oydeu/oydid-cli         
 To host DIDs yourself you can use the `oydid/did-base` image on Dockerhub: https://hub.docker.com/r/oydid/did-base    
 API documentation is available here: https://api-docs.ownyourdata.eu/oydid/    
-Universal Resolver driver: https://github.com/OwnYourData/did-cmd/tree/main/resolver    
+Universal Resolver driver: https://github.com/OwnYourData/oydid/tree/main/uniresolver-plugin    
+JS library for `did-resolver`: https://github.com/OwnYourData/oydid/tree/main/js-resolver    
+
 
 
 &nbsp;    
 
 ## OYDID Command Line Tool
 
-Please report bugs and suggestions for new features using the [GitHub Issue-Tracker](https://github.com/OwnYourData/did-cmd/issues) and follow the [Contributor Guidelines](https://github.com/twbs/ratchet/blob/master/CONTRIBUTING.md).
+Please report bugs and suggestions for new features using the [GitHub Issue-Tracker](https://github.com/OwnYourData/oydid/issues) and follow the [Contributor Guidelines](https://github.com/twbs/ratchet/blob/master/CONTRIBUTING.md).
 
 If you want to contribute, please follow these steps:
 
@@ -58,4 +60,4 @@ If you want to contribute, please follow these steps:
 
 ## Lizenz
 
-[MIT License 2021 - OwnYourData.eu](https://raw.githubusercontent.com/OwnYourData/did-cmd/main/LICENSE)
+[MIT License 2021 - OwnYourData.eu](https://raw.githubusercontent.com/OwnYourData/oydid/main/LICENSE)
