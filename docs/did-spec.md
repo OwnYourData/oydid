@@ -33,7 +33,7 @@ Decentralized Identifiers (DIDs) [1] are a new type of identifier for verifiable
 
 While DLT-based DID Methods have great decentralization characteristics, and some of the more centralized DID Methods provide strong system control guarantees, the general approaches tend to be expensive to set up and operate. OYDID takes the approach to not maintain DID and DID Document on a public ledger but on one or more local storages (that might be publicly available). Through cryptographically linking the DID Identifier to the DID Document, and furthermore linking the DID Document to a chained provenance trail the same security and validation properties as a traditional DID can be maintained while avoiding highly redundant storage and also works in settings without general public access.
 
-The rest of this document outlines the syntax for the ´did:oyd´ method, the operations it supports, and some security and privacy considerations as well as ehtical aspects that implementers might want to be aware of when using this DID method.
+The rest of this document outlines the syntax for the `did:oyd` method, the operations it supports, and some security and privacy considerations as well as ehtical aspects that implementers might want to be aware of when using this DID method.
 
 
 ## 2.	The `did:oyd` Format
