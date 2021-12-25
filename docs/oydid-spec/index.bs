@@ -1,0 +1,15 @@
+<pre class='metadata'>
+Title: Own Your DID Method Specification
+Shortname: oydid-spec
+Level: 1
+Status: w3c/CG-DRAFT
+Group: w3c-ccg
+URL: https://ownyourdata.github.io/did-method-oyd/
+Editor: Christoph Fabianek, OwnYourData https://ownyourdata.eu, christoph@ownyourdata.eu
+Abstract: OYDID (Own Your Digital IDentifier) provides a self-sustained environment for managing digital identifiers (DIDs).
+</pre>
+
+Introduction {#intro}
+=====================
+
+Introduction here.
