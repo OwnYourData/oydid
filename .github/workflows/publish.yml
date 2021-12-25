@@ -19,6 +19,6 @@ jobs:
         with:
           GH_PAGES_BRANCH: gh-pages
           TOOLCHAIN: bikeshed
-          SOURCE: index.bs
+          SOURCE: docs/index.bs
           VALIDATE_LINKS: false
           VALIDATE_MARKUP: false
