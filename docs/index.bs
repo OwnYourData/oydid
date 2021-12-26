@@ -1,16 +1,63 @@
 <pre class='metadata'>
-Title: Your Spec Title
-Shortname: your-spec
+Title: OYD DID Method
+Shortname: oydid-spec
 Level: 1
 Status: w3c/CG-DRAFT
 Group: w3c-ccg
-URL: Your spec url
-Editor: Your Name, Your Company http://example.com/your-company, your-email@example.com, http://example.com/your-personal-website
-Abstract: A short description of your spec, one or two sentences.
+URL: https://ownyourdata.github.io/oydid/
+Editor: Christoph Fabianek, OwnYourData https://OwnYourData.eu, christoph@ownyourdata.eu
+Abstract: OYDID (Own Your Decentralized IDentifier) provides a self-sustained environment for managing decentralized identifiers (DIDs).
 </pre>
 
 Introduction {#intro}
 =====================
 
-Introduction here.
+Decentralized Identifiers (DIDs) [1] are a new type of identifier for verifiable, decentralized digital identity. These new identifiers are designed to enable the controller of a DID to prove control over it and to be implemented independently of any centralized registry, identity provider, or certificate authority. These sorts of identifiers often utilize a heavy-weight registry, such as ones utilizing Decentralized Ledger Technologies (DLT), to create, read, update, and deactivate DIDs.
+
+While DLT-based DID Methods have great decentralization characteristics, and some of the more centralized DID Methods provide strong system control guarantees, the general approaches tend to be expensive to set up and operate. OYDID takes the approach to not maintain DID and DID Document on a public ledger but on one or more local storages (that might be publicly available). Through cryptographically linking the DID Identifier to the DID Document, and furthermore linking the DID Document to a chained provenance trail the same security and validation properties as a traditional DID can be maintained while avoiding highly redundant storage and also works in settings without general public access.
+
+The rest of this document outlines the syntax for the `did:oyd` method, the operations it supports, and some security and privacy considerations as well as ehtical aspects that implementers might want to be aware of when using this DID method.
+
+
+The `did:oyd` Format {#format}
+==============================
+
+The format for the `did:oyd` method conforms to the DID core specification [1] as outlined by W3C. It consists of the `did:oyd` prefix, followed by a Multibase [2] (default: `base58-btc`) encoded value that is a Multihash [3] (default: `sha2-256`) value of composed of information from the payload, keys, and log.
+
+The detailed calculation of the DID identifier from the internal document and log information via ABNF is described here:
+
+```
+; !syntax("abnf")
+did-oyd-format                = "did:oyd:" identifier
+identifier                    = MULTIBASE ( base-identifier did-information-hash )
+did-information-hash          = MULTIHASH ( hash-identifier did-information )
+did-information               = "{doc:" payload ",key:" key-value ",log:" log-value "}"
+payload                       = <json-grammar-rules>
+key-value                     = public-doc-key-encoded ":" public-revocation-key-encoded
+log-value                     = termination-hash-encoded
+public-doc-key-encoded        = MULTIBASE ( base-identifier public-doc-key )
+public-doc-key                = <public key from Ed25519 key pair used for verifying payload> 
+public-revocation-key-encoded = MULTIBASE ( base-identifier public-revocation-key )
+public-revocation-key         = <public key from Ed25519 key pair used for verifying revocations>
+termination-hash-encoded      = MULTIBASE ( base-identifier termination-log-entry-hash )
+termination-log-entry-hash    = MULTIHASH ( hash-identifier termination-log-entry )
+termination-log-entry         = "{op:" DIGIT ",ts:" DIGIT ",doc:" revoke-encoded ",sig:" sig-revoke-encoded ",previous: []}"
+revoke-encoded                = MULTIBASE ( base-identifier revoke-hash )
+revoke-hash                   = MULTIHASH ( hash-identifier sub-revocation-log-entry )
+sub-revocation-log-entry      = "{op:" DIGIT ", ts:" DIGIT ", doc:" sub-doc-encoded ", sig:" sig-sub-doc-encoded "}"
+sig-revoke-encoded            = MULTIBASE ( base-identifier sig-revoke )
+sig-revoke                    = <signed revoke-encoded with private key from Ed25519 key-pair used for verifying revocation>
+sub-doc-encoded               = MULTIBASE ( base-identifier sub-doc-hash )
+sub-doc-hash                  = MULTIHASH ( hash-identifier sub-doc )
+sub-doc                       = "{doc:" payload ",key:" key-value "}"
+sig-sub-doc-encoded           = MULTIBASE ( base-identifier sig-sub-doc )
+sig-sub-doc                   = <sign sub-doc-encoded with private key from Ed25519 key-pair used for payload>
+base-identifier               = DEFAULT base58btc
+hash-identifier               = DEFAULT sha2-256
+```
+
+DID Operations {#operations}
+============================
+
+The following section outlines the DID operations for the `did:oyd` method.
 
