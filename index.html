@@ -8,7 +8,7 @@
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
   <meta content="Bikeshed version cace53f8c, updated Tue Dec 7 12:12:54 2021 -0800" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="5a4ec177e99a5cfd4b2bafd35c5bbd10b1fcd251" name="document-revision">
+  <meta content="3bef6383c27994366c1cd5011ebf8d1fc0c2da8d" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -438,7 +438,14 @@ dfn > a.self-link::before      { content: "#"; }
    <ol class="toc" role="directory">
     <li><a href="#intro"><span class="secno">1</span> <span class="content">Introduction</span></a>
     <li><a href="#format"><span class="secno">2</span> <span class="content">The `did:oyd` Format</span></a>
-    <li><a href="#operations"><span class="secno">3</span> <span class="content">DID Operations</span></a>
+    <li>
+     <a href="#operations"><span class="secno">3</span> <span class="content">DID Operations</span></a>
+     <ol class="toc">
+      <li><a href="#create"><span class="secno">3.1</span> <span class="content">Create (Register)</span></a>
+      <li><a href="#read"><span class="secno">3.2</span> <span class="content">Read (Resolve)</span></a>
+      <li><a href="#update"><span class="secno">3.3</span> <span class="content">Update</span></a>
+      <li><a href="#deactivate"><span class="secno">3.4</span> <span class="content">Deactivate</span></a>
+     </ol>
     <li>
      <a href="#w3c-conformance"><span class="secno"></span> <span class="content">Conformance</span></a>
      <ol class="toc">
@@ -490,6 +497,145 @@ hash-identifier               = DEFAULT sha2-256
 </pre>
    <h2 class="heading settled" data-level="3" id="operations"><span class="secno">3. </span><span class="content">DID Operations</span><a class="self-link" href="#operations"></a></h2>
    <p>The following section outlines the DID operations for the `did:oyd` method.</p>
+   <h3 class="heading settled" data-level="3.1" id="create"><span class="secno">3.1. </span><span class="content">Create (Register)</span><a class="self-link" href="#create"></a></h3>
+   <p>Creating a `did:oyd` identifier requires a payload (e.g., service endpoints) as JSON document and two ED25519 cryptographic key pairs using the format provided in Section 2.</p>
+   <p>The DID document and associated log entries are stored in a registry accessible by relevant stakeholders. An example is given below (*EXAMPLE 1*) listing a payload, internal and W3C conform DID document, log entries, private keys, and private revocation document.</p>
+   <p>*EXAMPLE 1: An example DID with all associated information and representations*
+DID: `did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj`</p>
+   <p>Payload:</p>
+<pre>{
+    "foo": "bar"
+}
+</pre>
+   <p>Internal DID document:</p>
+<pre>{
+    "doc": {
+        "foo": "bar"
+    },
+    "key": "z2MC8dVTmUN5sR4pf5H8CiEPJiqqsdyTSp8Jd8YZ8MBR3:zBD5cx11PaXDLG7vUmhKBzDeZnXFPAaNTqpWFZsAQom2M",
+    "log": "zQmcE3b3ENZ5aDCyCcqe2wsbUytUexBubaUuAfTTfTJ7dhA"
+}
+</pre>
+   <p>W3C conform DID document:</p>
+<pre>{
+    "@context": "https://www.w3.org/ns/did/v1",
+    "id": "did:oyd:zQmaV8M4Pazau8WWwsVeyMQWmmckHXr1L2UPtyEjqfy6wXe",
+    "verificationMethod": [{
+        "id": "did:oyd:zQmaV8M4Pazau8WWwsVeyMQWmmckHXr1L2UPtyEjqfy6wXe",
+        "type": "Ed25519VerificationKey2018",
+        "controller": "did:oyd:zQmaV8M4Pazau8WWwsVeyMQWmmckHXr1L2UPtyEjqfy6wXe",
+        "publicKeyBase58": "z2MC8dVTmUN5sR4pf5H8CiEPJiqqsdyTSp8Jd8YZ8MBR3"
+    }],
+    "keyAgreement": [{
+        "id": "did:oyd:zQmaV8M4Pazau8WWwsVeyMQWmmckHXr1L2UPtyEjqfy6wXe",
+        "type": "X25519KeyAgreementKey2019",
+        "controller": "did:oyd:zQmaV8M4Pazau8WWwsVeyMQWmmckHXr1L2UPtyEjqfy6wXe",
+        "publicKeyBase58": "zBD5cx11PaXDLG7vUmhKBzDeZnXFPAaNTqpWFZsAQom2M"
+    }],
+    "service": [{
+        "foo": "bar"
+    }]
+}
+</pre>
+   <p>Log entries:</p>
+<pre>[{
+    "ts": 1633298265,
+    "op": 2,
+    "doc": "zQmaV8M4Pazau8WWwsVeyMQWmmckHXr1L2UPtyEjqfy6wXe",
+    "sig": "z2useWt4sdvyhS9ShFdVVUaF4can1dZP3me2ZZYCoSCppendHnhRH8t9MprMCeG7Z8m8Yc77WhqBXLpzQ9gbA5SQU",
+    "previous": []
+}, {
+    "ts": 1633298265,
+    "op": 0,
+    "doc": "zQmSNQmMSZixRoDWAorp8FsSmonGn6R2EKhNbEZCZqQEL7J",
+    "sig": "z4vr45B8M91xRaMuWXgX796JA2p1WfQ2i6URMtULwKtz4cgjSVDxDUgVdKBM9Ftn6RoAsgE6C2EDp2YaRUVQgNWVB",
+    "previous": []
+}]
+</pre>
+   <p>Private payload key: `z8H1vqLXBt566s7Zt8Zpr4qYLvh4dngS4bb9vuwX4X3n7`</p>
+   <p>Private revocation key: `z4oACjiKVzDTdHuocH3DDqhdSBqsVpQb1HBZo7rAJduz4`</p>
+   <p>Private revocation document:</p>
+<pre>{
+    "ts": 1633298265,
+    "op": 1,
+    "doc": "zQmaE6SWSzdW8dhub7K4fff5NHUy9bieEwarPZDq7BubaJr",
+    "sig": "z4o77Eq665Bjp5KfHc4x7PTvwnyF9LhgUB7n4u5Skqi7Wv1CaGdXknvUQjdimzNTtpXpf4uDCciDfe2vn6SyBR4Vk"
+}
+</pre>
+   <h3 class="heading settled" data-level="3.2" id="read"><span class="secno">3.2. </span><span class="content">Read (Resolve)</span><a class="self-link" href="#read"></a></h3>
+   <p>Reading a `did:oyd` is a matter of searching for a DID document that either can be directly linked (through hashing and encoding) to the provided identifier or through traversing through the log to unambiguously link the provided identifier to the latest version of the DID document. Cryptographic proof for the link between DID Identifier and DID Document, ownership, and completeness is performed in the following steps (here the example for a newly created DID without any updates so far):</p>
+   <ol>
+    <li data-md>
+     <p>the identifier is the encoded hash value of the internal DID document (the hashing algorithm is encoded in the identifier using MULTIHASH, default: `SHA2-256`, the encoding algorithm is also encoded in the identifier using MULTIBASE, default: `base58-btc`)</p>
+    <li data-md>
+     <p>the DID document includes public keys (encoded with MULTIBASE, default: `base58-btc`) and the hash value of a DID log entry</p>
+    <li data-md>
+     <p>the log entry (create, op=2) for the DID document provides a signature ("sig") of the identifier ("doc") to prove possession of the private key, i.e., use the public ED25519 payload key in the DID document to verify this signature)</p>
+    <li data-md>
+     <p>the other log entry (terminate, op=0) provides revocation info; in case a log entry with the stated hash in doc exists the DID resolving process must continue</p>
+   </ol>
+   <p>An example is given below (*EXAMPLE 2*) depicting the log entries to be evaluated for linking an old DID identifier (DID v1) to the content of DID v2.</p>
+   <p>*EXAMPLE 2: Visualization and process of linked log entries to resolve a DID identifier*</p>
+   <p align="center"> <img src="res/DIDv2dag.png" width="350"><br> <em>Figure 2: Visualization of log entries in EXAMPLE 2</em> </p>
+   <p>Process:</p>
+   <ol>
+    <li data-md>
+     <p>User wants to resolves DID v1 and queries OYDID registry with identifier</p>
+    <li data-md>
+     <p>OYDID registry responds with (outdated) DID document for DID v1 and log entries create and terminate (shown on the very left in the picture above)</p>
+    <li data-md>
+     <p>Resolver (automatically) queries the OYDID registry for a revocation log entry with the hash stored in the terminate entry</p>
+    <li data-md>
+     <p>OYDID repository returns revoke entry</p>
+    <li data-md>
+     <p>Resolver (automatically) queries the OYDID registry for log entries that hold the hash value of the revoke entry</p>
+    <li data-md>
+     <p>OYDID repository must retrieve exactly one update entry (and associated terminate entry) plus associated DID document (DID v2) as linked by the update entry</p>
+    <li data-md>
+     <p>Resolver validates linked hash entries and queries again OYDID registry for a revocation lo entry from the second terminate entry (shown on the very right in the picture above)</p>
+    <li data-md>
+     <p>OYDID repository finds no information of such a revocation entry and therefore the resolver can return DID v2 as the latest document</p>
+   </ol>
+   <p class="note" role="note"><span>Note:</span> it is in the interest of the owner to publish revocation entries and make those easily accessible to ensure that even outdated DID identifier resolve to the latest DID document</p>
+   <h3 class="heading settled" data-level="3.3" id="update"><span class="secno">3.3. </span><span class="content">Update</span><a class="self-link" href="#update"></a></h3>
+   <p>Updating `did:oyd` is providing a new DID document (and/or new keys for key rotation) while also publishing the revocation document and original keys to prove ownership. An example is given below (*EXAMPLE 3*) of all log entries for an updated DID.</p>
+   <p>*EXAMPLE 3: An example DID with all associated information and representations*</p>
+<pre>[{
+    "ts": 1633300869,
+    "op": 2,
+    "doc": "zQmdxfGRfFEnLoJ9RTiyzG9TPBhK7q6zsqrGFVzuxVPv4dq",
+    "sig": "ziY1pSb9irVMykHotX1UDsNXP8V6iF4REVqfk2trQP9rtooAKcMkXHgjz8VTC3FEDTjKk6D2Z3ywLer1i9NKaLo4",
+    "previous": []
+}, {
+    "ts": 1633300869,
+    "op": 0,
+    "doc": "zQmVnLPgFYYNf4GEzzD3gLbSR4xhpdk7dU4BWQR4pJr7R4Z",
+    "sig": "z2gJqK2bGP5VfZdCVijBeuUtzxiNaZm4NNMH6zm4EVG2LD4rqZg62c5craaQwEPEjxSbgjH4kE79DPwddghiNjirk",
+    "previous": []
+}, {
+    "ts": 1633300869,
+    "op": 1,
+    "doc": "zQmVYqZoGSncYGybUnZi514niKgju68B6AVp7KJAdVifsYU",
+    "sig": "z461mfYfCvLvkeeN9vdd1yNoqFBpKAwFHD1xLRQUb4evBwEXCJLZXT9qcfQo54VTrr3eow3mJHZ3aGa7inuP29ZXg",
+    "previous": ["zQmVDzKVeyj4k8RYWHtKdML6MXUZX8Lu4LiiS46SfhQkZfG", 
+                 "zQmSjHywvbeHV1JzsLwexzXS9246vzHkyBUkwSbXDH5f1gg"]
+}, {
+    "ts": 1633300910,
+    "op": 3,
+    "doc": "zQmNUV1MJ5xKkFm6Lc9EKqAauGzbKP7amvbyxsx79mKwqPB",
+    "sig": "z2UMg3AhegwzuMgrJ1bTRDyu9W9Kp8G7ERZi2Kin3JG8UhwJqf1yivNEYY5JvB9aPDfH8GEEw9Mbvscqhk1LJH8cp",
+    "previous": ["zQmetSQY5UZd91ubdWyQTh2gqVuKwkUVtjamh33p7spaYVR"]
+}, {
+    "ts": 1633300910,
+    "op": 0,
+    "doc": "zQmQTdAmqxuQQB2yBj4qZoS4ooNUnL7PzwUydEepDqjJHd4",
+    "sig": "z5Bh8VwnUUQzFruVJosySBDfJJy5CRADbpYHjNH2qFjcCx71J6QJxttVhfnh7ZgfZpir9ghsNk24g3vRrDkvhR3jZ",
+    "previous": []
+}]
+</pre>
+   <h3 class="heading settled" data-level="3.4" id="deactivate"><span class="secno">3.4. </span><span class="content">Deactivate</span><a class="self-link" href="#deactivate"></a></h3>
+   <p>Deactivating an OYDID is simply done by publishing the private revocation entry without providing any update record. The figure below depicts the log representing a deactivated DID.</p>
+   <p align="center"> <img src="docs/res/DIDdeactivated.png" width="400"><br> <em>Figure 3: Visualization of log entries for a deactivated DID</em> </p>
   </main>
   <div data-fill-with="conformance">
    <h2 class="no-ref no-num heading settled" id="w3c-conformance"><span class="content">Conformance</span><a class="self-link" href="#w3c-conformance"></a></h2>
