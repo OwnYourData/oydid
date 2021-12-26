@@ -61,7 +61,7 @@ DID Operations {#operations}
 
 The following section outlines the DID operations for the `did:oyd` method.
 
-### Create (Register) ### {#create}
+## Create (Register) ## {#create}
 
 Creating a `did:oyd` identifier requires a payload (e.g., service endpoints) as JSON document and two ED25519 cryptographic key pairs using the format provided in Section 2.
 
@@ -143,7 +143,7 @@ Private revocation document:
 ```
 
 
-### Read (Resolve) ### {#read}
+## Read (Resolve) ## {#read}
 
 Reading a `did:oyd` is a matter of searching for a DID document that either can be directly linked (through hashing and encoding) to the provided identifier or through traversing through the log to unambiguously link the provided identifier to the latest version of the DID document. Cryptographic proof for the link between DID Identifier and DID Document, ownership, and completeness is performed in the following steps (here the example for a newly created DID without any updates so far):
 
@@ -177,7 +177,7 @@ Process:
 Note: it is in the interest of the owner to publish revocation entries and make those easily accessible to ensure that even outdated DID identifier resolve to the latest DID document
 
 
-### Update ### {#update}
+## Update ## {#update}
 
 Updating `did:oyd` is providing a new DID document (and/or new keys for key rotation) while also publishing the revocation document and original keys to prove ownership. An example is given below (*EXAMPLE 3*) of all log entries for an updated DID.
 
@@ -219,7 +219,7 @@ Updating `did:oyd` is providing a new DID document (and/or new keys for key rota
 ```
 
 
-### Deactivate ### {#deactivate}
+## Deactivate ## {#deactivate}
 
 Deactivating an OYDID is simply done by publishing the private revocation entry without providing any update record. The figure below depicts the log representing a deactivated DID.
 
