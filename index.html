@@ -2,13 +2,13 @@
  <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-  <title>Your Spec Title</title>
+  <title>OYD DID Method</title>
   <meta content="w3c/CG-DRAFT" name="w3c-status">
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
   <meta content="Bikeshed version cace53f8c, updated Tue Dec 7 12:12:54 2021 -0800" name="generator">
-  <link href="Your spec url" rel="canonical">
-  <meta content="391e0a8336cb03dc528e8a270c592ce0836f25ca" name="document-revision">
+  <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
+  <meta content="5a4ec177e99a5cfd4b2bafd35c5bbd10b1fcd251" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -405,18 +405,18 @@ dfn > a.self-link::before      { content: "#"; }
  <body class="h-entry">
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
-   <h1 class="p-name no-ref" id="title">Your Spec Title</h1>
+   <h1 class="p-name no-ref" id="title">OYD DID Method</h1>
    <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2021-12-26">26 December 2021</time></p>
    <details open>
     <summary>More details about this document</summary>
     <div data-fill-with="spec-metadata">
      <dl>
       <dt>This version:
-      <dd><a class="u-url" href="Your spec url">Your spec url</a>
+      <dd><a class="u-url" href="https://ownyourdata.github.io/oydid/">https://ownyourdata.github.io/oydid/</a>
       <dt>Issue Tracking:
       <dd><a href="https://github.com/OwnYourData/oydid/issues/">GitHub</a>
       <dt class="editor">Editor:
-      <dd class="editor p-author h-card vcard"><a class="p-name fn u-url url" href="http://example.com/your-personal-website">Your Name</a> (<a class="p-org org" href="http://example.com/your-company">Your Company</a>) <a class="u-email email" href="mailto:your-email@example.com">your-email@example.com</a>
+      <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:christoph@ownyourdata.eu">Christoph Fabianek</a> (<a class="p-org org" href="https://OwnYourData.eu">OwnYourData</a>)
      </dl>
     </div>
    </details>
@@ -426,7 +426,7 @@ dfn > a.self-link::before      { content: "#"; }
   </div>
   <div class="p-summary" data-fill-with="abstract">
    <h2 class="no-num no-toc no-ref heading settled" id="abstract"><span class="content">Abstract</span></h2>
-   <p>A short description of your spec, one or two sentences.</p>
+   <p>OYDID (Own Your Decentralized IDentifier) provides a self-sustained environment for managing decentralized identifiers (DIDs).</p>
   </div>
   <h2 class="no-num no-toc no-ref heading settled" id="sotd"><span class="content">Status of this document</span></h2>
   <div data-fill-with="status">
@@ -437,6 +437,8 @@ dfn > a.self-link::before      { content: "#"; }
    <h2 class="no-num no-toc no-ref" id="contents">Table of Contents</h2>
    <ol class="toc" role="directory">
     <li><a href="#intro"><span class="secno">1</span> <span class="content">Introduction</span></a>
+    <li><a href="#format"><span class="secno">2</span> <span class="content">The `did:oyd` Format</span></a>
+    <li><a href="#operations"><span class="secno">3</span> <span class="content">DID Operations</span></a>
     <li>
      <a href="#w3c-conformance"><span class="secno"></span> <span class="content">Conformance</span></a>
      <ol class="toc">
@@ -452,7 +454,42 @@ dfn > a.self-link::before      { content: "#"; }
   </nav>
   <main>
    <h2 class="heading settled" data-level="1" id="intro"><span class="secno">1. </span><span class="content">Introduction</span><a class="self-link" href="#intro"></a></h2>
-   <p>Introduction here.</p>
+   <p>Decentralized Identifiers (DIDs) [1] are a new type of identifier for verifiable, decentralized digital identity. These new identifiers are designed to enable the controller of a DID to prove control over it and to be implemented independently of any centralized registry, identity provider, or certificate authority. These sorts of identifiers often utilize a heavy-weight registry, such as ones utilizing Decentralized Ledger Technologies (DLT), to create, read, update, and deactivate DIDs.</p>
+   <p>While DLT-based DID Methods have great decentralization characteristics, and some of the more centralized DID Methods provide strong system control guarantees, the general approaches tend to be expensive to set up and operate. OYDID takes the approach to not maintain DID and DID Document on a public ledger but on one or more local storages (that might be publicly available). Through cryptographically linking the DID Identifier to the DID Document, and furthermore linking the DID Document to a chained provenance trail the same security and validation properties as a traditional DID can be maintained while avoiding highly redundant storage and also works in settings without general public access.</p>
+   <p>The rest of this document outlines the syntax for the `did:oyd` method, the operations it supports, and some security and privacy considerations as well as ehtical aspects that implementers might want to be aware of when using this DID method.</p>
+   <h2 class="heading settled" data-level="2" id="format"><span class="secno">2. </span><span class="content">The `did:oyd` Format</span><a class="self-link" href="#format"></a></h2>
+   <p>The format for the `did:oyd` method conforms to the DID core specification [1] as outlined by W3C. It consists of the `did:oyd` prefix, followed by a Multibase [2] (default: `base58-btc`) encoded value that is a Multihash [3] (default: `sha2-256`) value of composed of information from the payload, keys, and log.</p>
+   <p>The detailed calculation of the DID identifier from the internal document and log information via ABNF is described here:</p>
+<pre>; !syntax("abnf")
+did-oyd-format                = "did:oyd:" identifier
+identifier                    = MULTIBASE ( base-identifier did-information-hash )
+did-information-hash          = MULTIHASH ( hash-identifier did-information )
+did-information               = "{doc:" payload ",key:" key-value ",log:" log-value "}"
+payload                       = &lt;json-grammar-rules>
+key-value                     = public-doc-key-encoded ":" public-revocation-key-encoded
+log-value                     = termination-hash-encoded
+public-doc-key-encoded        = MULTIBASE ( base-identifier public-doc-key )
+public-doc-key                = &lt;public key from Ed25519 key pair used for verifying payload> 
+public-revocation-key-encoded = MULTIBASE ( base-identifier public-revocation-key )
+public-revocation-key         = &lt;public key from Ed25519 key pair used for verifying revocations>
+termination-hash-encoded      = MULTIBASE ( base-identifier termination-log-entry-hash )
+termination-log-entry-hash    = MULTIHASH ( hash-identifier termination-log-entry )
+termination-log-entry         = "{op:" DIGIT ",ts:" DIGIT ",doc:" revoke-encoded ",sig:" sig-revoke-encoded ",previous: []}"
+revoke-encoded                = MULTIBASE ( base-identifier revoke-hash )
+revoke-hash                   = MULTIHASH ( hash-identifier sub-revocation-log-entry )
+sub-revocation-log-entry      = "{op:" DIGIT ", ts:" DIGIT ", doc:" sub-doc-encoded ", sig:" sig-sub-doc-encoded "}"
+sig-revoke-encoded            = MULTIBASE ( base-identifier sig-revoke )
+sig-revoke                    = &lt;signed revoke-encoded with private key from Ed25519 key-pair used for verifying revocation>
+sub-doc-encoded               = MULTIBASE ( base-identifier sub-doc-hash )
+sub-doc-hash                  = MULTIHASH ( hash-identifier sub-doc )
+sub-doc                       = "{doc:" payload ",key:" key-value "}"
+sig-sub-doc-encoded           = MULTIBASE ( base-identifier sig-sub-doc )
+sig-sub-doc                   = &lt;sign sub-doc-encoded with private key from Ed25519 key-pair used for payload>
+base-identifier               = DEFAULT base58btc
+hash-identifier               = DEFAULT sha2-256
+</pre>
+   <h2 class="heading settled" data-level="3" id="operations"><span class="secno">3. </span><span class="content">DID Operations</span><a class="self-link" href="#operations"></a></h2>
+   <p>The following section outlines the DID operations for the `did:oyd` method.</p>
   </main>
   <div data-fill-with="conformance">
    <h2 class="no-ref no-num heading settled" id="w3c-conformance"><span class="content">Conformance</span><a class="self-link" href="#w3c-conformance"></a></h2>
