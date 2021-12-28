@@ -69,11 +69,13 @@ The following section outlines the DID operations for the `did:oyd` method.
 
 ## Create (Register) ## {#create}
 
-Creating a `did:oyd` identifier requires a payload (e.g., service endpoints) as JSON document and two ED25519 cryptographic key pairs using the format provided in Section 2.
+Creating a `did:oyd` identifier requires a payload (e.g., service endpoints) as JSON document and two ED25519 cryptographic key pairs in the format described in Section [[#format]] (`public-doc-key-encoded`, `public-revocation-key-encoded`).
 
 The DID document and associated log entries are stored in a registry accessible by relevant stakeholders. An example is given below (*EXAMPLE 1*) listing a payload, internal and W3C conform DID document, log entries, private keys, and private revocation document.
 
-*EXAMPLE 1: An example DID with all associated information and representations*
+<div class=example>
+An example DID with all associated information and representations
+
 DID: `did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj`
 
 Payload:
@@ -147,6 +149,7 @@ Private revocation document:
     "sig": "z4o77Eq665Bjp5KfHc4x7PTvwnyF9LhgUB7n4u5Skqi7Wv1CaGdXknvUQjdimzNTtpXpf4uDCciDfe2vn6SyBR4Vk"
 }
 ```
+</div>
 
 
 ## Read (Resolve) ## {#read}
