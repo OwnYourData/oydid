@@ -28,7 +28,7 @@ The format for the `did:oyd` method conforms to the DID core specification [1] a
 The detailed calculation of the DID identifier from the internal document and log information via ABNF is described here:
 
 <pre class=include-code>
-path: docs/res/oydid.abnf
+path: res/oydid.abnf
 highlight: json
 </pre>
 
