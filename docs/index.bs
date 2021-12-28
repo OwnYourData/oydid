@@ -5,15 +5,32 @@ Level: 1
 Status: w3c/CG-DRAFT
 Group: w3c-ccg
 URL: https://ownyourdata.github.io/oydid/
+
 Editor: Christoph Fabianek, OwnYourData https://OwnYourData.eu, christoph@ownyourdata.eu, https://www.linkedin.com/in/fabianek/
-Abstract: OYDID (Own Your Decentralized IDentifier) provides a self-sustained environment for managing decentralized identifiers (DIDs).
+Editor: Wolfgang Kampichler, OwnYourData https://OwnYourData.eu, wolfgang.kampichler@gmail.com
+
+Abstract: Draft recommendations for use of a self-sustained environment to manage decentralized identifiers
 Markup Shorthands: markdown yes
 </pre>
+
+<pre class="biblio">
+{
+    "DID-CORE": {
+        "authors": [ "Manu Sporny", "Amy Guy", "Markus Sabadello", "Drummond Reed" ],
+        "href": "https://www.w3.org/TR/did-core/",
+        "title": "Decentralized Identifiers (DIDs) v1.0",
+        "status": "W3C Proposed Recommendation",
+        "publisher": "W3C"
+    }
+}
+</pre>
+
+This specification is not a W3C Standard nor is it on the W3C Standards Track. Learn more about [W3C Community and Business Groups](https://www.w3.org/community/). [GitHub Issues](https://github.com/OwnYourData/oydid/issues) are preferred for discussion of this specification.
 
 Introduction {#intro}
 =====================
 
-Decentralized Identifiers (DIDs) [1] are a new type of identifier for verifiable, decentralized digital identity. These new identifiers are designed to enable the controller of a DID to prove control over it and to be implemented independently of any centralized registry, identity provider, or certificate authority. These sorts of identifiers often utilize a heavy-weight registry, such as ones utilizing Decentralized Ledger Technologies (DLT), to create, read, update, and deactivate DIDs.
+Decentralized Identifiers (DIDs) [[DID-CORE]] are a new type of identifier for verifiable, decentralized digital identity. These new identifiers are designed to enable the controller of a DID to prove control over it and to be implemented independently of any centralized registry, identity provider, or certificate authority. These sorts of identifiers often utilize a heavy-weight registry, such as ones utilizing Decentralized Ledger Technologies (DLT), to create, read, update, and deactivate DIDs.
 
 While DLT-based DID Methods have great decentralization characteristics, and some of the more centralized DID Methods provide strong system control guarantees, the general approaches tend to be expensive to set up and operate. OYDID takes the approach to not maintain DID and DID Document on a public ledger but on one or more local storages (that might be publicly available). Through cryptographically linking the DID Identifier to the DID Document, and furthermore linking the DID Document to a chained provenance trail the same security and validation properties as a traditional DID can be maintained while avoiding highly redundant storage and also works in settings without general public access.
 
