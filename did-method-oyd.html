@@ -8,7 +8,7 @@
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
   <meta content="Bikeshed version cace53f8c, updated Tue Dec 7 12:12:54 2021 -0800" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="38950df83622ba167d58746ec0b8098bc19faa70" name="document-revision">
+  <meta content="98e32efaa6b7e9fd8c44ecdbe28ddfb6aef24b09" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -569,7 +569,17 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
       <li><a href="#update"><span class="secno">3.3</span> <span class="content">Update</span></a>
       <li><a href="#deactivate"><span class="secno">3.4</span> <span class="content">Deactivate</span></a>
      </ol>
-    <li><a href="#log"><span class="secno">4</span> <span class="content">DID Log</span></a>
+    <li>
+     <a href="#log"><span class="secno">4</span> <span class="content">DID Log</span></a>
+     <ol class="toc">
+      <li><a href="#log_ops"><span class="secno">4.1</span> <span class="content">Log Operations</span></a>
+      <li>
+       <a href="#verification"><span class="secno">4.2</span> <span class="content">Verification Steps</span></a>
+       <ol class="toc">
+        <li><a href="#calculate_hash"><span class="secno">4.2.1</span> <span class="content">Calculate hash value from message</span></a>
+        <li><a href="#retrieve_log"><span class="secno">4.2.2</span> <span class="content">Retrieve log entry from a repository based on hash value</span></a>
+       </ol>
+     </ol>
     <li><a href="#test"><span class="secno">5</span> <span class="content">Test Vectors</span></a>
     <li><a href="#privacy"><span class="secno">6</span> <span class="content">Security and Privacy Considerations</span></a>
     <li><a href="#ethics"><span class="secno">7</span> <span class="content">Ethical Aspects</span></a>
@@ -590,7 +600,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   </nav>
   <main>
    <p>This specification is not a W3C Standard nor is it on the W3C Standards Track. Learn more about <a href="https://www.w3.org/community/">W3C Community and Business Groups</a>. <a href="https://github.com/OwnYourData/oydid/issues">GitHub Issues</a> are preferred for discussion of this specification.</p>
-   <h3 class="heading settled" id="history"><span class="content">History</span></h3>
+   <h3 class="heading settled" id="history"><span class="content">History {#history}</span></h3>
    <ul>
     <li data-md>
      <p>Version 0.3: 19 October 2021 (initial public release, <a href="https://github.com/OwnYourData/oydid/blob/gh-pages/docs/did-spec_v03.md">link</a>)</p>
@@ -604,40 +614,58 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <h2 class="heading settled" data-level="2" id="format"><span class="secno">2. </span><span class="content">The <code>did:oyd</code> Format</span><a class="self-link" href="#format"></a></h2>
    <p>The format for the <code>did:oyd</code> method conforms to the DID core specification <a data-link-type="biblio" href="#biblio-did-core">[DID-CORE]</a> as outlined by W3C. It consists of the <code>did:oyd</code> prefix, followed by a Multibase <a data-link-type="biblio" href="#biblio-multibase">[MULTIBASE]</a> (default: <code>base58-btc</code>) encoded value that is a Multihash <a data-link-type="biblio" href="#biblio-multihash">[MULTIHASH]</a> (default: <code>sha2-256</code>) value of composed of information from the payload, keys, and log.</p>
    <p>The detailed calculation of the DID identifier from the internal document and log information via ABNF is described here:</p>
-<pre class="include-code highlight">; !sy<c- kc>nta</c->x(<c- u>"abnf"</c->)
-did<c- mi>-</c->oyd<c- mi>-</c-><c- kc>f</c->orma<c- kc>t</c->                = <c- u>"did:oyd:"</c-> ide<c- kc>nt</c->i<c- kc>f</c->ier
-ide<c- kc>nt</c->i<c- kc>f</c->ier                    = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier did<c- mi>-</c->i<c- kc>nf</c->orma<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->hash )
-did<c- mi>-</c->i<c- kc>nf</c->orma<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->hash          = MULTIHASH ( hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier did<c- mi>-</c->i<c- kc>nf</c->orma<c- kc>t</c->io<c- kc>n</c-> )
-did<c- mi>-</c->i<c- kc>nf</c->orma<c- kc>t</c->io<c- kc>n</c->               = <c- u>"{doc:"</c-> payload <c- u>",key:"</c-> key<c- mi>-</c->value <c- u>",log:"</c-> log<c- mi>-</c->value <c- u>"}"</c->
-payload                       = &lt;jso<c- kc>n</c-><c- mi>-</c->grammar<c- mi>-</c->rules>
-key<c- mi>-</c->value                     = public<c- mi>-</c->doc<c- mi>-</c->key<c- mf>-e</c-><c- kc>n</c->coded <c- u>":"</c-> public<c- mi>-</c->revoca<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->key<c- mf>-e</c-><c- kc>n</c->coded
-log<c- mi>-</c->value                     = <c- kc>ter</c->mi<c- kc>nat</c->io<c- kc>n</c-><c- mi>-</c->hash<c- mf>-e</c-><c- kc>n</c->coded
-public<c- mi>-</c->doc<c- mi>-</c->key<c- mf>-e</c-><c- kc>n</c->coded        = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier public<c- mi>-</c->doc<c- mi>-</c->key )
-public<c- mi>-</c->doc<c- mi>-</c->key                = &lt;public key <c- kc>fr</c->om Ed<c- mi>25519</c-> key pair used <c- kc>f</c->or veri<c- kc>f</c->yi<c- kc>n</c->g payload> 
-public<c- mi>-</c->revoca<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->key<c- mf>-e</c-><c- kc>n</c->coded = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier public<c- mi>-</c->revoca<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->key )
-public<c- mi>-</c->revoca<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->key         = &lt;public key <c- kc>fr</c->om Ed<c- mi>25519</c-> key pair used <c- kc>f</c->or veri<c- kc>f</c->yi<c- kc>n</c->g revoca<c- kc>t</c->io<c- kc>ns</c->>
-<c- kc>ter</c->mi<c- kc>nat</c->io<c- kc>n</c-><c- mi>-</c->hash<c- mf>-e</c-><c- kc>n</c->coded      = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier <c- kc>ter</c->mi<c- kc>nat</c->io<c- kc>n</c-><c- mi>-</c->log<c- mf>-e</c-><c- kc>ntr</c->y<c- mi>-</c->hash )
-<c- kc>ter</c->mi<c- kc>nat</c->io<c- kc>n</c-><c- mi>-</c->log<c- mf>-e</c-><c- kc>ntr</c->y<c- mi>-</c->hash    = MULTIHASH ( hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier <c- kc>ter</c->mi<c- kc>nat</c->io<c- kc>n</c-><c- mi>-</c->log<c- mf>-e</c-><c- kc>ntr</c->y )
-<c- kc>ter</c->mi<c- kc>nat</c->io<c- kc>n</c-><c- mi>-</c->log<c- mf>-e</c-><c- kc>ntr</c->y         = <c- u>"{op:"</c-> DIGIT <c- u>",ts:"</c-> DIGIT <c- u>",doc:"</c-> revoke<c- mf>-e</c-><c- kc>n</c->coded <c- u>",sig:"</c-> sig<c- mi>-</c->revoke<c- mf>-e</c-><c- kc>n</c->coded <c- u>",previous: []}"</c->
-revoke<c- mf>-e</c-><c- kc>n</c->coded                = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier revoke<c- mi>-</c->hash )
-revoke<c- mi>-</c->hash                   = MULTIHASH ( hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier sub<c- mi>-</c->revoca<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->log<c- mf>-e</c-><c- kc>ntr</c->y )
-sub<c- mi>-</c->revoca<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->log<c- mf>-e</c-><c- kc>ntr</c->y      = <c- u>"{op:"</c-> DIGIT <c- u>", ts:"</c-> DIGIT <c- u>", doc:"</c-> sub<c- mi>-</c->doc<c- mf>-e</c-><c- kc>n</c->coded <c- u>", sig:"</c-> sig<c- mi>-</c->sub<c- mi>-</c->doc<c- mf>-e</c-><c- kc>n</c->coded <c- u>"}"</c->
-sig<c- mi>-</c->revoke<c- mf>-e</c-><c- kc>n</c->coded            = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier sig<c- mi>-</c->revoke )
-sig<c- mi>-</c->revoke                    = &lt;sig<c- kc>ne</c->d revoke<c- mf>-e</c-><c- kc>n</c->coded wi<c- kc>t</c->h priva<c- kc>te</c-> key <c- kc>fr</c->om Ed<c- mi>25519</c-> key<c- mi>-</c->pair used <c- kc>f</c->or veri<c- kc>f</c->yi<c- kc>n</c->g revoca<c- kc>t</c->io<c- kc>n</c->>
-sub<c- mi>-</c->doc<c- mf>-e</c-><c- kc>n</c->coded               = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier sub<c- mi>-</c->doc<c- mi>-</c->hash )
-sub<c- mi>-</c->doc<c- mi>-</c->hash                  = MULTIHASH ( hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier sub<c- mi>-</c->doc )
-sub<c- mi>-</c->doc                       = <c- u>"{doc:"</c-> payload <c- u>",key:"</c-> key<c- mi>-</c->value <c- u>"}"</c->
-sig<c- mi>-</c->sub<c- mi>-</c->doc<c- mf>-e</c-><c- kc>n</c->coded           = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier sig<c- mi>-</c->sub<c- mi>-</c->doc )
-sig<c- mi>-</c->sub<c- mi>-</c->doc                   = &lt;sig<c- kc>n</c-> sub<c- mi>-</c->doc<c- mf>-e</c-><c- kc>n</c->coded wi<c- kc>t</c->h priva<c- kc>te</c-> key <c- kc>fr</c->om Ed<c- mi>25519</c-> key<c- mi>-</c->pair used <c- kc>f</c->or payload>
-base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT base<c- mi>58</c->b<c- kc>t</c->c
-hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<c- mi>2-256</c-></pre>
+<pre class="include-code highlight"><c- c1>; !syntax("abnf")</c->
+<c- nc>did-oyd-format</c->                <c- o>=</c-> <c- l>"did:oyd:"</c-> <c- nc>identifier</c->
+<c- nc>identifier</c->                    <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>did-information-hash</c-> <c- p>)</c->
+<c- nc>did-information-hash</c->          <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>did-information</c-> <c- p>)</c->
+<c- nc>did-information</c->               <c- o>=</c-> <c- l>"{doc:"</c-> <c- nc>payload</c-> <c- l>",key:"</c-> <c- nc>key-value</c-> <c- l>",log:"</c-> <c- nc>log-value</c-> <c- l>"}"</c->
+<c- nc>payload</c->                       <c- o>=</c-> &lt;<c- nc>json-grammar-rules</c->>
+<c- nc>key-value</c->                     <c- o>=</c-> <c- nc>public-doc-key-encoded</c-> <c- l>":"</c-> <c- nc>public-revocation-key-encoded</c->
+<c- nc>log-value</c->                     <c- o>=</c-> <c- nc>termination-hash-encoded</c->
+<c- nc>public-doc-key-encoded</c->        <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>public-doc-key</c-> <c- p>)</c->
+<c- nc>public-doc-key</c->                <c- o>=</c-> &lt;<c- nc>public</c-> <c- nc>key</c-> <c- nc>from</c-> <c- nc>Ed25519</c-> <c- nc>key</c-> <c- nc>pair</c-> <c- nc>used</c-> <c- nc>for</c-> <c- nc>verifying</c-> <c- nc>payload</c->> 
+<c- nc>public-revocation-key-encoded</c-> <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>public-revocation-key</c-> <c- p>)</c->
+<c- nc>public-revocation-key</c->         <c- o>=</c-> &lt;<c- nc>public</c-> <c- nc>key</c-> <c- nc>from</c-> <c- nc>Ed25519</c-> <c- nc>key</c-> <c- nc>pair</c-> <c- nc>used</c-> <c- nc>for</c-> <c- nc>verifying</c-> <c- nc>revocations</c->>
+<c- nc>termination-hash-encoded</c->      <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>termination-log-entry-hash</c-> <c- p>)</c->
+<c- nc>termination-log-entry-hash</c->    <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>termination-log-entry</c-> <c- p>)</c->
+<c- nc>termination-log-entry</c->         <c- o>=</c-> <c- l>"{op:"</c-> <c- k>DIGIT</c-> <c- l>",ts:"</c-> <c- k>DIGIT</c-> <c- l>",doc:"</c-> <c- nc>revoke-encoded</c-> <c- l>",sig:"</c-> <c- nc>sig-revoke-encoded</c-> <c- l>",previous: []}"</c->
+<c- nc>revoke-encoded</c->                <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>revoke-hash</c-> <c- p>)</c->
+<c- nc>revoke-hash</c->                   <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>sub-revocation-log-entry</c-> <c- p>)</c->
+<c- nc>sub-revocation-log-entry</c->      <c- o>=</c-> <c- l>"{op:"</c-> <c- k>DIGIT</c-> <c- l>", ts:"</c-> <c- k>DIGIT</c-> <c- l>", doc:"</c-> <c- nc>sub-doc-encoded</c-> <c- l>", sig:"</c-> <c- nc>sig-sub-doc-encoded</c-> <c- l>"}"</c->
+<c- nc>sig-revoke-encoded</c->            <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sig-revoke</c-> <c- p>)</c->
+<c- nc>sig-revoke</c->                    <c- o>=</c-> &lt;<c- nc>signed</c-> <c- nc>revoke-encoded</c-> <c- nc>with</c-> <c- nc>private</c-> <c- nc>key</c-> <c- nc>from</c-> <c- nc>Ed25519</c-> <c- nc>key-pair</c-> <c- nc>used</c-> <c- nc>for</c-> <c- nc>verifying</c-> <c- nc>revocation</c->>
+<c- nc>sub-doc-encoded</c->               <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sub-doc-hash</c-> <c- p>)</c->
+<c- nc>sub-doc-hash</c->                  <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>sub-doc</c-> <c- p>)</c->
+<c- nc>sub-doc</c->                       <c- o>=</c-> <c- l>"{doc:"</c-> <c- nc>payload</c-> <c- l>",key:"</c-> <c- nc>key-value</c-> <c- l>"}"</c->
+<c- nc>sig-sub-doc-encoded</c->           <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sig-sub-doc</c-> <c- p>)</c->
+<c- nc>sig-sub-doc</c->                   <c- o>=</c-> &lt;<c- nc>sign</c-> <c- nc>sub-doc-encoded</c-> <c- nc>with</c-> <c- nc>private</c-> <c- nc>key</c-> <c- nc>from</c-> <c- nc>Ed25519</c-> <c- nc>key-pair</c-> <c- nc>used</c-> <c- nc>for</c-> <c- nc>payload</c->>
+<c- nc>base-identifier</c->               <c- o>=</c-> <c- nc>DEFAULT</c-> <c- nc>base58btc</c->
+<c- nc>hash-identifier</c->               <c- o>=</c-> <c- nc>DEFAULT</c-> <c- nc>sha2-256</c-></pre>
    <h2 class="heading settled" data-level="3" id="operations"><span class="secno">3. </span><span class="content">DID Operations</span><a class="self-link" href="#operations"></a></h2>
    <p>The following section outlines the DID operations for the <code>did:oyd</code> method.</p>
    <h3 class="heading settled" data-level="3.1" id="create"><span class="secno">3.1. </span><span class="content">Create (Register)</span><a class="self-link" href="#create"></a></h3>
    <p>Creating a <code>did:oyd</code> identifier requires a payload (e.g., service endpoints) as JSON document and two ED25519 cryptographic key pairs in the format described in Section <a href="#format">§ 2 The did:oyd Format</a> (<code>public-doc-key-encoded</code>, <code>public-revocation-key-encoded</code>).</p>
-   <p>The DID document and associated log entries are stored in a registry accessible by relevant stakeholders. An example is given below (<em>EXAMPLE 1</em>) listing a payload, internal and W3C conform DID document, log entries, private keys, and private revocation document.</p>
-   <div class="example" id="example-bd998f4a">
-    <a class="self-link" href="#example-bd998f4a"></a> An example DID with all associated information and representations 
+   <p>The DID document and associated log entries are stored in a registry accessible by relevant stakeholders. An example is given below (<em><a href="#example_did_artefacts">EXAMPLE 1</a></em>) listing a payload, internal and W3C conform DID document, log entries, private keys, and private revocation document.</p>
+   <div class="example" id="example_did_artefacts">
+    <a class="self-link" href="#example_did_artefacts"></a> An example DID with all associated information and representations: 
+    <ul>
+     <li data-md>
+      <p>DID</p>
+     <li data-md>
+      <p>Payload</p>
+     <li data-md>
+      <p>Internal DID document</p>
+     <li data-md>
+      <p>W3C conform DID document</p>
+     <li data-md>
+      <p>Log entries</p>
+     <li data-md>
+      <p>Private doc key</p>
+     <li data-md>
+      <p>Private revocation key</p>
+     <li data-md>
+      <p>Private revocation document</p>
+    </ul>
     <p><strong>DID:</strong> <code>did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj</code></p>
     <p><strong>Payload:</strong></p>
 <pre>{
@@ -689,7 +717,7 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
     "previous": []
 }]
 </pre>
-    <p><strong>Private payload key:</strong> <code>z8H1vqLXBt566s7Zt8Zpr4qYLvh4dngS4bb9vuwX4X3n7</code></p>
+    <p><strong>Private doc key:</strong> <code>z8H1vqLXBt566s7Zt8Zpr4qYLvh4dngS4bb9vuwX4X3n7</code></p>
     <p><strong>Private revocation key:</strong> <code>z4oACjiKVzDTdHuocH3DDqhdSBqsVpQb1HBZo7rAJduz4</code></p>
     <p><strong>Private revocation document:</strong></p>
 <pre>{
@@ -712,15 +740,17 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
     <li data-md>
      <p>the other log entry (terminate, op=0) provides revocation info; in case a log entry with the stated hash in doc exists the DID resolving process must continue</p>
    </ol>
-   <p>An example is given below (<em>EXAMPLE 2</em>) depicting the log entries to be evaluated for linking an old DID identifier (DID v1) to the content of DID v2.</p>
-   <p><em>EXAMPLE 2: Visualization and process of linked log entries to resolve a DID identifier</em></p>
-   <p align="center"> <img src="res/DIDv2dag.png" width="350"><br> <em>Figure 2: Visualization of log entries in EXAMPLE 2</em> </p>
+   <p>An example is given below (<em><a href="#example_did_resolving">EXAMPLE 2</a></em>) depicting the log entries to be evaluated for linking an old DID identifier (DID v1) to the content of DID v2.</p>
+   <div class="example" id="example_did_resolving">
+    <a class="self-link" href="#example_did_resolving"></a> Visualization and process of linked log entries to resolve a DID identifier 
+    <p align="center"> <img src="res/DIDv2dag.png" width="350"><br> <em>Figure 1: Visualization of log entries</em> </p>
+   </div>
    <p>Process:</p>
    <ol>
     <li data-md>
      <p>User wants to resolves DID v1 and queries OYDID registry with identifier</p>
     <li data-md>
-     <p>OYDID registry responds with (outdated) DID document for DID v1 and log entries create and terminate (shown on the very left in the picture above)</p>
+     <p>OYDID registry responds with (outdated) DID document for DID v1 and log entries "create" and "terminate" (shown on the very left in the picture above)</p>
     <li data-md>
      <p>Resolver (automatically) queries the OYDID registry for a revocation log entry with the hash stored in the terminate entry</p>
     <li data-md>
@@ -730,7 +760,7 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
     <li data-md>
      <p>OYDID repository must retrieve exactly one update entry (and associated terminate entry) plus associated DID document (DID v2) as linked by the update entry</p>
     <li data-md>
-     <p>Resolver validates linked hash entries and queries again OYDID registry for a revocation lo entry from the second terminate entry (shown on the very right in the picture above)</p>
+     <p>Resolver validates linked hash entries and queries again OYDID registry for a revocation log entry from the second terminate entry (shown on the very right in the picture above)</p>
     <li data-md>
      <p>OYDID repository finds no information of such a revocation entry and therefore the resolver can return DID v2 as the latest document</p>
    </ol>
@@ -775,7 +805,36 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
    <p>Deactivating an OYDID is simply done by publishing the private revocation entry without providing any update record. The figure below depicts the log representing a deactivated DID.</p>
    <p align="center"> <img src="docs/res/DIDdeactivated.png" width="400"><br> <em>Figure 3: Visualization of log entries for a deactivated DID</em> </p>
    <h2 class="heading settled" data-level="4" id="log"><span class="secno">4. </span><span class="content">DID Log</span><a class="self-link" href="#log"></a></h2>
-   <p>some text</p>
+   <p>The log is a directed acyclic graph (DAG) and represents the life cycle of a DID. Each element in this graph holds the following attributes:</p>
+<pre class="highlight"><c- p>{</c->
+    <c- f>"ts"</c-><c- p>:</c-> i<c- kc>nt</c-><c- p>,</c->
+    <c- f>"op"</c-><c- p>:</c-> i<c- kc>nt</c-><c- p>,</c->
+    <c- f>"doc"</c-><c- p>:</c-> s<c- kc>tr</c->i<c- kc>n</c->g (hash)<c- p>,</c->
+    <c- f>"sig"</c-><c- p>:</c-> s<c- kc>tr</c->i<c- kc>n</c->g (sig<c- kc>nature</c-> o<c- kc>f</c-> hash)<c- p>,</c->
+    <c- f>"previous"</c-><c- p>:</c-> <c- p>[</c-> array o<c- kc>f</c-> s<c- kc>tr</c->i<c- kc>n</c->gs (hashes) <c- p>]</c->
+<c- p>}</c->
+</pre>
+   <h3 class="heading settled" data-level="4.1" id="log_ops"><span class="secno">4.1. </span><span class="content">Log Operations</span><a class="self-link" href="#log_ops"></a></h3>
+   <p>The following list describes all available log operations (<code>op</code>) and specific use of attributes:</p>
+   <ul>
+    <li data-md>
+     <p><strong>Terminate</strong> (<code>op=0</code>): confirms last entry until revoke entry is published<br> <em>doc</em>: hash of revoke entry<br> <em>sig</em>: doc signed by private document key<br> <em>previous</em>: can reference Clone or Delegate log entries for confirmation</p>
+    <li data-md>
+     <p><strong>Revoke</strong> (<code>op=1</code>): invalidates a Terminate log entry; only published for new information<br> <em>doc</em>: hash of doc and key in DID Document<br> <em>sig</em>: doc signed by private revocation key<br> <em>previous</em>: can reference "Create" or "Update" and always "Terminate"</p>
+    <li data-md>
+     <p><strong>Create</strong> (<code>op=2</code>): start new DID<br> <em>doc</em>: hash of DID Document<br> <em>sig</em>: doc signed by private document key<br> <em>previous</em>: has only a reference when created using clone pointing to this clone entry</p>
+    <li data-md>
+     <p><strong>Update</strong> (<code>op=3</code>): update DID<br> <em>doc</em>: hash of DID Document<br> <em>sig</em>: doc signed by private document key from previous version DID version<br> <em>previous</em>: reference previous revoke log entry</p>
+    <li data-md>
+     <p><strong>Clone</strong> (<code>op=4</code>): create linked DID with same "doc" but new keys and logs<br> <em>doc</em>: hash of new DID Document (same payload but different keys and logs)<br> <em>sig</em>: doc signed by the new private document key<br> <em>previous</em>: reference Create or Update log entry</p>
+   </ul>
+   <h3 class="heading settled" data-level="4.2" id="verification"><span class="secno">4.2. </span><span class="content">Verification Steps</span><a class="self-link" href="#verification"></a></h3>
+   <p>Processing the log provides unambiguous evidence for authenticity, correctness, and timeliness of resolving a DID to the DID document. This section describes all operations to perform independent verification when resolving a DID.</p>
+   <p class="note" role="note"><span>Note:</span> Use the <code>--show-verification</code> flag in the [<code>oydid</code> command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification.</p>
+   <h4 class="heading settled" data-level="4.2.1" id="calculate_hash"><span class="secno">4.2.1. </span><span class="content">Calculate hash value from message</span><a class="self-link" href="#calculate_hash"></a></h4>
+   <p>text</p>
+   <h4 class="heading settled" data-level="4.2.2" id="retrieve_log"><span class="secno">4.2.2. </span><span class="content">Retrieve log entry from a repository based on hash value</span><a class="self-link" href="#retrieve_log"></a></h4>
+   <p>text</p>
    <h2 class="heading settled" data-level="5" id="test"><span class="secno">5. </span><span class="content">Test Vectors</span><a class="self-link" href="#test"></a></h2>
    <p><em>Prerequisite:</em> install the <code>oydid</code> command from https://github.com/OwnYourData/did-cmd/ or
 use the following Docker command to run the OYDID command line tool without installation (based on [public Docker image <code>oydeu\oydid</code>](https://hub.docker.com/r/oydeu/oydid)):</p>
