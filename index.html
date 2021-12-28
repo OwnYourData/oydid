@@ -8,7 +8,7 @@
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
   <meta content="Bikeshed version cace53f8c, updated Tue Dec 7 12:12:54 2021 -0800" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="b96f9791a09a13dfae5c0d2685bcfdde74e621b3" name="document-revision">
+  <meta content="6ae61d6d5df16f47833a011268e7881e332393f2" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -629,15 +629,17 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
    <h2 class="heading settled" data-level="3" id="operations"><span class="secno">3. </span><span class="content">DID Operations</span><a class="self-link" href="#operations"></a></h2>
    <p>The following section outlines the DID operations for the <code>did:oyd</code> method.</p>
    <h3 class="heading settled" data-level="3.1" id="create"><span class="secno">3.1. </span><span class="content">Create (Register)</span><a class="self-link" href="#create"></a></h3>
-   <p>Creating a <code>did:oyd</code> identifier requires a payload (e.g., service endpoints) as JSON document and two ED25519 cryptographic key pairs using the format provided in Section 2.</p>
+   <p>Creating a <code>did:oyd</code> identifier requires a payload (e.g., service endpoints) as JSON document and two ED25519 cryptographic key pairs in the format described in Section <a href="#format">§ 2 The did:oyd Format</a> (<code>public-doc-key-encoded</code>, <code>public-revocation-key-encoded</code>).</p>
    <p>The DID document and associated log entries are stored in a registry accessible by relevant stakeholders. An example is given below (<em>EXAMPLE 1</em>) listing a payload, internal and W3C conform DID document, log entries, private keys, and private revocation document.</p>
-   <p><em>EXAMPLE 1: An example DID with all associated information and representations</em> DID: <code>did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj</code></p>
-   <p>Payload:</p>
+   <div class="example" id="example-bd998f4a">
+    <a class="self-link" href="#example-bd998f4a"></a> An example DID with all associated information and representations 
+    <p>DID: <code>did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj</code></p>
+    <p>Payload:</p>
 <pre>{
     "foo": "bar"
 }
 </pre>
-   <p>Internal DID document:</p>
+    <p>Internal DID document:</p>
 <pre>{
     "doc": {
         "foo": "bar"
@@ -646,7 +648,7 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
     "log": "zQmcE3b3ENZ5aDCyCcqe2wsbUytUexBubaUuAfTTfTJ7dhA"
 }
 </pre>
-   <p>W3C conform DID document:</p>
+    <p>W3C conform DID document:</p>
 <pre>{
     "@context": "https://www.w3.org/ns/did/v1",
     "id": "did:oyd:zQmaV8M4Pazau8WWwsVeyMQWmmckHXr1L2UPtyEjqfy6wXe",
@@ -667,7 +669,7 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
     }]
 }
 </pre>
-   <p>Log entries:</p>
+    <p>Log entries:</p>
 <pre>[{
     "ts": 1633298265,
     "op": 2,
@@ -682,9 +684,9 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
     "previous": []
 }]
 </pre>
-   <p>Private payload key: <code>z8H1vqLXBt566s7Zt8Zpr4qYLvh4dngS4bb9vuwX4X3n7</code></p>
-   <p>Private revocation key: <code>z4oACjiKVzDTdHuocH3DDqhdSBqsVpQb1HBZo7rAJduz4</code></p>
-   <p>Private revocation document:</p>
+    <p>Private payload key: <code>z8H1vqLXBt566s7Zt8Zpr4qYLvh4dngS4bb9vuwX4X3n7</code></p>
+    <p>Private revocation key: <code>z4oACjiKVzDTdHuocH3DDqhdSBqsVpQb1HBZo7rAJduz4</code></p>
+    <p>Private revocation document:</p>
 <pre>{
     "ts": 1633298265,
     "op": 1,
@@ -692,6 +694,7 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
     "sig": "z4o77Eq665Bjp5KfHc4x7PTvwnyF9LhgUB7n4u5Skqi7Wv1CaGdXknvUQjdimzNTtpXpf4uDCciDfe2vn6SyBR4Vk"
 }
 </pre>
+   </div>
    <h3 class="heading settled" data-level="3.2" id="read"><span class="secno">3.2. </span><span class="content">Read (Resolve)</span><a class="self-link" href="#read"></a></h3>
    <p>Reading a <code>did:oyd</code> is a matter of searching for a DID document that either can be directly linked (through hashing and encoding) to the provided identifier or through traversing through the log to unambiguously link the provided identifier to the latest version of the DID document. Cryptographic proof for the link between DID Identifier and DID Document, ownership, and completeness is performed in the following steps (here the example for a newly created DID without any updates so far):</p>
    <ol>
