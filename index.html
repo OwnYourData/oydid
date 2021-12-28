@@ -8,7 +8,7 @@
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
   <meta content="Bikeshed version cace53f8c, updated Tue Dec 7 12:12:54 2021 -0800" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="3bef6383c27994366c1cd5011ebf8d1fc0c2da8d" name="document-revision">
+  <meta content="e26f08de7b0f185981ac1687b349c0a0f2078da5" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -281,6 +281,65 @@ a.self-link::before            { content: "¶"; }
 .heading > a.self-link::before { content: "§"; }
 dfn > a.self-link::before      { content: "#"; }
 </style>
+<style>/* style-syntax-highlighting */
+
+code.highlight { padding: .1em; border-radius: .3em; }
+pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em 0; overflow: auto; border-radius: 0; }
+
+.highlight:not(.idl) { background: rgba(0, 0, 0, .03); }
+c-[a] { color: #990055 } /* Keyword.Declaration */
+c-[b] { color: #990055 } /* Keyword.Type */
+c-[c] { color: #708090 } /* Comment */
+c-[d] { color: #708090 } /* Comment.Multiline */
+c-[e] { color: #0077aa } /* Name.Attribute */
+c-[f] { color: #669900 } /* Name.Tag */
+c-[g] { color: #222222 } /* Name.Variable */
+c-[k] { color: #990055 } /* Keyword */
+c-[l] { color: #000000 } /* Literal */
+c-[m] { color: #000000 } /* Literal.Number */
+c-[n] { color: #0077aa } /* Name */
+c-[o] { color: #999999 } /* Operator */
+c-[p] { color: #999999 } /* Punctuation */
+c-[s] { color: #a67f59 } /* Literal.String */
+c-[t] { color: #a67f59 } /* Literal.String.Single */
+c-[u] { color: #a67f59 } /* Literal.String.Double */
+c-[cp] { color: #708090 } /* Comment.Preproc */
+c-[c1] { color: #708090 } /* Comment.Single */
+c-[cs] { color: #708090 } /* Comment.Special */
+c-[kc] { color: #990055 } /* Keyword.Constant */
+c-[kn] { color: #990055 } /* Keyword.Namespace */
+c-[kp] { color: #990055 } /* Keyword.Pseudo */
+c-[kr] { color: #990055 } /* Keyword.Reserved */
+c-[ld] { color: #000000 } /* Literal.Date */
+c-[nc] { color: #0077aa } /* Name.Class */
+c-[no] { color: #0077aa } /* Name.Constant */
+c-[nd] { color: #0077aa } /* Name.Decorator */
+c-[ni] { color: #0077aa } /* Name.Entity */
+c-[ne] { color: #0077aa } /* Name.Exception */
+c-[nf] { color: #0077aa } /* Name.Function */
+c-[nl] { color: #0077aa } /* Name.Label */
+c-[nn] { color: #0077aa } /* Name.Namespace */
+c-[py] { color: #0077aa } /* Name.Property */
+c-[ow] { color: #999999 } /* Operator.Word */
+c-[mb] { color: #000000 } /* Literal.Number.Bin */
+c-[mf] { color: #000000 } /* Literal.Number.Float */
+c-[mh] { color: #000000 } /* Literal.Number.Hex */
+c-[mi] { color: #000000 } /* Literal.Number.Integer */
+c-[mo] { color: #000000 } /* Literal.Number.Oct */
+c-[sb] { color: #a67f59 } /* Literal.String.Backtick */
+c-[sc] { color: #a67f59 } /* Literal.String.Char */
+c-[sd] { color: #a67f59 } /* Literal.String.Doc */
+c-[se] { color: #a67f59 } /* Literal.String.Escape */
+c-[sh] { color: #a67f59 } /* Literal.String.Heredoc */
+c-[si] { color: #a67f59 } /* Literal.String.Interpol */
+c-[sx] { color: #a67f59 } /* Literal.String.Other */
+c-[sr] { color: #a67f59 } /* Literal.String.Regex */
+c-[ss] { color: #a67f59 } /* Literal.String.Symbol */
+c-[vc] { color: #0077aa } /* Name.Variable.Class */
+c-[vg] { color: #0077aa } /* Name.Variable.Global */
+c-[vi] { color: #0077aa } /* Name.Variable.Instance */
+c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
+</style>
 <style>/* style-darkmode */
 
 @media (prefers-color-scheme: dark) {
@@ -401,12 +460,75 @@ dfn > a.self-link::before      { content: "#"; }
         --selflink-hover-text: white;
     }
 }
+
+@media (prefers-color-scheme: dark) {
+    .highlight:not(.idl) { background: rgba(255, 255, 255, .05); }
+
+    c-[a] { color: #d33682 } /* Keyword.Declaration */
+    c-[b] { color: #d33682 } /* Keyword.Type */
+    c-[c] { color: #2aa198 } /* Comment */
+    c-[d] { color: #2aa198 } /* Comment.Multiline */
+    c-[e] { color: #268bd2 } /* Name.Attribute */
+    c-[f] { color: #b58900 } /* Name.Tag */
+    c-[g] { color: #cb4b16 } /* Name.Variable */
+    c-[k] { color: #d33682 } /* Keyword */
+    c-[l] { color: #657b83 } /* Literal */
+    c-[m] { color: #657b83 } /* Literal.Number */
+    c-[n] { color: #268bd2 } /* Name */
+    c-[o] { color: #657b83 } /* Operator */
+    c-[p] { color: #657b83 } /* Punctuation */
+    c-[s] { color: #6c71c4 } /* Literal.String */
+    c-[t] { color: #6c71c4 } /* Literal.String.Single */
+    c-[u] { color: #6c71c4 } /* Literal.String.Double */
+    c-[ch] { color: #2aa198 } /* Comment.Hashbang */
+    c-[cp] { color: #2aa198 } /* Comment.Preproc */
+    c-[cpf] { color: #2aa198 } /* Comment.PreprocFile */
+    c-[c1] { color: #2aa198 } /* Comment.Single */
+    c-[cs] { color: #2aa198 } /* Comment.Special */
+    c-[kc] { color: #d33682 } /* Keyword.Constant */
+    c-[kn] { color: #d33682 } /* Keyword.Namespace */
+    c-[kp] { color: #d33682 } /* Keyword.Pseudo */
+    c-[kr] { color: #d33682 } /* Keyword.Reserved */
+    c-[ld] { color: #657b83 } /* Literal.Date */
+    c-[nc] { color: #268bd2 } /* Name.Class */
+    c-[no] { color: #268bd2 } /* Name.Constant */
+    c-[nd] { color: #268bd2 } /* Name.Decorator */
+    c-[ni] { color: #268bd2 } /* Name.Entity */
+    c-[ne] { color: #268bd2 } /* Name.Exception */
+    c-[nf] { color: #268bd2 } /* Name.Function */
+    c-[nl] { color: #268bd2 } /* Name.Label */
+    c-[nn] { color: #268bd2 } /* Name.Namespace */
+    c-[py] { color: #268bd2 } /* Name.Property */
+    c-[ow] { color: #657b83 } /* Operator.Word */
+    c-[mb] { color: #657b83 } /* Literal.Number.Bin */
+    c-[mf] { color: #657b83 } /* Literal.Number.Float */
+    c-[mh] { color: #657b83 } /* Literal.Number.Hex */
+    c-[mi] { color: #657b83 } /* Literal.Number.Integer */
+    c-[mo] { color: #657b83 } /* Literal.Number.Oct */
+    c-[sa] { color: #6c71c4 } /* Literal.String.Affix */
+    c-[sb] { color: #6c71c4 } /* Literal.String.Backtick */
+    c-[sc] { color: #6c71c4 } /* Literal.String.Char */
+    c-[dl] { color: #6c71c4 } /* Literal.String.Delimiter */
+    c-[sd] { color: #6c71c4 } /* Literal.String.Doc */
+    c-[se] { color: #6c71c4 } /* Literal.String.Escape */
+    c-[sh] { color: #6c71c4 } /* Literal.String.Heredoc */
+    c-[si] { color: #6c71c4 } /* Literal.String.Interpol */
+    c-[sx] { color: #6c71c4 } /* Literal.String.Other */
+    c-[sr] { color: #6c71c4 } /* Literal.String.Regex */
+    c-[ss] { color: #6c71c4 } /* Literal.String.Symbol */
+    c-[fm] { color: #268bd2 } /* Name.Function.Magic */
+    c-[vc] { color: #cb4b16 } /* Name.Variable.Class */
+    c-[vg] { color: #cb4b16 } /* Name.Variable.Global */
+    c-[vi] { color: #cb4b16 } /* Name.Variable.Instance */
+    c-[vm] { color: #cb4b16 } /* Name.Variable.Magic */
+    c-[il] { color: #657b83 } /* Literal.Number.Integer.Long */
+}
 </style>
  <body class="h-entry">
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">OYD DID Method</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2021-12-26">26 December 2021</time></p>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2021-12-28">28 December 2021</time></p>
    <details open>
     <summary>More details about this document</summary>
     <div data-fill-with="spec-metadata">
@@ -416,7 +538,7 @@ dfn > a.self-link::before      { content: "#"; }
       <dt>Issue Tracking:
       <dd><a href="https://github.com/OwnYourData/oydid/issues/">GitHub</a>
       <dt class="editor">Editor:
-      <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:christoph@ownyourdata.eu">Christoph Fabianek</a> (<a class="p-org org" href="https://OwnYourData.eu">OwnYourData</a>)
+      <dd class="editor p-author h-card vcard"><a class="p-name fn u-url url" href="https://www.linkedin.com/in/fabianek/">Christoph Fabianek</a> (<a class="p-org org" href="https://OwnYourData.eu">OwnYourData</a>) <a class="u-email email" href="mailto:christoph@ownyourdata.eu">christoph@ownyourdata.eu</a>
      </dl>
     </div>
    </details>
@@ -437,7 +559,7 @@ dfn > a.self-link::before      { content: "#"; }
    <h2 class="no-num no-toc no-ref" id="contents">Table of Contents</h2>
    <ol class="toc" role="directory">
     <li><a href="#intro"><span class="secno">1</span> <span class="content">Introduction</span></a>
-    <li><a href="#format"><span class="secno">2</span> <span class="content">The `did:oyd` Format</span></a>
+    <li><a href="#format"><span class="secno">2</span> <span class="content">The <code>did:oyd</code> Format</span></a>
     <li>
      <a href="#operations"><span class="secno">3</span> <span class="content">DID Operations</span></a>
      <ol class="toc">
@@ -463,45 +585,43 @@ dfn > a.self-link::before      { content: "#"; }
    <h2 class="heading settled" data-level="1" id="intro"><span class="secno">1. </span><span class="content">Introduction</span><a class="self-link" href="#intro"></a></h2>
    <p>Decentralized Identifiers (DIDs) [1] are a new type of identifier for verifiable, decentralized digital identity. These new identifiers are designed to enable the controller of a DID to prove control over it and to be implemented independently of any centralized registry, identity provider, or certificate authority. These sorts of identifiers often utilize a heavy-weight registry, such as ones utilizing Decentralized Ledger Technologies (DLT), to create, read, update, and deactivate DIDs.</p>
    <p>While DLT-based DID Methods have great decentralization characteristics, and some of the more centralized DID Methods provide strong system control guarantees, the general approaches tend to be expensive to set up and operate. OYDID takes the approach to not maintain DID and DID Document on a public ledger but on one or more local storages (that might be publicly available). Through cryptographically linking the DID Identifier to the DID Document, and furthermore linking the DID Document to a chained provenance trail the same security and validation properties as a traditional DID can be maintained while avoiding highly redundant storage and also works in settings without general public access.</p>
-   <p>The rest of this document outlines the syntax for the `did:oyd` method, the operations it supports, and some security and privacy considerations as well as ehtical aspects that implementers might want to be aware of when using this DID method.</p>
-   <h2 class="heading settled" data-level="2" id="format"><span class="secno">2. </span><span class="content">The `did:oyd` Format</span><a class="self-link" href="#format"></a></h2>
-   <p>The format for the `did:oyd` method conforms to the DID core specification [1] as outlined by W3C. It consists of the `did:oyd` prefix, followed by a Multibase [2] (default: `base58-btc`) encoded value that is a Multihash [3] (default: `sha2-256`) value of composed of information from the payload, keys, and log.</p>
+   <p>The rest of this document outlines the syntax for the <code>did:oyd</code> method, the operations it supports, and some security and privacy considerations as well as ehtical aspects that implementers might want to be aware of when using this DID method.</p>
+   <h2 class="heading settled" data-level="2" id="format"><span class="secno">2. </span><span class="content">The <code>did:oyd</code> Format</span><a class="self-link" href="#format"></a></h2>
+   <p>The format for the <code>did:oyd</code> method conforms to the DID core specification [1] as outlined by W3C. It consists of the <code>did:oyd</code> prefix, followed by a Multibase [2] (default: <code>base58-btc</code>) encoded value that is a Multihash [3] (default: <code>sha2-256</code>) value of composed of information from the payload, keys, and log.</p>
    <p>The detailed calculation of the DID identifier from the internal document and log information via ABNF is described here:</p>
-<pre>; !syntax("abnf")
-did-oyd-format                = "did:oyd:" identifier
-identifier                    = MULTIBASE ( base-identifier did-information-hash )
-did-information-hash          = MULTIHASH ( hash-identifier did-information )
-did-information               = "{doc:" payload ",key:" key-value ",log:" log-value "}"
-payload                       = &lt;json-grammar-rules>
-key-value                     = public-doc-key-encoded ":" public-revocation-key-encoded
-log-value                     = termination-hash-encoded
-public-doc-key-encoded        = MULTIBASE ( base-identifier public-doc-key )
-public-doc-key                = &lt;public key from Ed25519 key pair used for verifying payload> 
-public-revocation-key-encoded = MULTIBASE ( base-identifier public-revocation-key )
-public-revocation-key         = &lt;public key from Ed25519 key pair used for verifying revocations>
-termination-hash-encoded      = MULTIBASE ( base-identifier termination-log-entry-hash )
-termination-log-entry-hash    = MULTIHASH ( hash-identifier termination-log-entry )
-termination-log-entry         = "{op:" DIGIT ",ts:" DIGIT ",doc:" revoke-encoded ",sig:" sig-revoke-encoded ",previous: []}"
-revoke-encoded                = MULTIBASE ( base-identifier revoke-hash )
-revoke-hash                   = MULTIHASH ( hash-identifier sub-revocation-log-entry )
-sub-revocation-log-entry      = "{op:" DIGIT ", ts:" DIGIT ", doc:" sub-doc-encoded ", sig:" sig-sub-doc-encoded "}"
-sig-revoke-encoded            = MULTIBASE ( base-identifier sig-revoke )
-sig-revoke                    = &lt;signed revoke-encoded with private key from Ed25519 key-pair used for verifying revocation>
-sub-doc-encoded               = MULTIBASE ( base-identifier sub-doc-hash )
-sub-doc-hash                  = MULTIHASH ( hash-identifier sub-doc )
-sub-doc                       = "{doc:" payload ",key:" key-value "}"
-sig-sub-doc-encoded           = MULTIBASE ( base-identifier sig-sub-doc )
-sig-sub-doc                   = &lt;sign sub-doc-encoded with private key from Ed25519 key-pair used for payload>
-base-identifier               = DEFAULT base58btc
-hash-identifier               = DEFAULT sha2-256
-</pre>
+<pre class="include-code highlight">; !sy<c- kc>nta</c->x(<c- u>"abnf"</c->)
+did<c- mi>-</c->oyd<c- mi>-</c-><c- kc>f</c->orma<c- kc>t</c->                = <c- u>"did:oyd:"</c-> ide<c- kc>nt</c->i<c- kc>f</c->ier
+ide<c- kc>nt</c->i<c- kc>f</c->ier                    = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier did<c- mi>-</c->i<c- kc>nf</c->orma<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->hash )
+did<c- mi>-</c->i<c- kc>nf</c->orma<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->hash          = MULTIHASH ( hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier did<c- mi>-</c->i<c- kc>nf</c->orma<c- kc>t</c->io<c- kc>n</c-> )
+did<c- mi>-</c->i<c- kc>nf</c->orma<c- kc>t</c->io<c- kc>n</c->               = <c- u>"{doc:"</c-> payload <c- u>",key:"</c-> key<c- mi>-</c->value <c- u>",log:"</c-> log<c- mi>-</c->value <c- u>"}"</c->
+payload                       = &lt;jso<c- kc>n</c-><c- mi>-</c->grammar<c- mi>-</c->rules>
+key<c- mi>-</c->value                     = public<c- mi>-</c->doc<c- mi>-</c->key<c- mf>-e</c-><c- kc>n</c->coded <c- u>":"</c-> public<c- mi>-</c->revoca<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->key<c- mf>-e</c-><c- kc>n</c->coded
+log<c- mi>-</c->value                     = <c- kc>ter</c->mi<c- kc>nat</c->io<c- kc>n</c-><c- mi>-</c->hash<c- mf>-e</c-><c- kc>n</c->coded
+public<c- mi>-</c->doc<c- mi>-</c->key<c- mf>-e</c-><c- kc>n</c->coded        = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier public<c- mi>-</c->doc<c- mi>-</c->key )
+public<c- mi>-</c->doc<c- mi>-</c->key                = &lt;public key <c- kc>fr</c->om Ed<c- mi>25519</c-> key pair used <c- kc>f</c->or veri<c- kc>f</c->yi<c- kc>n</c->g payload> 
+public<c- mi>-</c->revoca<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->key<c- mf>-e</c-><c- kc>n</c->coded = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier public<c- mi>-</c->revoca<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->key )
+public<c- mi>-</c->revoca<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->key         = &lt;public key <c- kc>fr</c->om Ed<c- mi>25519</c-> key pair used <c- kc>f</c->or veri<c- kc>f</c->yi<c- kc>n</c->g revoca<c- kc>t</c->io<c- kc>ns</c->>
+<c- kc>ter</c->mi<c- kc>nat</c->io<c- kc>n</c-><c- mi>-</c->hash<c- mf>-e</c-><c- kc>n</c->coded      = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier <c- kc>ter</c->mi<c- kc>nat</c->io<c- kc>n</c-><c- mi>-</c->log<c- mf>-e</c-><c- kc>ntr</c->y<c- mi>-</c->hash )
+<c- kc>ter</c->mi<c- kc>nat</c->io<c- kc>n</c-><c- mi>-</c->log<c- mf>-e</c-><c- kc>ntr</c->y<c- mi>-</c->hash    = MULTIHASH ( hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier <c- kc>ter</c->mi<c- kc>nat</c->io<c- kc>n</c-><c- mi>-</c->log<c- mf>-e</c-><c- kc>ntr</c->y )
+<c- kc>ter</c->mi<c- kc>nat</c->io<c- kc>n</c-><c- mi>-</c->log<c- mf>-e</c-><c- kc>ntr</c->y         = <c- u>"{op:"</c-> DIGIT <c- u>",ts:"</c-> DIGIT <c- u>",doc:"</c-> revoke<c- mf>-e</c-><c- kc>n</c->coded <c- u>",sig:"</c-> sig<c- mi>-</c->revoke<c- mf>-e</c-><c- kc>n</c->coded <c- u>",previous: []}"</c->
+revoke<c- mf>-e</c-><c- kc>n</c->coded                = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier revoke<c- mi>-</c->hash )
+revoke<c- mi>-</c->hash                   = MULTIHASH ( hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier sub<c- mi>-</c->revoca<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->log<c- mf>-e</c-><c- kc>ntr</c->y )
+sub<c- mi>-</c->revoca<c- kc>t</c->io<c- kc>n</c-><c- mi>-</c->log<c- mf>-e</c-><c- kc>ntr</c->y      = <c- u>"{op:"</c-> DIGIT <c- u>", ts:"</c-> DIGIT <c- u>", doc:"</c-> sub<c- mi>-</c->doc<c- mf>-e</c-><c- kc>n</c->coded <c- u>", sig:"</c-> sig<c- mi>-</c->sub<c- mi>-</c->doc<c- mf>-e</c-><c- kc>n</c->coded <c- u>"}"</c->
+sig<c- mi>-</c->revoke<c- mf>-e</c-><c- kc>n</c->coded            = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier sig<c- mi>-</c->revoke )
+sig<c- mi>-</c->revoke                    = &lt;sig<c- kc>ne</c->d revoke<c- mf>-e</c-><c- kc>n</c->coded wi<c- kc>t</c->h priva<c- kc>te</c-> key <c- kc>fr</c->om Ed<c- mi>25519</c-> key<c- mi>-</c->pair used <c- kc>f</c->or veri<c- kc>f</c->yi<c- kc>n</c->g revoca<c- kc>t</c->io<c- kc>n</c->>
+sub<c- mi>-</c->doc<c- mf>-e</c-><c- kc>n</c->coded               = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier sub<c- mi>-</c->doc<c- mi>-</c->hash )
+sub<c- mi>-</c->doc<c- mi>-</c->hash                  = MULTIHASH ( hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier sub<c- mi>-</c->doc )
+sub<c- mi>-</c->doc                       = <c- u>"{doc:"</c-> payload <c- u>",key:"</c-> key<c- mi>-</c->value <c- u>"}"</c->
+sig<c- mi>-</c->sub<c- mi>-</c->doc<c- mf>-e</c-><c- kc>n</c->coded           = MULTIBASE ( base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier sig<c- mi>-</c->sub<c- mi>-</c->doc )
+sig<c- mi>-</c->sub<c- mi>-</c->doc                   = &lt;sig<c- kc>n</c-> sub<c- mi>-</c->doc<c- mf>-e</c-><c- kc>n</c->coded wi<c- kc>t</c->h priva<c- kc>te</c-> key <c- kc>fr</c->om Ed<c- mi>25519</c-> key<c- mi>-</c->pair used <c- kc>f</c->or payload>
+base<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT base<c- mi>58</c->b<c- kc>t</c->c
+hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<c- mi>2-256</c-></pre>
    <h2 class="heading settled" data-level="3" id="operations"><span class="secno">3. </span><span class="content">DID Operations</span><a class="self-link" href="#operations"></a></h2>
-   <p>The following section outlines the DID operations for the `did:oyd` method.</p>
+   <p>The following section outlines the DID operations for the <code>did:oyd</code> method.</p>
    <h3 class="heading settled" data-level="3.1" id="create"><span class="secno">3.1. </span><span class="content">Create (Register)</span><a class="self-link" href="#create"></a></h3>
-   <p>Creating a `did:oyd` identifier requires a payload (e.g., service endpoints) as JSON document and two ED25519 cryptographic key pairs using the format provided in Section 2.</p>
-   <p>The DID document and associated log entries are stored in a registry accessible by relevant stakeholders. An example is given below (*EXAMPLE 1*) listing a payload, internal and W3C conform DID document, log entries, private keys, and private revocation document.</p>
-   <p>*EXAMPLE 1: An example DID with all associated information and representations*
-DID: `did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj`</p>
+   <p>Creating a <code>did:oyd</code> identifier requires a payload (e.g., service endpoints) as JSON document and two ED25519 cryptographic key pairs using the format provided in Section 2.</p>
+   <p>The DID document and associated log entries are stored in a registry accessible by relevant stakeholders. An example is given below (<em>EXAMPLE 1</em>) listing a payload, internal and W3C conform DID document, log entries, private keys, and private revocation document.</p>
+   <p><em>EXAMPLE 1: An example DID with all associated information and representations</em> DID: <code>did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj</code></p>
    <p>Payload:</p>
 <pre>{
     "foo": "bar"
@@ -552,8 +672,8 @@ DID: `did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj`</p>
     "previous": []
 }]
 </pre>
-   <p>Private payload key: `z8H1vqLXBt566s7Zt8Zpr4qYLvh4dngS4bb9vuwX4X3n7`</p>
-   <p>Private revocation key: `z4oACjiKVzDTdHuocH3DDqhdSBqsVpQb1HBZo7rAJduz4`</p>
+   <p>Private payload key: <code>z8H1vqLXBt566s7Zt8Zpr4qYLvh4dngS4bb9vuwX4X3n7</code></p>
+   <p>Private revocation key: <code>z4oACjiKVzDTdHuocH3DDqhdSBqsVpQb1HBZo7rAJduz4</code></p>
    <p>Private revocation document:</p>
 <pre>{
     "ts": 1633298265,
@@ -563,19 +683,19 @@ DID: `did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj`</p>
 }
 </pre>
    <h3 class="heading settled" data-level="3.2" id="read"><span class="secno">3.2. </span><span class="content">Read (Resolve)</span><a class="self-link" href="#read"></a></h3>
-   <p>Reading a `did:oyd` is a matter of searching for a DID document that either can be directly linked (through hashing and encoding) to the provided identifier or through traversing through the log to unambiguously link the provided identifier to the latest version of the DID document. Cryptographic proof for the link between DID Identifier and DID Document, ownership, and completeness is performed in the following steps (here the example for a newly created DID without any updates so far):</p>
+   <p>Reading a <code>did:oyd</code> is a matter of searching for a DID document that either can be directly linked (through hashing and encoding) to the provided identifier or through traversing through the log to unambiguously link the provided identifier to the latest version of the DID document. Cryptographic proof for the link between DID Identifier and DID Document, ownership, and completeness is performed in the following steps (here the example for a newly created DID without any updates so far):</p>
    <ol>
     <li data-md>
-     <p>the identifier is the encoded hash value of the internal DID document (the hashing algorithm is encoded in the identifier using MULTIHASH, default: `SHA2-256`, the encoding algorithm is also encoded in the identifier using MULTIBASE, default: `base58-btc`)</p>
+     <p>the identifier is the encoded hash value of the internal DID document (the hashing algorithm is encoded in the identifier using MULTIHASH, default: <code>SHA2-256</code>, the encoding algorithm is also encoded in the identifier using MULTIBASE, default: <code>base58-btc</code>)</p>
     <li data-md>
-     <p>the DID document includes public keys (encoded with MULTIBASE, default: `base58-btc`) and the hash value of a DID log entry</p>
+     <p>the DID document includes public keys (encoded with MULTIBASE, default: <code>base58-btc</code>) and the hash value of a DID log entry</p>
     <li data-md>
      <p>the log entry (create, op=2) for the DID document provides a signature ("sig") of the identifier ("doc") to prove possession of the private key, i.e., use the public ED25519 payload key in the DID document to verify this signature)</p>
     <li data-md>
      <p>the other log entry (terminate, op=0) provides revocation info; in case a log entry with the stated hash in doc exists the DID resolving process must continue</p>
    </ol>
-   <p>An example is given below (*EXAMPLE 2*) depicting the log entries to be evaluated for linking an old DID identifier (DID v1) to the content of DID v2.</p>
-   <p>*EXAMPLE 2: Visualization and process of linked log entries to resolve a DID identifier*</p>
+   <p>An example is given below (<em>EXAMPLE 2</em>) depicting the log entries to be evaluated for linking an old DID identifier (DID v1) to the content of DID v2.</p>
+   <p><em>EXAMPLE 2: Visualization and process of linked log entries to resolve a DID identifier</em></p>
    <p align="center"> <img src="res/DIDv2dag.png" width="350"><br> <em>Figure 2: Visualization of log entries in EXAMPLE 2</em> </p>
    <p>Process:</p>
    <ol>
@@ -598,8 +718,8 @@ DID: `did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj`</p>
    </ol>
    <p class="note" role="note"><span>Note:</span> it is in the interest of the owner to publish revocation entries and make those easily accessible to ensure that even outdated DID identifier resolve to the latest DID document</p>
    <h3 class="heading settled" data-level="3.3" id="update"><span class="secno">3.3. </span><span class="content">Update</span><a class="self-link" href="#update"></a></h3>
-   <p>Updating `did:oyd` is providing a new DID document (and/or new keys for key rotation) while also publishing the revocation document and original keys to prove ownership. An example is given below (*EXAMPLE 3*) of all log entries for an updated DID.</p>
-   <p>*EXAMPLE 3: An example DID with all associated information and representations*</p>
+   <p>Updating <code>did:oyd</code> is providing a new DID document (and/or new keys for key rotation) while also publishing the revocation document and original keys to prove ownership. An example is given below (<em>EXAMPLE 3</em>) of all log entries for an updated DID.</p>
+   <p><em>EXAMPLE 3: An example DID with all associated information and representations</em></p>
 <pre>[{
     "ts": 1633300869,
     "op": 2,
