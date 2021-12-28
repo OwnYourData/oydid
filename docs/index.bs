@@ -21,11 +21,24 @@ Markup Shorthands: markdown yes
         "title": "Decentralized Identifiers (DIDs) v1.0",
         "status": "W3C Proposed Recommendation",
         "publisher": "W3C"
+    },
+    "MULTIBASE": {
+        "href": "https://tools.ietf.org/html/draft-multiformats-multibase",
+        "title": "IETF Multibase Data Format specification"
+    },
+    "MULTIHASH": {
+        "href": "https://github.com/multiformats/multihash",
+        "title": "Multihash - protocol for differentiating outputs from various well-established cryptographic hash functions"
     }
 }
 </pre>
 
 This specification is not a W3C Standard nor is it on the W3C Standards Track. Learn more about [W3C Community and Business Groups](https://www.w3.org/community/). [GitHub Issues](https://github.com/OwnYourData/oydid/issues) are preferred for discussion of this specification.
+
+## History
+
+* Version 0.3: 19 October 2021 (initial public release, [link](https://github.com/OwnYourData/oydid/blob/gh-pages/docs/did-spec_v03.md))
+* Version 0.4: 7 January 2022 (current version)
 
 Introduction {#intro}
 =====================
@@ -40,7 +53,7 @@ The rest of this document outlines the syntax for the `did:oyd` method, the oper
 The `did:oyd` Format {#format}
 ====================
 
-The format for the `did:oyd` method conforms to the DID core specification [1] as outlined by W3C. It consists of the `did:oyd` prefix, followed by a Multibase [2] (default: `base58-btc`) encoded value that is a Multihash [3] (default: `sha2-256`) value of composed of information from the payload, keys, and log.
+The format for the `did:oyd` method conforms to the DID core specification [[DID-CORE]] as outlined by W3C. It consists of the `did:oyd` prefix, followed by a Multibase [[MULTIBASE]] (default: `base58-btc`) encoded value that is a Multihash [[MULTIHASH]] (default: `sha2-256`) value of composed of information from the payload, keys, and log.
 
 The detailed calculation of the DID identifier from the internal document and log information via ABNF is described here:
 
