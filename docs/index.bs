@@ -35,7 +35,7 @@ Markup Shorthands: markdown yes
 
 This specification is not a W3C Standard nor is it on the W3C Standards Track. Learn more about [W3C Community and Business Groups](https://www.w3.org/community/). [GitHub Issues](https://github.com/OwnYourData/oydid/issues) are preferred for discussion of this specification.
 
-## History
+## History {#history}
 
 * Version 0.3: 19 October 2021 (initial public release, [link](https://github.com/OwnYourData/oydid/blob/gh-pages/docs/did-spec_v03.md))
 * Version 0.4: 7 January 2022 (current version)
@@ -59,7 +59,7 @@ The detailed calculation of the DID identifier from the internal document and lo
 
 <pre class=include-code>
 path: res/oydid.abnf
-highlight: json
+highlight: abnf
 </pre>
 
 DID Operations {#operations}
@@ -71,10 +71,20 @@ The following section outlines the DID operations for the `did:oyd` method.
 
 Creating a `did:oyd` identifier requires a payload (e.g., service endpoints) as JSON document and two ED25519 cryptographic key pairs in the format described in Section [[#format]] (`public-doc-key-encoded`, `public-revocation-key-encoded`).
 
-The DID document and associated log entries are stored in a registry accessible by relevant stakeholders. An example is given below (*EXAMPLE 1*) listing a payload, internal and W3C conform DID document, log entries, private keys, and private revocation document.
+The DID document and associated log entries are stored in a registry accessible by relevant stakeholders. An example is given below (<em>[EXAMPLE 1](#example_did_artefacts)</em>) listing a payload, internal and W3C conform DID document, log entries, private keys, and private revocation document.
 
-<div class=example>
-An example DID with all associated information and representations
+<div class=example id=example_did_artefacts>
+An example DID with all associated information and representations:
+
+* DID
+* Payload
+* Internal DID document
+* W3C conform DID document
+* Log entries
+* Private doc key
+* Private revocation key
+* Private revocation document
+
 
 **DID:** `did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj`
 
@@ -136,7 +146,7 @@ An example DID with all associated information and representations
 }]
 ```
 
-**Private payload key:** `z8H1vqLXBt566s7Zt8Zpr4qYLvh4dngS4bb9vuwX4X3n7`
+**Private doc key:** `z8H1vqLXBt566s7Zt8Zpr4qYLvh4dngS4bb9vuwX4X3n7`
 
 **Private revocation key:** `z4oACjiKVzDTdHuocH3DDqhdSBqsVpQb1HBZo7rAJduz4`
 
@@ -164,23 +174,25 @@ Reading a `did:oyd` is a matter of searching for a DID document that either can 
 
 4. the other log entry (terminate, op=0) provides revocation info; in case a log entry with the stated hash in doc exists the DID resolving process must continue
 
-An example is given below (*EXAMPLE 2*) depicting the log entries to be evaluated for linking an old DID identifier (DID v1) to the content of DID v2.
+An example is given below (<em>[EXAMPLE 2](#example_did_resolving)</em>) depicting the log entries to be evaluated for linking an old DID identifier (DID v1) to the content of DID v2.
 
-*EXAMPLE 2: Visualization and process of linked log entries to resolve a DID identifier*
+<div class=example id=example_did_resolving>
+Visualization and process of linked log entries to resolve a DID identifier
 
 <p align="center">
   <img src="res/DIDv2dag.png" width="350"><br>
-  <em>Figure 2: Visualization of log entries in EXAMPLE 2</em>
+  <em>Figure 1: Visualization of log entries</em>
 </p>
+</div>
 
 Process:
 1. User wants to resolves DID v1 and queries OYDID registry with identifier
-2. OYDID registry responds with (outdated) DID document for DID v1 and log entries create and terminate (shown on the very left in the picture above)
+2. OYDID registry responds with (outdated) DID document for DID v1 and log entries "create" and "terminate" (shown on the very left in the picture above)
 3. Resolver (automatically) queries the OYDID registry for a revocation log entry with the hash stored in the terminate entry
 4. OYDID repository returns revoke entry
 5. Resolver (automatically) queries the OYDID registry for log entries that hold the hash value of the revoke entry
 6. OYDID repository must retrieve exactly one update entry (and associated terminate entry) plus associated DID document (DID v2) as linked by the update entry
-7. Resolver validates linked hash entries and queries again OYDID registry for a revocation lo entry from the second terminate entry (shown on the very right in the picture above)
+7. Resolver validates linked hash entries and queries again OYDID registry for a revocation log entry from the second terminate entry (shown on the very right in the picture above)
 8. OYDID repository finds no information of such a revocation entry and therefore the resolver can return DID v2 as the latest document
 
 Note: it is in the interest of the owner to publish revocation entries and make those easily accessible to ensure that even outdated DID identifier resolve to the latest DID document
@@ -241,7 +253,61 @@ Deactivating an OYDID is simply done by publishing the private revocation entry 
 DID Log {#log}
 =======
 
-some text
+The log is a directed acyclic graph (DAG) and represents the life cycle of a DID. Each element in this graph holds the following attributes:
+
+<xmp highlight=json>
+{
+    "ts": int,
+    "op": int,
+    "doc": string (hash),
+    "sig": string (signature of hash),
+    "previous": [ array of strings (hashes) ]
+}
+</xmp>
+
+## Log Operations ## {#log_ops}
+
+The following list describes all available log operations (`op`) and specific use of attributes:    
+
+* **Terminate** (`op=0`): confirms last entry until revoke entry is published<br>
+    *doc*: hash of revoke entry<br>
+    *sig*: doc signed by private document key<br>
+    *previous*: can reference Clone or Delegate log entries for confirmation
+
+* **Revoke** (`op=1`): invalidates a Terminate log entry; only published for new information<br>
+    *doc*: hash of doc and key in DID Document<br>
+    *sig*: doc signed by private revocation key<br>
+    *previous*: can reference "Create" or "Update" and always "Terminate"
+
+* **Create** (`op=2`): start new DID<br>
+    *doc*: hash of DID Document<br>
+    *sig*: doc signed by private document key<br>
+    *previous*: has only a reference when created using clone pointing to this clone entry
+
+* **Update** (`op=3`): update DID<br>
+    *doc*: hash of DID Document<br>
+    *sig*: doc signed by private document key from previous version DID version<br>
+    *previous*: reference previous revoke log entry
+
+* **Clone** (`op=4`): create linked DID with same "doc" but new keys and logs<br>
+    *doc*: hash of new DID Document (same payload but different keys and logs)<br>
+    *sig*: doc signed by the new private document key<br>
+    *previous*: reference Create or Update log entry
+
+
+## Verification Steps ## {#verification}
+
+Processing the log provides unambiguous evidence for authenticity, correctness, and timeliness of resolving a DID to the DID document. This section describes all operations to perform independent verification when resolving a DID. 
+
+Note: Use the `--show-verification` flag in the [`oydid` command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification.
+
+### Calculate hash value from message ### {#calculate_hash}
+
+text
+
+### Retrieve log entry from a repository based on hash value ### {#retrieve_log}
+
+text
 
 Test Vectors {#test}
 ============

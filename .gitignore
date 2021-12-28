@@ -67,3 +67,6 @@ yarn-debug.log*
 !/storage/.keep
 
 .DS_Store
+
+# ignore Bikeshed locally built index.html
+docs/index.html
