@@ -8,7 +8,7 @@
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
   <meta content="Bikeshed version cace53f8c, updated Tue Dec 7 12:12:54 2021 -0800" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="6ae61d6d5df16f47833a011268e7881e332393f2" name="document-revision">
+  <meta content="38950df83622ba167d58746ec0b8098bc19faa70" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -569,6 +569,11 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
       <li><a href="#update"><span class="secno">3.3</span> <span class="content">Update</span></a>
       <li><a href="#deactivate"><span class="secno">3.4</span> <span class="content">Deactivate</span></a>
      </ol>
+    <li><a href="#log"><span class="secno">4</span> <span class="content">DID Log</span></a>
+    <li><a href="#test"><span class="secno">5</span> <span class="content">Test Vectors</span></a>
+    <li><a href="#privacy"><span class="secno">6</span> <span class="content">Security and Privacy Considerations</span></a>
+    <li><a href="#ethics"><span class="secno">7</span> <span class="content">Ethical Aspects</span></a>
+    <li><a href="#implementation"><span class="secno">8</span> <span class="content">Reference Implementation</span></a>
     <li>
      <a href="#w3c-conformance"><span class="secno"></span> <span class="content">Conformance</span></a>
      <ol class="toc">
@@ -633,13 +638,13 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
    <p>The DID document and associated log entries are stored in a registry accessible by relevant stakeholders. An example is given below (<em>EXAMPLE 1</em>) listing a payload, internal and W3C conform DID document, log entries, private keys, and private revocation document.</p>
    <div class="example" id="example-bd998f4a">
     <a class="self-link" href="#example-bd998f4a"></a> An example DID with all associated information and representations 
-    <p>DID: <code>did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj</code></p>
-    <p>Payload:</p>
+    <p><strong>DID:</strong> <code>did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj</code></p>
+    <p><strong>Payload:</strong></p>
 <pre>{
     "foo": "bar"
 }
 </pre>
-    <p>Internal DID document:</p>
+    <p><strong>Internal DID document:</strong></p>
 <pre>{
     "doc": {
         "foo": "bar"
@@ -648,7 +653,7 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
     "log": "zQmcE3b3ENZ5aDCyCcqe2wsbUytUexBubaUuAfTTfTJ7dhA"
 }
 </pre>
-    <p>W3C conform DID document:</p>
+    <p><strong>W3C conform DID document:</strong></p>
 <pre>{
     "@context": "https://www.w3.org/ns/did/v1",
     "id": "did:oyd:zQmaV8M4Pazau8WWwsVeyMQWmmckHXr1L2UPtyEjqfy6wXe",
@@ -669,7 +674,7 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
     }]
 }
 </pre>
-    <p>Log entries:</p>
+    <p><strong>Log entries:</strong></p>
 <pre>[{
     "ts": 1633298265,
     "op": 2,
@@ -684,9 +689,9 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
     "previous": []
 }]
 </pre>
-    <p>Private payload key: <code>z8H1vqLXBt566s7Zt8Zpr4qYLvh4dngS4bb9vuwX4X3n7</code></p>
-    <p>Private revocation key: <code>z4oACjiKVzDTdHuocH3DDqhdSBqsVpQb1HBZo7rAJduz4</code></p>
-    <p>Private revocation document:</p>
+    <p><strong>Private payload key:</strong> <code>z8H1vqLXBt566s7Zt8Zpr4qYLvh4dngS4bb9vuwX4X3n7</code></p>
+    <p><strong>Private revocation key:</strong> <code>z4oACjiKVzDTdHuocH3DDqhdSBqsVpQb1HBZo7rAJduz4</code></p>
+    <p><strong>Private revocation document:</strong></p>
 <pre>{
     "ts": 1633298265,
     "op": 1,
@@ -769,6 +774,89 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
    <h3 class="heading settled" data-level="3.4" id="deactivate"><span class="secno">3.4. </span><span class="content">Deactivate</span><a class="self-link" href="#deactivate"></a></h3>
    <p>Deactivating an OYDID is simply done by publishing the private revocation entry without providing any update record. The figure below depicts the log representing a deactivated DID.</p>
    <p align="center"> <img src="docs/res/DIDdeactivated.png" width="400"><br> <em>Figure 3: Visualization of log entries for a deactivated DID</em> </p>
+   <h2 class="heading settled" data-level="4" id="log"><span class="secno">4. </span><span class="content">DID Log</span><a class="self-link" href="#log"></a></h2>
+   <p>some text</p>
+   <h2 class="heading settled" data-level="5" id="test"><span class="secno">5. </span><span class="content">Test Vectors</span><a class="self-link" href="#test"></a></h2>
+   <p><em>Prerequisite:</em> install the <code>oydid</code> command from https://github.com/OwnYourData/did-cmd/ or
+use the following Docker command to run the OYDID command line tool without installation (based on [public Docker image <code>oydeu\oydid</code>](https://hub.docker.com/r/oydeu/oydid)):</p>
+<pre class="language-bash highlight">docker run -it --rm oydeu/oydid
+</pre>
+   <p><em>EXAMPLE 4: Various DIDs and useful commands</em></p>
+   <ul>
+    <li data-md>
+     <p><code>did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj</code> (new DID)</p>
+     <p>→ show information with:</p>
+<pre class="language-bash highlight">    oydid read zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj
+</pre>
+    <li data-md>
+     <p><code>did:oyd:zQmNUV1MJ5xKkFm6Lc9EKqAauGzbKP7amvbyxsx79mKwqPB</code> (updated DID)</p>
+     <p>→ show DID document using old DID</p>
+<pre class="language-bash highlight">    oydid read zQmdxfGRfFEnLoJ9RTiyzG9TPBhK7q6zsqrGFVzuxVPv4dq
+</pre>
+    <li data-md>
+     <p><code>did:oyd:zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1</code> (deactivated DID)</p>
+     <p>→ DID cannot be resolved</p>
+<pre class="language-bash highlight">    oydid read zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1
+</pre>
+     <strong>Result:</strong> <code>Error: cannot resolve DID</code> 
+     <p>→ Logs can be shown with the command</p>
+<pre class="language-bash highlight">    oydid logs zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1
+</pre>
+   </ul>
+   <p class="note" role="note"><span>Note:</span> read in the <a href="https://github.com/OwnYourData/did-cmd/blob/main/docs/OYDIDintro.pdf">OYDID White Paper</a> Appendix A for a step-by-step tutorial</p>
+   <h2 class="heading settled" data-level="6" id="privacy"><span class="secno">6. </span><span class="content">Security and Privacy Considerations</span><a class="self-link" href="#privacy"></a></h2>
+   <p>There are a number of security and privacy considerations that implementers will want to take into consideration upon working with this specification.</p>
+   <p><strong>Centralized Storage</strong></p>
+   <ul>
+    <li data-md>
+     <p>maintainer of OYDID repository cannot change content due to hash values</p>
+    <li data-md>
+     <p>the problem of a repository being unavailable can be mitigated by cloning DID to a local repository</p>
+    <li data-md>
+     <p>the problem of a storage provider hindering publication of updates can be also mitigated by cloning DID to other repositories and publishing updates using initial private keys there</p>
+   </ul>
+   <p><strong>Key Rotation</strong></p>
+   <p>Key Rotation is supported through using different key(s) when publishing an update.</p>
+   <p><strong>Scaling</strong></p>
+   <p>To scale access for frequently requested DID it is recommended to clone a DID to multiple locations.</p>
+   <p><strong>Updating Clones</strong></p>
+   <ul>
+    <li data-md>
+     <p>it is in the interest of the DID author to provide consistent information</p>
+    <li data-md>
+     <p>recommended approach</p>
+     <ul>
+      <li data-md>
+       <p>create new DID (but do not publish revocation log record for old DID yet)</p>
+      <li data-md>
+       <p>clone new DID to all relevant hosts</p>
+      <li data-md>
+       <p>only then publish revocation log</p>
+     </ul>
+   </ul>
+   <p><strong>Long-term Usage</strong></p>
+   <ul>
+    <li data-md>
+     <p>Multiformat used to ensure digest agility</p>
+    <li data-md>
+     <p>it is in the nature of centralized systems that they are offline and DID maintainerd need to ensure that a minimum number of clones are always online (based on how valuable the DID is)</p>
+   </ul>
+   <p><strong>Correlation</strong></p>
+   <p>The source for generating OYDID identifiers are hashing algorithms which have as intrinsic property as much entropy as possible and therefore offer no direct means of correlation.</p>
+   <h2 class="heading settled" data-level="7" id="ethics"><span class="secno">7. </span><span class="content">Ethical Aspects</span><a class="self-link" href="#ethics"></a></h2>
+   <p>DIDs provide a standardization to share specific information (public keys, service endpoints) publicly. However, storing this information on a distributed ledger requires resources (storage and processing capacities) that may seem unjustified for certain use cases where the immediate benefit is not obvious. As a result, in some cases the DID concept is already excluded in the design phase, which hinders adoption and further growth of using DIDs and Verifiable Credentials. Another challenge for DIDs can be privacy-preserving data exchanges and the simple fact of resolving a DID at a public ledger might allow it to infer certain information.</p>
+   <p>Therefore, OYDID takes the approach to not maintain DID and DID Document on a public ledger but on one or more local storages (that usually are publicly available). Through cryptographically linking the DID identifier to the DID Document, and furthermore linking the DID Document to a chained provenance trail (log), the same security and validation properties as a traditional DID are  maintained while avoiding highly redundant storage and general public access.</p>
+   <p>OYDIDs are therefore excellently suited for local settings with a limited number of stakeholders interested in resolving those DIDs. Example use cases are:</p>
+   <ul>
+    <li data-md>
+     <p>test runs that require to create repeatedly a large number of new DIDs</p>
+    <li data-md>
+     <p>settings in secured or remote areas without access to the internet</p>
+    <li data-md>
+     <p>(transient) storage solutions (e.g., Semantic Containers) that can generate large quantities of DIDs as a way to access specific information (e.g., consent receipts, provenance artefacts, delegation to read certain database queries)</p>
+   </ul>
+   <h2 class="heading settled" data-level="8" id="implementation"><span class="secno">8. </span><span class="content">Reference Implementation</span><a class="self-link" href="#implementation"></a></h2>
+   <p>Work in progress as part of a research project funded by the “IKT der Zukunft” program from the Federal Ministry for Transport, Innovation and Technology in Austria – <a href="https://projekte.ffg.at/projekt/4125456">FFG Projekt 887052</a>.</p>
   </main>
   <div data-fill-with="conformance">
    <h2 class="no-ref no-num heading settled" id="w3c-conformance"><span class="content">Conformance</span><a class="self-link" href="#w3c-conformance"></a></h2>
