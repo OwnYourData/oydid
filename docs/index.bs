@@ -41,7 +41,7 @@ This specification is not a W3C Standard nor is it on the W3C Standards Track. L
 * Version 0.4: 7 January 2022 (current version)
 
 Introduction {#intro}
-=====================
+============
 
 Decentralized Identifiers (DIDs) [[DID-CORE]] are a new type of identifier for verifiable, decentralized digital identity. These new identifiers are designed to enable the controller of a DID to prove control over it and to be implemented independently of any centralized registry, identity provider, or certificate authority. These sorts of identifiers often utilize a heavy-weight registry, such as ones utilizing Decentralized Ledger Technologies (DLT), to create, read, update, and deactivate DIDs.
 
@@ -76,16 +76,16 @@ The DID document and associated log entries are stored in a registry accessible 
 <div class=example>
 An example DID with all associated information and representations
 
-DID: `did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj`
+**DID:** `did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj`
 
-Payload:
+**Payload:**
 ```
 {
     "foo": "bar"
 }
 ```
 
-Internal DID document:
+**Internal DID document:**
 ```
 {
     "doc": {
@@ -96,7 +96,7 @@ Internal DID document:
 }
 ```
 
-W3C conform DID document:
+**W3C conform DID document:**
 ```
 {
     "@context": "https://www.w3.org/ns/did/v1",
@@ -119,7 +119,7 @@ W3C conform DID document:
 }
 ```
 
-Log entries:
+**Log entries:**
 ```
 [{
     "ts": 1633298265,
@@ -136,11 +136,11 @@ Log entries:
 }]
 ```
 
-Private payload key: `z8H1vqLXBt566s7Zt8Zpr4qYLvh4dngS4bb9vuwX4X3n7`
+**Private payload key:** `z8H1vqLXBt566s7Zt8Zpr4qYLvh4dngS4bb9vuwX4X3n7`
 
-Private revocation key: `z4oACjiKVzDTdHuocH3DDqhdSBqsVpQb1HBZo7rAJduz4`
+**Private revocation key:** `z4oACjiKVzDTdHuocH3DDqhdSBqsVpQb1HBZo7rAJduz4`
 
-Private revocation document:
+**Private revocation document:**
 ```
 {
     "ts": 1633298265,
@@ -237,3 +237,110 @@ Deactivating an OYDID is simply done by publishing the private revocation entry 
   <img src="docs/res/DIDdeactivated.png" width="400"><br>
   <em>Figure 3: Visualization of log entries for a deactivated DID</em>
 </p>
+
+DID Log {#log}
+=======
+
+some text
+
+Test Vectors {#test}
+============
+
+*Prerequisite:* install the `oydid` command from https://github.com/OwnYourData/did-cmd/ or   
+use the following Docker command to run the OYDID command line tool without installation (based on [public Docker image `oydeu\oydid`](https://hub.docker.com/r/oydeu/oydid)):
+
+```bash
+docker run -it --rm oydeu/oydid
+```
+
+*EXAMPLE 4: Various DIDs and useful commands*
+
+* `did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj` (new DID)
+
+    → show information with:
+
+    ```bash
+    oydid read zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj
+    ```
+
+* `did:oyd:zQmNUV1MJ5xKkFm6Lc9EKqAauGzbKP7amvbyxsx79mKwqPB` (updated DID)
+
+    → show DID document using old DID
+
+    ```bash
+    oydid read zQmdxfGRfFEnLoJ9RTiyzG9TPBhK7q6zsqrGFVzuxVPv4dq
+    ```
+
+* `did:oyd:zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1` (deactivated DID)
+
+    → DID cannot be resolved
+
+    ```bash
+    oydid read zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1
+    ```
+    **Result:** `Error: cannot resolve DID`
+
+    → Logs can be shown with the command
+    ```bash
+    oydid logs zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1
+    ```
+
+Note: read in the [OYDID White Paper](https://github.com/OwnYourData/did-cmd/blob/main/docs/OYDIDintro.pdf) Appendix A for a step-by-step tutorial
+
+
+Security and Privacy Considerations {#privacy}
+===================================
+
+There are a number of security and privacy considerations that implementers will want to take into consideration upon working with this specification.
+
+**Centralized Storage**
+
+* maintainer of OYDID repository cannot change content due to hash values
+* the problem of a repository being unavailable can be mitigated by cloning DID to a local repository
+* the problem of a storage provider hindering publication of updates can be also mitigated by cloning DID to other repositories and publishing updates using initial private keys there
+
+**Key Rotation**
+
+Key Rotation is supported through using different key(s) when publishing an update.
+
+**Scaling**
+
+To scale access for frequently requested DID it is recommended to clone a DID to multiple locations.
+
+**Updating Clones**
+
+* it is in the interest of the DID author to provide consistent information
+* recommended approach    
+    * create new DID (but do not publish revocation log record for old DID yet)
+    * clone new DID to all relevant hosts
+    * only then publish revocation log
+
+**Long-term Usage**
+
+* Multiformat used to ensure digest agility    
+* it is in the nature of centralized systems that they are offline and DID maintainerd need to ensure that a minimum number of clones are always online (based on how valuable the DID is)
+
+**Correlation**
+
+The source for generating OYDID identifiers are hashing algorithms which have as intrinsic property as much entropy as possible and therefore offer no direct means of correlation.
+
+
+Ethical Aspects {#ethics}
+===============
+
+DIDs provide a standardization to share specific information (public keys, service endpoints) publicly. However, storing this information on a distributed ledger requires resources (storage and processing capacities) that may seem unjustified for certain use cases where the immediate benefit is not obvious. As a result, in some cases the DID concept is already excluded in the design phase, which hinders adoption and further growth of using DIDs and Verifiable Credentials. Another challenge for DIDs can be privacy-preserving data exchanges and the simple fact of resolving a DID at a public ledger might allow it to infer certain information.
+
+Therefore, OYDID takes the approach to not maintain DID and DID Document on a public ledger but on one or more local storages (that usually are publicly available). Through cryptographically linking the DID identifier to the DID Document, and furthermore linking the DID Document to a chained provenance trail (log), the same security and validation properties as a traditional DID are  maintained while avoiding highly redundant storage and general public access.
+
+OYDIDs are therefore excellently suited for local settings with a limited number of stakeholders interested in resolving those DIDs. Example use cases are:
+
+* test runs that require to create repeatedly a large number of new DIDs
+* settings in secured or remote areas without access to the internet
+* (transient) storage solutions (e.g., Semantic Containers) that can generate large quantities of DIDs as a way to access specific information (e.g., consent receipts, provenance artefacts, delegation to read certain database queries)
+
+
+Reference Implementation {#implementation}
+========================
+
+Work in progress as part of a research project funded by the “IKT der Zukunft” program from the Federal Ministry for Transport, Innovation and Technology in Austria – [FFG Projekt 887052](https://projekte.ffg.at/projekt/4125456). 
+
