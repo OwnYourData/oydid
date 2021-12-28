@@ -8,7 +8,7 @@
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
   <meta content="Bikeshed version cace53f8c, updated Tue Dec 7 12:12:54 2021 -0800" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="97cbbd25c676c62b5aa341c0200dfb662cbd1de5" name="document-revision">
+  <meta content="b96f9791a09a13dfae5c0d2685bcfdde74e621b3" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -585,12 +585,19 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   </nav>
   <main>
    <p>This specification is not a W3C Standard nor is it on the W3C Standards Track. Learn more about <a href="https://www.w3.org/community/">W3C Community and Business Groups</a>. <a href="https://github.com/OwnYourData/oydid/issues">GitHub Issues</a> are preferred for discussion of this specification.</p>
+   <h3 class="heading settled" id="history"><span class="content">History</span></h3>
+   <ul>
+    <li data-md>
+     <p>Version 0.3: 19 October 2021 (initial public release, <a href="https://github.com/OwnYourData/oydid/blob/gh-pages/docs/did-spec_v03.md">link</a>)</p>
+    <li data-md>
+     <p>Version 0.4: 7 January 2022 (current version)</p>
+   </ul>
    <h2 class="heading settled" data-level="1" id="intro"><span class="secno">1. </span><span class="content">Introduction</span><a class="self-link" href="#intro"></a></h2>
    <p>Decentralized Identifiers (DIDs) <a data-link-type="biblio" href="#biblio-did-core">[DID-CORE]</a> are a new type of identifier for verifiable, decentralized digital identity. These new identifiers are designed to enable the controller of a DID to prove control over it and to be implemented independently of any centralized registry, identity provider, or certificate authority. These sorts of identifiers often utilize a heavy-weight registry, such as ones utilizing Decentralized Ledger Technologies (DLT), to create, read, update, and deactivate DIDs.</p>
    <p>While DLT-based DID Methods have great decentralization characteristics, and some of the more centralized DID Methods provide strong system control guarantees, the general approaches tend to be expensive to set up and operate. OYDID takes the approach to not maintain DID and DID Document on a public ledger but on one or more local storages (that might be publicly available). Through cryptographically linking the DID Identifier to the DID Document, and furthermore linking the DID Document to a chained provenance trail the same security and validation properties as a traditional DID can be maintained while avoiding highly redundant storage and also works in settings without general public access.</p>
    <p>The rest of this document outlines the syntax for the <code>did:oyd</code> method, the operations it supports, and some security and privacy considerations as well as ehtical aspects that implementers might want to be aware of when using this DID method.</p>
    <h2 class="heading settled" data-level="2" id="format"><span class="secno">2. </span><span class="content">The <code>did:oyd</code> Format</span><a class="self-link" href="#format"></a></h2>
-   <p>The format for the <code>did:oyd</code> method conforms to the DID core specification [1] as outlined by W3C. It consists of the <code>did:oyd</code> prefix, followed by a Multibase [2] (default: <code>base58-btc</code>) encoded value that is a Multihash [3] (default: <code>sha2-256</code>) value of composed of information from the payload, keys, and log.</p>
+   <p>The format for the <code>did:oyd</code> method conforms to the DID core specification <a data-link-type="biblio" href="#biblio-did-core">[DID-CORE]</a> as outlined by W3C. It consists of the <code>did:oyd</code> prefix, followed by a Multibase <a data-link-type="biblio" href="#biblio-multibase">[MULTIBASE]</a> (default: <code>base58-btc</code>) encoded value that is a Multihash <a data-link-type="biblio" href="#biblio-multihash">[MULTIHASH]</a> (default: <code>sha2-256</code>) value of composed of information from the payload, keys, and log.</p>
    <p>The detailed calculation of the DID identifier from the internal document and log information via ABNF is described here:</p>
 <pre class="include-code highlight">; !sy<c- kc>nta</c->x(<c- u>"abnf"</c->)
 did<c- mi>-</c->oyd<c- mi>-</c-><c- kc>f</c->orma<c- kc>t</c->                = <c- u>"did:oyd:"</c-> ide<c- kc>nt</c->i<c- kc>f</c->ier
@@ -812,4 +819,8 @@ hash<c- mi>-</c->ide<c- kc>nt</c->i<c- kc>f</c->ier               = DEFAULT sha<
   <dl>
    <dt id="biblio-did-core">[DID-CORE]
    <dd>Manu Sporny; et al. <a href="https://www.w3.org/TR/did-core/"><cite>Decentralized Identifiers (DIDs) v1.0</cite></a>. W3C Proposed Recommendation. URL: <a href="https://www.w3.org/TR/did-core/">https://www.w3.org/TR/did-core/</a>
+   <dt id="biblio-multibase">[MULTIBASE]
+   <dd><a href="https://tools.ietf.org/html/draft-multiformats-multibase"><cite>IETF Multibase Data Format specification</cite></a>. URL: <a href="https://tools.ietf.org/html/draft-multiformats-multibase">https://tools.ietf.org/html/draft-multiformats-multibase</a>
+   <dt id="biblio-multihash">[MULTIHASH]
+   <dd><a href="https://github.com/multiformats/multihash"><cite>Multihash - protocol for differentiating outputs from various well-established cryptographic hash functions</cite></a>. URL: <a href="https://github.com/multiformats/multihash">https://github.com/multiformats/multihash</a>
   </dl>
