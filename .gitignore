@@ -71,3 +71,4 @@ yarn-debug.log*
 # ignore Bikeshed locally built index.html
 docs/index.html
 docs/cmd.txt
+samples/
