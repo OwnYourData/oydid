@@ -12,6 +12,15 @@ module ApplicationHelper
         oyd_encode(Multihashes.encode(Digest::SHA256.digest(message), "sha2-256").unpack('C*'))
     end
 
+    def oyd_canonical(message)
+        if message.is_a? String
+            message = JSON.parse(message) rescue message
+        else
+            message = JSON.parse(message.to_json) rescue message
+        end
+        message.to_json_c14n
+    end
+
     def dag_did(logs)
         dag = DAG.new
         dag_log = []
@@ -19,10 +28,10 @@ module ApplicationHelper
         i = 0
         dag_log << dag.add_vertex(id: i)
         logs.each do |el|
-            log = JSON.parse(el)
+            log = JSON.parse(el.first)
             i += 1
             dag_log << dag.add_vertex(id: i)
-            log_hash << oyd_hash(log.to_json)
+            log_hash << el.last
             if log["previous"] == []
                 dag.add_edge from: dag_log[0], to: dag_log[i]
             else
@@ -41,29 +50,29 @@ module ApplicationHelper
         vertex.successors.each do |v|
             current_log = logs[v[:id].to_i - 1]
             if currentDID["last_id"].nil?
-                currentDID["last_id"] = current_log["id"].to_i
+                currentDID["last_id"] = current_log.first["id"].to_i
             else
-                if currentDID["last_id"].to_i < current_log["id"].to_i
-                    currentDID["last_id"] = current_log["id"].to_i
+                if currentDID["last_id"].to_i < current_log.first["id"].to_i
+                    currentDID["last_id"] = current_log.first["id"].to_i
                 end
             end
-            case current_log["op"]
+            case current_log.first["op"]
             when 2,3 # CREATE, UPDATE
-                doc_did = current_log["doc"]
+                doc_did = current_log.first["doc"]
                 doc_location = get_location(doc_did)
                 did_hash = doc_did.delete_prefix("did:oyd:")
                 did10 = did_hash[0,10]
                 doc = retrieve_document(doc_did, did10 + ".doc", doc_location, {})
                 # check if sig matches did doc 
-                if match_log_did?(current_log, doc)
+                if match_log_did?(current_log.first, doc)
                     currentDID["doc_log_id"] = v[:id].to_i
                     currentDID["did"] = doc_did
                     currentDID["doc"] = doc
                     if currentDID["last_sign_id"].nil?
-                        currentDID["last_sign_id"] = current_log["id"].to_i
+                        currentDID["last_sign_id"] = current_log.first["id"].to_i
                     else
-                        if currentDID["last_sign_id"].to_i < current_log["id"].to_i
-                            currentDID["last_sign_id"] = current_log["id"].to_i
+                        if currentDID["last_sign_id"].to_i < current_log.first["id"].to_i
+                            currentDID["last_sign_id"] = current_log.first["id"].to_i
                         end
                     end
                 end
