@@ -35,9 +35,9 @@ Markup Shorthands: markdown yes
 
 This specification is not a W3C Standard nor is it on the W3C Standards Track. Learn more about [W3C Community and Business Groups](https://www.w3.org/community/). [GitHub Issues](https://github.com/OwnYourData/oydid/issues) are preferred for discussion of this specification.
 
-## History {#history}
+## History ## {#history}
 
-* Version 0.3: 19 October 2021 (initial public release, [link](https://github.com/OwnYourData/oydid/blob/gh-pages/docs/did-spec_v03.md))
+* Version 0.3: 19 October 2021 (initial public release, [link](https://github.com/OwnYourData/oydid/blob/main/docs/did-spec_v03.md))
 * Version 0.4: 7 January 2022 (current version)
 
 Introduction {#intro}
@@ -69,7 +69,12 @@ The following section outlines the DID operations for the `did:oyd` method.
 
 ## Create (Register) ## {#create}
 
-Creating a `did:oyd` identifier requires a payload (e.g., service endpoints) as JSON document and two ED25519 cryptographic key pairs in the format described in Section [[#format]] (`public-doc-key-encoded`, `public-revocation-key-encoded`).
+Creating a `did:oyd` identifier requires 
+
+* a payload (e.g., service endpoints) as JSON document and    
+* two cryptographic key pairs (default: ED25519) 
+
+in the format described in Section [[#format]] (`public-doc-key-encoded`, `public-revocation-key-encoded`).
 
 The DID document and associated log entries are stored in a registry accessible by relevant stakeholders. An example is given below (<em>[EXAMPLE 1](#example_did_artefacts)</em>) listing a payload, internal and W3C conform DID document, log entries, private keys, and private revocation document.
 
@@ -200,9 +205,10 @@ Note: it is in the interest of the owner to publish revocation entries and make 
 
 ## Update ## {#update}
 
-Updating `did:oyd` is providing a new DID document (and/or new keys for key rotation) while also publishing the revocation document and original keys to prove ownership. An example is given below (*EXAMPLE 3*) of all log entries for an updated DID.
+Updating in `did:oyd` is providing a new DID document (and/or new keys for key rotation) while also publishing the revocation document and signing with original keys to prove ownership. An example is given below (<em>[EXAMPLE 3](#example_did_update)</em>) of all log entries for an updated DID.
 
-*EXAMPLE 3: An example DID with all associated information and representations*
+<div class=example id=example_did_update>
+Log information of an update DID.
 
 ```
 [{
@@ -238,17 +244,18 @@ Updating `did:oyd` is providing a new DID document (and/or new keys for key rota
     "previous": []
 }]
 ```
-
+</div>
 
 ## Deactivate ## {#deactivate}
 
 Deactivating an OYDID is simply done by publishing the private revocation entry without providing any update record. The figure below depicts the log representing a deactivated DID.
 
-
 <p align="center">
-  <img src="docs/res/DIDdeactivated.png" width="400"><br>
-  <em>Figure 3: Visualization of log entries for a deactivated DID</em>
+  <img src="res/DIDdeactivated.png" width="400"><br>
+  <em>Figure 3: Visualization of log graph for a deactivated DID</em>
 </p>
+
+
 
 DID Log {#log}
 =======
@@ -301,16 +308,69 @@ Processing the log provides unambiguous evidence for authenticity, correctness, 
 
 Note: Use the `--show-verification` flag in the [`oydid` command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification.
 
-### Calculate hash value from message ### {#calculate_hash}
+### Hash value calculation ### {#calculate_hash}
 
-text
+Perform the following steps to verify that a hash value conforms to a message:
 
-### Retrieve log entry from a repository based on hash value ### {#retrieve_log}
+1. identify encoding algorithm in multibase string (first character)<br>
+    you can use the information here: [https://github.com/multiformats/multibase](https://github.com/multiformats/multibase)<br>
+    example: if the string starts with "z" it is base58btc-encoding
 
-text
+2. identify hashing algorithm in multibase string (second & third character)<br>
+    you can use the information here: [https://github.com/multiformats/multicodec#multicodec-table](https://github.com/multiformats/multicodec#multicodec-table)<br>
+    example: if the string starts with "zQm" it is the sha2-256 hash algorithm
+
+3. if the message is a JSON is must be transformed to its canonical form based on this standard (currently still in draft): 
+    [https://datatracker.ietf.org/doc/html/rfc8785](https://datatracker.ietf.org/doc/html/rfc8785) 
+
+4. calculate hash value from message (check if pre-processing step #3 applies!) using the algorithm from step #2
+
+5. encode hash value using encoding algorithm from step #1
+
+✅ This verification step passes iif presented hash value and message match.
+
+
+### Log record retrieval ### {#retrieve_log}
+
+Retrieve log record from a repository based on hash value...
+
+### Signature verification ### {#verify_signature}
+
+Verifiy signature in a log record...
+
 
 Test Vectors {#test}
 ============
+
+## Samples ## {#samples}
+
+This section provides samples of typical OYDID DIDs.
+
+<div class=example id=sample_new>
+A DID created with a simple payload:
+
+`did:oyd:zQmZPsXSt3QbKZvjPEMdZZ6q8MtfFhPSeQmKx2g8khZq6YG`
+</div>
+
+
+<div class=example id=sample_update>
+A DID created and updated can be resolved using the following two identifier:
+
+`did:oyd:zQmZjUKm2n28LHkEufYNHicRbt31aAG8g6fwuTp35Nxmzzy`
+
+`did:oyd:zQmbePD4HavGGvmEQfGaAS5h9ms2BNZVewXVx3T7w9ypPgA`
+</div>
+
+<div class=example id=sample_external>
+A DID created and updated can be resolved using the following two identifier:
+
+`did:oyd:zQmNPqMwUWBuUSQnwFBacLtGFzdfFCDYS7msZntERecPj6r@https://did2.data-container.net`
+
+Note: a W3C conform representation is the percent-encoded `@`<br>`did:oyd:zQmNPqMwUWBuUSQnwFBacLtGFzdfFCDYS7msZntERecPj6r%40https://did2.data-container.net`
+</div>
+
+
+## Command line tool ## {#cli}
 
 *Prerequisite:* install the `oydid` command from https://github.com/OwnYourData/did-cmd/ or   
 use the following Docker command to run the OYDID command line tool without installation (based on [public Docker image `oydeu\oydid`](https://hub.docker.com/r/oydeu/oydid)):
@@ -359,21 +419,21 @@ Security and Privacy Considerations {#privacy}
 
 There are a number of security and privacy considerations that implementers will want to take into consideration upon working with this specification.
 
-**Centralized Storage**
+## Centralized Storage ## {#centralized_storage}
 
 * maintainer of OYDID repository cannot change content due to hash values
 * the problem of a repository being unavailable can be mitigated by cloning DID to a local repository
 * the problem of a storage provider hindering publication of updates can be also mitigated by cloning DID to other repositories and publishing updates using initial private keys there
 
-**Key Rotation**
+## Key Rotation ## {#key_rotatioin}
 
 Key Rotation is supported through using different key(s) when publishing an update.
 
-**Scaling**
+## Scaling ## {#key_rotation}
 
 To scale access for frequently requested DID it is recommended to clone a DID to multiple locations.
 
-**Updating Clones**
+## Updating Clones ## {#updating_clones}
 
 * it is in the interest of the DID author to provide consistent information
 * recommended approach    
@@ -381,15 +441,18 @@ To scale access for frequently requested DID it is recommended to clone a DID to
     * clone new DID to all relevant hosts
     * only then publish revocation log
 
-**Long-term Usage**
+## Long-term Usage ## {#long_term_usage}
 
 * Multiformat used to ensure digest agility    
 * it is in the nature of centralized systems that they are offline and DID maintainerd need to ensure that a minimum number of clones are always online (based on how valuable the DID is)
 
-**Correlation**
+## Correlation {#correlation}
 
 The source for generating OYDID identifiers are hashing algorithms which have as intrinsic property as much entropy as possible and therefore offer no direct means of correlation.
 
+## Cryptographic Agility {#cryptographic_agility}
+
+As described in the [[#operations]] section, currently only ed25519 public keys are supported. This can be easily extended by using other multicodec encoded keys. The multicodec table already has support for BLS keys for example, so adding support for it would be trivial. Once good post quantum cryptography becomes more widely available extending OYDID to support that will also be fairly straight forward.
 
 Ethical Aspects {#ethics}
 ===============

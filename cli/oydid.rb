@@ -11,10 +11,11 @@ require 'optparse'
 require 'rbnacl'
 require 'dag'
 require 'uri'
+require 'json/canonicalization'
 
 LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
-VERSION = "0.4.1"
+VERSION = "0.5.0"
 
 def oyd_encode(message)
     Multibases.pack("base58btc", message).to_s
@@ -28,13 +29,22 @@ def oyd_hash(message)
     oyd_encode(Multihashes.encode(Digest::SHA256.digest(message), "sha2-256").unpack('C*'))
 end
 
+def oyd_canonical(message)
+    if message.is_a? String
+        message = JSON.parse(message) rescue message
+    else
+        message = JSON.parse(message.to_json) rescue message
+    end
+    message.to_json_c14n
+end
+
 def add_hash(log)
     log.map do |item|
         i = item.dup
         i.delete("previous")
-        item["entry-hash"] = oyd_hash(item.to_json)
+        item["entry-hash"] = oyd_hash(oyd_canonical(item))
         if item["op"] == 1
-            item["sub-entry-hash"] = oyd_hash(i.to_json)
+            item["sub-entry-hash"] = oyd_hash(oyd_canonical(i))
         end
         item
     end
@@ -58,11 +68,10 @@ def dag_did(logs, options)
         if el["op"].to_i == 0
             terminate_indices << i
         end
-        log_hash << oyd_hash(el.to_json)
+        log_hash << oyd_hash(oyd_canonical(el))
         dag_log << dag.add_vertex(id: i)
         i += 1
     end unless logs.nil?
-
 
     if create_entries != 1
         if options[:silent].nil? || !options[:silent]
@@ -112,7 +121,6 @@ def dag_did(logs, options)
         end
         i += 1
     end unless logs.nil?
-
     if terminate_entries != 1 && !options[:log_complete]
        if options[:silent].nil? || !options[:silent]
             # if terminate_overall > 0
@@ -159,24 +167,237 @@ def dag2array(dag, log_array, index, result, options)
     result
 end
 
-def dag_update(currentDID)
+def dag_update(currentDID, options)
     i = 0
+    initial_did = currentDID["did"]
+    initial_did = initial_did.delete_prefix("did:oyd:")
+    initial_did = initial_did.split("@").first
+    current_public_doc_key = ""
+    verification_output = false
     currentDID["log"].each do |el|
         case el["op"]
         when 2,3 # CREATE, UPDATE
             doc_did = el["doc"]
             doc_location = get_location(doc_did)
             did_hash = doc_did.delete_prefix("did:oyd:")
+            did_hash = did_hash.split("@").first
             did10 = did_hash[0,10]
             doc = retrieve_document(doc_did, did10 + ".doc", doc_location, {})
+
             if match_log_did?(el, doc)
                 currentDID["doc_log_id"] = i
                 currentDID["did"] = doc_did
                 currentDID["doc"] = doc
+            else
+                currentDID["error"] = 1
+                currentDID["message"] = "Signatures in log don't match"
+                return currentDID
+                break
             end
+            if oyd_hash(oyd_canonical(doc)) != did_hash
+                currentDID["error"] = 1
+                currentDID["message"] = "DID identifier and DID document don't match"
+                if options[:show_verification]
+                    if did_hash == initial_did
+                        verification_output = true
+                    end
+                    if verification_output
+                        puts "identifier: " + did_hash.to_s
+                        puts "⛔ does not match DID Document:"
+                        puts JSON.pretty_generate(doc)
+                        puts "(Details: https://ownyourdata.github.io/oydid/#calculate_hash)"
+                        puts ""
+                    end
+                end
+                return currentDID
+                break
+            end
+            if options[:show_verification]
+                if did_hash == initial_did
+                    verification_output = true
+                end
+                if verification_output
+                    puts "identifier: " + did_hash.to_s
+                    puts "✅ is hash of DID Document:"
+                    puts JSON.pretty_generate(doc)
+                    puts "(Details: https://ownyourdata.github.io/oydid/#calculate_hash)"
+                    puts ""
+                end
+            end
+            current_public_doc_key = currentDID["doc"]["key"].split(":").first rescue ""
+
         when 0 # TERMINATE
             currentDID["termination_log_id"] = i
+
+            doc_did = currentDID["did"]
+            doc_location = get_location(doc_did)
+            did_hash = doc_did.delete_prefix("did:oyd:")
+            did_hash = did_hash.split("@").first
+            did10 = did_hash[0,10]
+            doc = retrieve_document(doc_did, did10 + ".doc", doc_location, {})
+            term = doc["log"]
+            log_location = term.split("@")[1] rescue ""
+
+            if log_location.to_s == ""
+                log_location = DEFAULT_LOCATION
+            end
+            term = term.split("@").first
+            if oyd_hash(oyd_canonical(el)) != term
+                currentDID["error"] = 1
+                currentDID["message"] = "Log reference and record don't match"
+                if options[:show_verification]
+                    if verification_output
+                        puts "'log' reference in DID Document: " + term.to_s
+                        puts "⛔ does not match TERMINATE log record:"
+                        puts JSON.pretty_generate(el)
+                        puts "(Details: https://ownyourdata.github.io/oydid/#calculate_hash)"
+                        puts ""
+                    end
+                end
+                return currentDID
+                break
+            end
+            if options[:show_verification]
+                if verification_output
+                    puts "'log' reference in DID Document: " + term.to_s
+                    puts "✅ is hash of TERMINATE log record:"
+                    puts JSON.pretty_generate(el)
+                    puts "(Details: https://ownyourdata.github.io/oydid/#calculate_hash)"
+                    puts ""
+                end
+            end
+
+            # check if there is a revocation entry
+            revocation_record = {}
+            revoc_term = el["doc"]
+            revoc_term = revoc_term.split("@").first
+            revoc_term_found = false
+            log_array = retrieve_log(did_hash, did10 + ".log", log_location, options)
+            log_array.each do |log_el|
+                log_el_structure = log_el.dup
+                if log_el["op"] == 1 # TERMINATE
+                    log_el_structure.delete("previous")
+                end
+                if oyd_hash(oyd_canonical(log_el_structure)) == revoc_term
+                    revoc_term_found = true
+                    revocation_record = log_el.dup
+                    if options[:show_verification]
+                        if verification_output
+                            puts "'doc' reference in TERMINATE log record: " + revoc_term.to_s
+                            puts "✅ is hash of REVOCATION log record (without 'previous' attribute):"
+                            puts JSON.pretty_generate(log_el)
+                            puts "(Details: https://ownyourdata.github.io/oydid/#calculate_hash)"
+                            puts ""
+                        end
+                    end
+                    break
+                end
+            end unless log_array.nil?
+
+            if !options[:log_location].nil?
+                log_array = retrieve_log(revoc_term, did10 + ".log", options[:log_location], options)
+                log_array.each do |log_el|
+                    if log_el["op"] == 1 # TERMINATE
+                        log_el_structure = log_el.delete("previous")
+                    else
+                        log_el_structure = log_el
+                    end
+                    if oyd_hash(oyd_canonical(log_el_structure)) == revoc_term
+                        revoc_term_found = true
+                        revocation_record = log_el.dup
+                        if options[:show_verification]
+                            if verification_output
+                                puts "'doc' reference in TERMINATE log record: " + revoc_term.to_s
+                                puts "✅ is hash of REVOCATION log record (without 'previous' attribute):"
+                                puts JSON.pretty_generate(log_el)
+                                puts "(Details: https://ownyourdata.github.io/oydid/#calculate_hash)"
+                                puts ""
+                            end
+                        end
+                        break
+                    end
+                end
+            end
+
+            if revoc_term_found
+                update_term_found = false
+                log_array.each do |log_el|
+                    if log_el["op"] == 3
+                        if log_el["previous"].include?(oyd_hash(oyd_canonical(revocation_record)))
+                            update_term_found = true
+
+                            pubKey_string = current_public_doc_key.to_s
+                            pubKey = Ed25519::VerifyKey.new(oyd_decode(pubKey_string))
+                            signature = oyd_decode(log_el["sig"])
+                            # new_doc_did = log_el["doc"]
+                            # new_doc_location = get_location(new_doc_did)
+                            # new_did_hash = new_doc_did.delete_prefix("did:oyd:")
+                            # new_did_hash = new_did_hash.split("@").first
+                            # new_did10 = new_did_hash[0,10]
+                            # new_doc = retrieve_document(new_doc_did, new_did10 + ".doc", new_doc_location, {})
+                            signature_verification = false
+                            begin
+                                pubKey.verify(signature, log_el["doc"].to_s)
+                                signature_verification = true
+                            rescue Ed25519::VerifyError
+                                signature_verification = false
+                            end
+                            if signature_verification
+                                if options[:show_verification]
+                                    if verification_output
+                                        puts "found UPDATE log record:"
+                                        puts JSON.pretty_generate(log_el)
+                                        puts "✅ public key from last DID Document: " + current_public_doc_key.to_s
+                                        puts "verifies 'doc' reference of new DID Document: " + log_el["doc"].to_s
+                                        puts log_el["sig"].to_s
+                                        puts "of next DID Document (Details: https://ownyourdata.github.io/oydid/#verify_signature)"
+
+                                        if pubKey_string == doc["key"].split(":").first
+                                            puts "⚠️  no key rotation in updated DID Document"
+                                        end
+
+                                        puts ""
+                                    end
+                                end
+                            else
+                                currentDID["error"] = 1
+                                currentDID["message"] = "Signature does not match"
+                                if options[:show_verification]
+                                    if verification_output
+                                        puts "found UPDATE log record:"
+                                        puts JSON.pretty_generate(log_el)
+                                        puts "⛔ public key from last DID Document: " + current_public_doc_key.to_s
+                                        puts "does not verify 'doc' reference of new DID Document: " + log_el["doc"].to_s
+                                        puts log_el["sig"].to_s
+                                        puts "next DID Document (Details: https://ownyourdata.github.io/oydid/#verify_signature)"
+                                        puts JSON.pretty_generate(new_doc)
+                                        puts ""
+                                    end
+                                end
+                                return currentDID
+                            end
+                            break
+                        end
+                    end
+                end
+
+            else
+                if options[:show_verification]
+                    if verification_output
+                        puts "Revocation reference in log record: " + revoc_term.to_s
+                        puts "✅ cannot find revocation record searching at"
+                        puts "- " + log_location
+                        if !options[:log_location].nil?
+                            puts "- " + options[:log_location].to_s
+                        end
+                        puts "(Details: https://ownyourdata.github.io/oydid/#retrieve_log)"
+                        puts ""
+                    end
+                end
+                break
+            end
         else
+
         end
         i += 1
     end unless currentDID["log"].nil?
@@ -350,7 +571,7 @@ def resolve_did(did, options)
     if did_location.to_s == ""
         if did.include?(LOCATION_PREFIX)
             tmp = did.split(LOCATION_PREFIX)
-            did = tmp[0]
+            did = tmp[0] 
             did_location = tmp[1]
         end
     end
@@ -386,7 +607,6 @@ def resolve_did(did, options)
             log_location = hash_split[1]
         end
     end
-
     if log_location == ""
         log_location = DEFAULT_LOCATION
     end
@@ -396,7 +616,6 @@ def resolve_did(did, options)
     if options[:trace]
         puts " .. Log retrieved"
     end
-
     dag, create_index, terminate_index = dag_did(log_array, options)
     if options[:trace]
         puts " .. DAG with " + dag.vertices.length.to_s + " vertices and " + dag.edges.length.to_s + " edges, CREATE index: " + create_index.to_s
@@ -416,7 +635,7 @@ def resolve_did(did, options)
             end
         end
     end
-    currentDID = dag_update(currentDID)
+    currentDID = dag_update(currentDID, options)
     if options[:log_complete]
         currentDID["log"] = log_array
     end
@@ -639,8 +858,8 @@ def write_did(content, did, mode, options)
             publicKey = privateKey.verify_key
             pubRevoKey = revocationKey.verify_key
             did_key = oyd_encode(publicKey.to_bytes) + ":" + oyd_encode(pubRevoKey.to_bytes)
-            subDid = {"doc": did_old_doc, "key": did_key}.to_json
-            subDidHash = oyd_hash(subDid)
+            subDid = {"doc": did_old_doc, "key": did_key}
+            subDidHash = oyd_hash(oyd_canonical(subDid))
             signedSubDidHash = oyd_encode(revocationKey.sign(subDidHash))
             revocationLog = { 
                 "ts": ts_old,
@@ -650,10 +869,10 @@ def write_did(content, did, mode, options)
         end
         revoc_log = JSON.parse(revocationLog)
         revoc_log["previous"] = [
-            oyd_hash(old_log[did_info["doc_log_id"].to_i].to_json), 
-            oyd_hash(old_log[did_info["termination_log_id"].to_i].to_json)
+            oyd_hash(oyd_canonical(old_log[did_info["doc_log_id"].to_i])), 
+            oyd_hash(oyd_canonical(old_log[did_info["termination_log_id"].to_i]))
         ]
-        prev_hash = [oyd_hash(revoc_log.to_json)]
+        prev_hash = [oyd_hash(oyd_canonical(revoc_log))]
     end
 
     publicKey = privateKey.verify_key
@@ -674,7 +893,7 @@ def write_did(content, did, mode, options)
     #   pubRevoKey.verify(signature, message)
 
     # build termination log entry
-    l2_doc = oyd_hash(r1.to_json)
+    l2_doc = oyd_hash(oyd_canonical(r1))
     if !doc_location.nil?
         l2_doc += LOCATION_PREFIX + doc_location.to_s
     end    
@@ -685,7 +904,7 @@ def write_did(content, did, mode, options)
            "previous": [] }.transform_keys(&:to_s)
 
     # build actual DID document
-    log_str = oyd_hash(l2.to_json)
+    log_str = oyd_hash(oyd_canonical(l2))
     if !doc_location.nil?
         log_str += LOCATION_PREFIX + doc_location.to_s
     end
@@ -694,7 +913,7 @@ def write_did(content, did, mode, options)
                     "log": log_str }.transform_keys(&:to_s)
 
     # create DID
-    l1_doc = oyd_hash(didDocument.to_json)
+    l1_doc = oyd_hash(oyd_canonical(didDocument))
     if !doc_location.nil?
         l1_doc += LOCATION_PREFIX + doc_location.to_s
     end    
@@ -716,7 +935,7 @@ def write_did(content, did, mode, options)
         retVal = HTTParty.post(options[:source_location] + "/log/" + options[:source_did],
             headers: { 'Content-Type' => 'application/json' },
             body: {"log": new_log}.to_json )
-        prev_hash = [oyd_hash(new_log.to_json)]
+        prev_hash = [oyd_hash(oyd_canonical(new_log))]
     end
 
     # build creation log entry
@@ -898,8 +1117,8 @@ def revoke_did(did, options)
 
     revoc_log = JSON.parse(revocationLog)
     revoc_log["previous"] = [
-        oyd_hash(old_log[did_info["doc_log_id"].to_i].to_json), 
-        oyd_hash(old_log[did_info["termination_log_id"].to_i].to_json)
+        oyd_hash(oyd_canonical(old_log[did_info["doc_log_id"].to_i])), 
+        oyd_hash(oyd_canonical(old_log[did_info["termination_log_id"].to_i]))
     ]
 
     if doc_location.to_s == ""
@@ -1005,7 +1224,7 @@ def clone_did(did, options)
     # write did to new location
     options[:doc_location] = target_location
     options[:log_location] = target_location
-    options[:previous_clone] = oyd_hash(source_log) + LOCATION_PREFIX + source_location
+    options[:previous_clone] = oyd_hash(oyd_canonical(source_log)) + LOCATION_PREFIX + source_location
     options[:source_location] = source_location
     options[:source_did] = source_did["did"]
     write_did([source_did["doc"]["doc"].to_json], nil, "clone", options)
@@ -1255,6 +1474,8 @@ def print_help()
     puts "                                     a revocation"
     puts "     --show-hash                   - for log operation: additionally show"
     puts "                                     hash value of each entry"
+    puts "     --show-verification           - display raw data and steps for"
+    puts "                                     verifying DID resolution process"
     puts "     --silent                      - suppress any output"
     puts "     --timestamp TIMESTAMP         - timestamp in UNIX epoch to be used"
     puts "                                     (only for testing)"
@@ -1277,6 +1498,7 @@ opt_parser = OptionParser.new do |opt|
 
   options[:log_complete] = false
   options[:show_hash] = false
+  options[:show_verification] = false
   opt.on("-l","--location LOCATION","default URL to store/query DID data") do |loc|
     options[:location] = loc
   end
@@ -1288,6 +1510,9 @@ opt_parser = OptionParser.new do |opt|
   end
   opt.on("--show-hash") do |s|
     options[:show_hash] = true
+  end
+  opt.on("--show-verification") do |s|
+    options[:show_verification] = true
   end
   opt.on("--w3c-did") do |w3c|
     options[:w3cdid] = true
@@ -1372,7 +1597,7 @@ when "read"
         if options[:w3cdid]
             w3c_did(result, options)
         else
-            if options[:silent].nil? || !options[:silent]
+            if (options[:silent].nil? || !options[:silent]) && !options[:show_verification]
                 puts result["doc"].to_json
             end
         end

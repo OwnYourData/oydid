@@ -40,7 +40,7 @@ module ResolveHelper
         currentDID["doc"] = did_document
 
         # retrieve log
-        log_array = Log.where(did: did).pluck(:item)
+        log_array = Log.where(did: did).pluck(:item, :oyd_hash)
         currentDID["log"] = log_array
 
         # traverse log to get current DID state

@@ -27,7 +27,7 @@ include ApplicationHelper
 
     def create
         did = params[:did]
-        @log = Log.new(did: did, item: params[:log].to_json, oyd_hash: oyd_hash(params[:log].to_json), ts: Time.now.to_i)
+        @log = Log.new(did: did, item: params[:log].to_json, oyd_hash: oyd_hash(oyd_canonical(params[:log])), ts: Time.now.to_i)
         if @log.save
             render plain: "", 
                    status: 200
