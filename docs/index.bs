@@ -194,7 +194,7 @@ An example is given below (<em>[EXAMPLE 2](#example_did_resolving)</em>) depicti
 Visualization and process of linked log entries to resolve a DID identifier
 
 <p align="center">
-  <img src="res/DIDv2dag.png" width="350"><br>
+  <img src="docs/res/DIDv2dag.png" width="350"><br>
   <em>Figure 1: Visualization of log entries</em>
 </p>
 </div>
@@ -262,7 +262,7 @@ Log information of an update DID.
 Deactivating an OYDID is simply done by publishing the private revocation entry without providing any update record. The figure below depicts the log representing a deactivated DID.
 
 <p align="center">
-  <img src="res/DIDdeactivated.png" width="400"><br>
+  <img src="docs/res/DIDdeactivated.png" width="400"><br>
   <em>Figure 3: Visualization of log graph for a deactivated DID</em>
 </p>
 
