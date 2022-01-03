@@ -499,54 +499,57 @@ A DID created and updated can be resolved using the following two identifier:
 <div class=example id=sample_external>
 A DID created at a non-default location:
 
-`did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W@https://did2.data-container.net`
+`did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W@did2.data-container.net`
 
-Note: a W3C conform representation is the percent-encoded `@`<br>`did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W%40https://did2.data-container.net`
+Note: a W3C conform representation is the percent-encoded `@`<br>`did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W%40did2.data-container.net`
 </div>
 
 
 ## Command line tool ## {#cli}
 
-*Prerequisite:* install the `oydid` command from https://github.com/OwnYourData/did-cmd/ or   
-use the following Docker command to run the OYDID command line tool without installation (based on [public Docker image `oydeu\oydid`](https://hub.docker.com/r/oydeu/oydid)):
+*Prerequisite:* install the `oydid` command from [https://github.com/OwnYourData/oydid/tree/main/cli](https://github.com/OwnYourData/oydid/tree/main/cli) or   
+use the following Docker command to run the OYDID command line tool without installation (based on [public Docker image `oydeu\oydid-cli`](https://hub.docker.com/r/oydeu/oydid-cli)):
 
 ```bash
-docker run -it --rm oydeu/oydid
+docker run -it --rm oydeu/oydid-cli
 ```
 
-*EXAMPLE 4: Various DIDs and useful commands*
+<div class=example id=example_cli>
+Various DIDs and useful commands.
 
-* `did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj` (new DID)
+* `did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh` (new DID)
 
     → show information with:
 
     ```bash
-    oydid read zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj
+    oydid read did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
     ```
 
-* `did:oyd:zQmNUV1MJ5xKkFm6Lc9EKqAauGzbKP7amvbyxsx79mKwqPB` (updated DID)
+* `did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR` (updated DID)
 
     → show DID document using old DID
 
     ```bash
-    oydid read zQmdxfGRfFEnLoJ9RTiyzG9TPBhK7q6zsqrGFVzuxVPv4dq
+    oydid read zQmdXNRiMWEYTiYF58a9BaiUkfB2xWUgL7G7ozyCCNPqjKV
     ```
 
-* `did:oyd:zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1` (deactivated DID)
+    Note: you can omit `did:oyd` when using the command line tool
+
+* `did:oyd:zQmQMvhHrccgcP2XzE2rM4E8MDx9P8D5FWPdDF1DTPikF4F` (deactivated DID)
 
     → DID cannot be resolved
 
     ```bash
-    oydid read zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1
+    oydid read zQmQMvhHrccgcP2XzE2rM4E8MDx9P8D5FWPdDF1DTPikF4F
     ```
     **Result:** `Error: cannot resolve DID`
 
     → Logs can be shown with the command
     ```bash
-    oydid logs zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1
+    oydid logs zQmQMvhHrccgcP2XzE2rM4E8MDx9P8D5FWPdDF1DTPikF4F
     ```
 
-Note: read in the [OYDID White Paper](https://github.com/OwnYourData/did-cmd/blob/main/docs/OYDIDintro.pdf) Appendix A for a step-by-step tutorial
+Note: find more examples and usage scenarios in the OYDID Tutorial at [https://github.com/OwnYourData/oydid/tree/main/tutorial](https://github.com/OwnYourData/oydid/tree/main/tutorial)
 
 
 Security and Privacy Considerations {#privacy}
@@ -611,6 +614,7 @@ Work in progress as part of a research project funded by the “IKT der Zukunft�
 The following implementation artefacts are available (published under the open source MIT License):
 * Command line tool `oydid`: [https://github.com/OwnYourData/oydid/tree/main/cli](https://github.com/OwnYourData/oydid/tree/main/cli) 
     * also available as Docker Image: [https://hub.docker.com/r/oydeu/oydid-cli](https://hub.docker.com/r/oydeu/oydid-cli)
+    * find example usage scenarios in this Tutorial: [https://github.com/OwnYourData/oydid/tree/main/tutorial](https://github.com/OwnYourData/oydid/tree/main/tutorial)
 * Repository for hosting DIDs: [https://github.com/OwnYourData/oydid/tree/main/repository](https://github.com/OwnYourData/oydid/tree/main/repository)
     * API documentation in Swagger: [https://api-docs.ownyourdata.eu/oydid/](https://api-docs.ownyourdata.eu/oydid/)
 * [Universal Resolver](https://github.com/decentralized-identity/universal-resolver/) driver: [https://github.com/OwnYourData/oydid/tree/main/uniresolver-plugin](https://github.com/OwnYourData/oydid/tree/main/uniresolver-plugin)

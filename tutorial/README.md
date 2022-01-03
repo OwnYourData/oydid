@@ -25,7 +25,7 @@ docker run -it --rm -v ~/.oydid:/home/oydid oydeu/oydid-cli
 *Note:* since it makes sense to keep private keys and revocation information beyond a Docker session a directory is mounted in the container to persist files; create a local directory, `mkdir ~/.oydid`
 
 
-## Alice creates DID to document an available service endpoint
+## Alice creates a DID to document an available service endpoint
 
 Alice provides a service endpoint and wants to share this information in a DID document.
 
@@ -51,6 +51,6 @@ If you want to contribute, please follow these steps:
 
 &nbsp;    
 
-## Lizenz
+## License
 
 [MIT License 2022 - OwnYourData.eu](https://raw.githubusercontent.com/OwnYourData/oydid/main/LICENSE)
