@@ -317,7 +317,100 @@ The following list describes all available log operations (`op`) and specific us
 
 Processing the log provides unambiguous evidence for authenticity, correctness, and timeliness of resolving a DID to the DID document. This section describes all operations to perform independent verification when resolving a DID. 
 
-Note: Use the `--show-verification` flag in the [`oydid` command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification.
+Note: Use the `--show-verification` flag in the [`oydid` command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification. <em>[EXAMPLE 4](#example_verification)</em> is the output of such a verification.
+
+<div class=example id=example_verification>
+Output of command<br>
+`oydid read --show-verification did:oyd:zQmYhESMRSvN9BkrCf7YcBfxNzigVphyBUbFMfJpEm1fdPF`
+
+```
+identifier: zQmYhESMRSvN9BkrCf7YcBfxNzigVphyBUbFMfJpEm1fdPF
+✅ is hash of DID Document:
+{
+  "doc": [
+    "payload"
+  ],
+  "key": "z6Mv8rFnUqnHArmaGJCHTxBCtM7GcNXpi8DWWKN1qEbeWdvP:z6MuztHorNR1h7Ds79sYsxeFF7vSu7eFcLdYsU99qyJPWJyB",
+  "log": "zQmYmirw77JK4SX34zwmjgjE3F8BXnsDoBuPPbgjSQNcnZN"
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+'log' reference in DID Document: zQmYmirw77JK4SX34zwmjgjE3F8BXnsDoBuPPbgjSQNcnZN
+✅ is hash of TERMINATE log record:
+{
+  "ts": 1641208742,
+  "op": 0,
+  "doc": "zQmW3EpDiEmDnk2epFQ2t8hXuygmivW2LJDZyUn3v9G4pj2",
+  "sig": "z4Fq84y8Mg1Z52A5XUXdHES5fzGwBEGVTP6Nx2gz1Zvy7XuA8UH77f7wP7g7Dh2WtbAW2oThg2VmZSN5YySytNiGj",
+  "previous": [
+
+  ]
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+'doc' reference in TERMINATE log record: zQmW3EpDiEmDnk2epFQ2t8hXuygmivW2LJDZyUn3v9G4pj2
+✅ is hash of REVOCATION log record (without 'previous' attribute):
+{
+  "ts": 1641208742,
+  "op": 1,
+  "doc": "zQmSswGSXLgjqBZ9f2RdRkK4AQvJEpxXVCNQNoGYr2grpmZ",
+  "sig": "z2umhsnyM27JyLf3k15JyhPKh7ctKWZLgajrc7wWNJtjwUgrswoGkmVqFAyLbM8GfNDB6xHNLf1mo6rNMtDHSGc8V",
+  "previous": [
+    "zQmbcKwoqHbNBwNduTGFdsFb4MCLFayBNxdC6x5qUTVwKU8",
+    "zQmYmirw77JK4SX34zwmjgjE3F8BXnsDoBuPPbgjSQNcnZN"
+  ]
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+found UPDATE log record:
+{
+  "ts": 1641208760,
+  "op": 3,
+  "doc": "zQmfDsSChwWjAxz8FYXXjJCdUqq9ZiUCtBiXnZVGUTGku72",
+  "sig": "zCQKpYAK1erKjqVwPExRCzBQkxHTbvaKkq9FAo4zD5JXgmzZJz6UVKSYVJvk43vmkaYcZ38eesEG5YUZ2f5pzr8q",
+  "previous": [
+    "zQmW8MKzWJ3dSfRgVqaq2PYQEksnry1BBocaXhxtfRf1jjv"
+  ]
+}
+✅ public key from last DID Document: z6Mv8rFnUqnHArmaGJCHTxBCtM7GcNXpi8DWWKN1qEbeWdvP
+verifies 'doc' reference of new DID Document: zQmfDsSChwWjAxz8FYXXjJCdUqq9ZiUCtBiXnZVGUTGku72
+zCQKpYAK1erKjqVwPExRCzBQkxHTbvaKkq9FAo4zD5JXgmzZJz6UVKSYVJvk43vmkaYcZ38eesEG5YUZ2f5pzr8q
+of next DID Document (Details: https://ownyourdata.github.io/oydid/#verify_signature)
+
+identifier: zQmfDsSChwWjAxz8FYXXjJCdUqq9ZiUCtBiXnZVGUTGku72
+✅ is hash of DID Document:
+{
+  "doc": [
+    "new payload"
+  ],
+  "key": "z6Muztkm7Nrf6uEPCPhe5Cu1vL4NfXJwaCKxWd5tgHbvk6qm:z6Mv1Zdz5SqYx94YmG7UrpPVSXNQSJKCMBanHvLx1SdPUgfH",
+  "log": "zQmaRxpQFsvP9i1ZyZhT5X4V2h7pNqZ4an7vgwpwK3yW7x8"
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+'log' reference in DID Document: zQmaRxpQFsvP9i1ZyZhT5X4V2h7pNqZ4an7vgwpwK3yW7x8
+✅ is hash of TERMINATE log record:
+{
+  "ts": 1641208760,
+  "op": 0,
+  "doc": "zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS2Zo",
+  "sig": "z5HGPMqoi83q5GvGQjr2c2xRvqJJGtpxEjpNtGjCUixGWV8tbeKg7sBGdp1qsZYfKNFhFxfQnG67NRoraVsEMi8DL",
+  "previous": [
+
+  ]
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+Revocation reference in log record: zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS2Zo
+✅ cannot find revocation record searching at
+- https://oydid.ownyourdata.eu
+(Details: https://ownyourdata.github.io/oydid/#retrieve_log)
+
+=== end of verification output ===
+
+{"doc":["new payload"],"key":"z6Muztkm7Nrf6uEPCPhe5Cu1vL4NfXJwaCKxWd5tgHbvk6qm:z6Mv1Zdz5SqYx94YmG7UrpPVSXNQSJKCMBanHvLx1SdPUgfH","log":"zQmaRxpQFsvP9i1ZyZhT5X4V2h7pNqZ4an7vgwpwK3yW7x8"}
+```
+</div>
 
 ### Hash value calculation ### {#calculate_hash}
 
@@ -331,7 +424,7 @@ Perform the following steps to verify that a hash value conforms to a message:
     you can use the information here: [https://github.com/multiformats/multicodec#multicodec-table](https://github.com/multiformats/multicodec#multicodec-table)<br>
     example: if the string starts with "zQm" it is the sha2-256 hash algorithm
 
-3. if the message is a JSON is must be transformed to its canonical form based on this standard (currently still in draft): 
+3. if the message is a JSON is must be transformed to its canonical form based on this standard: 
     [https://datatracker.ietf.org/doc/html/rfc8785](https://datatracker.ietf.org/doc/html/rfc8785) 
 
 4. calculate hash value from message (check if pre-processing step #3 applies!) using the algorithm from step #2
@@ -341,13 +434,44 @@ Perform the following steps to verify that a hash value conforms to a message:
 ✅ This verification step passes iif presented hash value and message match.
 
 
-### Log record retrieval ### {#retrieve_log}
-
-Retrieve log record from a repository based on hash value...
-
 ### Signature verification ### {#verify_signature}
 
-Verifiy signature in a log record...
+Perform the following steps to verify the signature in a log record:
+
+1. collect necesary artefacts for verification<br>
+    * payload to sign: this is the `doc` attribute in a log record; make sure to check that this is the correct hash value of the referenced document/record using [[#calculate_hash]]    
+    * signature: this is the `sig` attribute in a log record    
+    * public key used for verification: this is provided in the corresponding DID Document; for UPDATE log records it must be the `public-doc-key` of the old DID Document to proof original ownership    
+
+2. identify cryptographic algorithm in multibase encoded string of `key`<br>
+    you can use the information here: [https://github.com/multiformats/multicodec#multicodec-table](https://github.com/multiformats/multicodec#multicodec-table)<br>
+    example: if the string start with "z6M" it is an Ed25519 public key
+
+3. use the public key to verify the validity of the payload's signature; adhere to the respective encodings for each attribute
+
+✅ This verification step passes iif payload's signature is valid.
+
+
+### Log record retrieval ### {#retrieve_log}
+
+Perform the following steps to retrieve log record:
+
+1. identify location and type of repository for storing DID Documents and DID Log records:<br>
+    * location is indicted with `@` at the end of an identifier; if no location is specified the default online repository at `https://oydid.ownyourdata.eu` is used
+    * type: online repository with [Swagger API documentation](https://oydid.ownyourdata.eu/api-docs/index.html)    
+    * type: file storage usage the local working directory and indicated with `@local` at the end
+
+2. based on repository type retrieve log information:<br>
+    * online: via `http(s):HOST/log/{:id}`    
+    * file storage: use the file named `{:did_identifer}.log`    
+    
+    Log records are an array of JSON objects in the format described in [[#log]]
+
+3. calculate the hash value for a record according to [[#calculate_hash]] and compare it to the reference
+
+✅ This verification step passes if a reference can be established. 
+
+Note: For TERMINATE log records the reference to a REVOKE record indicates if there are updates available. Being unable to find a REVOKE record with a given hash indicates that the DID resolve process successfully completes.
 
 
 Test Vectors {#test}
