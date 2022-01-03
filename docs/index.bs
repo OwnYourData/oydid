@@ -608,3 +608,11 @@ Reference Implementation {#implementation}
 
 Work in progress as part of a research project funded by the “IKT der Zukunft” program from the Federal Ministry for Transport, Innovation and Technology in Austria – [FFG Projekt 887052](https://projekte.ffg.at/projekt/4125456). 
 
+The following implementation artefacts are available (published under the open source MIT License):
+* Command line tool `oydid`: [https://github.com/OwnYourData/oydid/tree/main/cli](https://github.com/OwnYourData/oydid/tree/main/cli) 
+    * also available as Docker Image: [https://hub.docker.com/r/oydeu/oydid-cli](https://hub.docker.com/r/oydeu/oydid-cli)
+* Repository for hosting DIDs: [https://github.com/OwnYourData/oydid/tree/main/repository](https://github.com/OwnYourData/oydid/tree/main/repository)
+    * API documentation in Swagger: [https://api-docs.ownyourdata.eu/oydid/](https://api-docs.ownyourdata.eu/oydid/)
+* [Universal Resolver](https://github.com/decentralized-identity/universal-resolver/) driver: [https://github.com/OwnYourData/oydid/tree/main/uniresolver-plugin](https://github.com/OwnYourData/oydid/tree/main/uniresolver-plugin)
+* JS library for [`did-resolver`](https://github.com/decentralized-identity/did-resolver): [https://github.com/OwnYourData/oydid/tree/main/js-resolver](https://github.com/OwnYourData/oydid/tree/main/js-resolver)
+
