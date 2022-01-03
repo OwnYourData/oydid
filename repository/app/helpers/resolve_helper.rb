@@ -6,7 +6,7 @@ module ResolveHelper
         if did.include?(LOCATION_PREFIX)
             tmp = did.split(LOCATION_PREFIX)
             did = tmp[0]
-            did_location = tmp[1]
+            # did_location = tmp[1]
         end
         
         # setup

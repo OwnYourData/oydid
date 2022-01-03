@@ -1,5 +1,7 @@
 module ApplicationHelper
 
+    # functions for encoded messages ----------------
+
     def oyd_encode(message)
         Multibases.pack("base58btc", message).to_s
     end
@@ -7,6 +9,8 @@ module ApplicationHelper
     def oyd_decode(message)
         Multibases.unpack(message).decode.to_s('ASCII-8BIT')
     end
+
+    # functions for hashing -------------------------
 
     def oyd_hash(message)
         oyd_encode(Multihashes.encode(Digest::SHA256.digest(message), "sha2-256").unpack('C*'))
@@ -20,6 +24,105 @@ module ApplicationHelper
         end
         message.to_json_c14n
     end
+
+    # functions for key management ------------------
+
+    def oyd_generate_private_key(input, method)
+        begin
+            omc = Multicodecs[method].code
+        rescue
+            puts "Error: unknown key codec"
+            return nil
+        end
+        
+        case Multicodecs[method].name 
+        when 'ed25519-priv'
+            if input != ""
+                raw_key = Ed25519::SigningKey.new(RbNaCl::Hash.sha256(input)).to_bytes
+            else
+                raw_key = Ed25519::SigningKey.generate.to_bytes
+            end
+        else
+            puts "Error: unsupported key codec"
+            return nil
+        end
+        length = raw_key.bytesize
+        return oyd_encode([omc, length, raw_key].pack("SCa#{length}"))
+    end
+
+    def oyd_public_key(private_key)
+        code, length, digest = oyd_decode(private_key).unpack('SCa*')
+        case Multicodecs[code].name
+        when 'ed25519-priv'
+            public_key = Ed25519::SigningKey.new(digest).verify_key
+            length = public_key.to_bytes.bytesize
+            return oyd_encode([Multicodecs['ed25519-pub'].code, length, public_key].pack("CCa#{length}"))
+        else
+            puts "Error: unsupported key codec"
+            return nil
+        end
+    end
+
+    def oyd_sign(message, private_key)
+        code, length, digest = oyd_decode(private_key).unpack('SCa*')
+        case Multicodecs[code].name
+        when 'ed25519-priv'
+            return oyd_encode(Ed25519::SigningKey.new(digest).sign(message))
+        else
+            puts "Error: unsupported key codec"
+            return nil
+        end
+    end
+
+    def oyd_verify(message, signature, public_key)
+        code, length, digest = oyd_decode(public_key).unpack('CCa*')
+        begin
+            case Multicodecs[code].name
+            when 'ed25519-pub'
+                verify_key = Ed25519::VerifyKey.new(digest)
+                signature_verification = false
+                begin
+                    verify_key.verify(oyd_decode(signature), message)
+                    signature_verification = true
+                rescue Ed25519::VerifyError
+                    signature_verification = false
+                end
+            else
+                puts "Error: unsupported key codec"
+                return nil
+            end
+        rescue
+            puts "Error: unknown codec"
+            return nil
+        end
+    end
+
+    def read_private_key(filename)
+        begin
+            f = File.open(filename)
+            key_encoded = f.read
+            f.close
+        rescue
+            return nil
+        end
+        code, length, digest = oyd_decode(key_encoded).unpack('SCa*')
+        begin
+            case Multicodecs[code].name
+            when 'ed25519-priv'
+                private_key = Ed25519::SigningKey.new(digest).to_bytes
+            else
+                puts "Error: unsupported key codec"
+                return nil
+            end
+            length = private_key.bytesize
+            return oyd_encode([code, length, private_key].pack("SCa#{length}"))
+        rescue
+            puts "Error: invalid key"
+            return nil
+        end
+    end
+
+    # other functions ---------------------------
 
     def dag_did(logs)
         dag = DAG.new

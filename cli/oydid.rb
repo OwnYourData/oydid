@@ -3,6 +3,7 @@
 
 require 'multibases'
 require 'multihashes'
+require 'multicodecs'
 require 'digest'
 require 'securerandom'
 require 'httparty'
@@ -15,7 +16,9 @@ require 'json/canonicalization'
 
 LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
-VERSION = "0.5.0"
+VERSION = "0.4.5"
+
+# functions for encoded messages ----------------
 
 def oyd_encode(message)
     Multibases.pack("base58btc", message).to_s
@@ -24,6 +27,8 @@ end
 def oyd_decode(message)
     Multibases.unpack(message).decode.to_s('ASCII-8BIT')
 end
+
+# functions for hashing -------------------------
 
 def oyd_hash(message)
     oyd_encode(Multihashes.encode(Digest::SHA256.digest(message), "sha2-256").unpack('C*'))
@@ -37,6 +42,137 @@ def oyd_canonical(message)
     end
     message.to_json_c14n
 end
+
+# functions for key management ------------------
+
+def oyd_generate_private_key(input, method)
+    begin
+        omc = Multicodecs[method].code
+    rescue
+        puts "Error: unknown key codec"
+        return nil
+    end
+    
+    case Multicodecs[method].name 
+    when 'ed25519-priv'
+        if input != ""
+            raw_key = Ed25519::SigningKey.new(RbNaCl::Hash.sha256(input)).to_bytes
+        else
+            raw_key = Ed25519::SigningKey.generate.to_bytes
+        end
+    else
+        puts "Error: unsupported key codec"
+        return nil
+    end
+    length = raw_key.bytesize
+    return oyd_encode([omc, length, raw_key].pack("SCa#{length}"))
+end
+
+def oyd_public_key(private_key)
+    code, length, digest = oyd_decode(private_key).unpack('SCa*')
+    case Multicodecs[code].name
+    when 'ed25519-priv'
+        public_key = Ed25519::SigningKey.new(digest).verify_key
+        length = public_key.to_bytes.bytesize
+        return oyd_encode([Multicodecs['ed25519-pub'].code, length, public_key].pack("CCa#{length}"))
+    else
+        puts "Error: unsupported key codec"
+        return nil
+    end
+end
+
+def oyd_sign(message, private_key)
+    code, length, digest = oyd_decode(private_key).unpack('SCa*')
+    case Multicodecs[code].name
+    when 'ed25519-priv'
+        return oyd_encode(Ed25519::SigningKey.new(digest).sign(message))
+    else
+        puts "Error: unsupported key codec"
+        return nil
+    end
+end
+
+def oyd_verify(message, signature, public_key)
+    code, length, digest = oyd_decode(public_key).unpack('CCa*')
+    begin
+        case Multicodecs[code].name
+        when 'ed25519-pub'
+            verify_key = Ed25519::VerifyKey.new(digest)
+            signature_verification = false
+            begin
+                verify_key.verify(oyd_decode(signature), message)
+                signature_verification = true
+            rescue Ed25519::VerifyError
+                signature_verification = false
+            end
+        else
+            puts "Error: unsupported key codec"
+            return nil
+        end
+    rescue
+        puts "Error: unknown codec"
+        return nil
+    end
+end
+
+def read_private_key(filename)
+    begin
+        f = File.open(filename)
+        key_encoded = f.read
+        f.close
+    rescue
+        return nil
+    end
+    code, length, digest = oyd_decode(key_encoded).unpack('SCa*')
+    begin
+        case Multicodecs[code].name
+        when 'ed25519-priv'
+            private_key = Ed25519::SigningKey.new(digest).to_bytes
+        else
+            puts "Error: unsupported key codec"
+            return nil
+        end
+        length = private_key.bytesize
+        return oyd_encode([code, length, private_key].pack("SCa#{length}"))
+    rescue
+        puts "Error: invalid key"
+        return nil
+    end
+end
+
+# def get_key(filename, key_type) -> replace with read_private_key
+#     begin
+#         f = File.open(filename)
+#         key_encoded = f.read
+#         f.close
+#     rescue
+#         return nil
+#     end
+#     if key_type == "sign"
+#         return Ed25519::SigningKey.new(oyd_decode(key_encoded))
+#     else
+#         return Ed25519::VerifyKey.new(oyd_decode(key_encoded))
+#     end
+# end
+
+# storage functions -----------------------------
+
+def write_private_storage(payload, filename)
+    File.write(filename, payload)
+end
+
+def read_private_storage(filename)
+    begin
+        f = File.open(filename)
+        content = f.read
+        f.close
+    rescue
+        return nil
+    end
+    return content.to_s
+end
+
+# other functions -------------------------------
 
 def add_hash(log)
     log.map do |item|
@@ -54,7 +190,7 @@ def dag_did(logs, options)
     dag = DAG.new
     dag_log = []
     log_hash = []
-
+    
     # calculate hash values for each entry and build vertices
     i = 0
     create_entries = 0
@@ -121,6 +257,7 @@ def dag_did(logs, options)
         end
         i += 1
     end unless logs.nil?
+
     if terminate_entries != 1 && !options[:log_complete]
        if options[:silent].nil? || !options[:silent]
             # if terminate_overall > 0
@@ -183,17 +320,18 @@ def dag_update(currentDID, options)
             did_hash = did_hash.split("@").first
             did10 = did_hash[0,10]
             doc = retrieve_document(doc_did, did10 + ".doc", doc_location, {})
-
-            if match_log_did?(el, doc)
-                currentDID["doc_log_id"] = i
-                currentDID["did"] = doc_did
-                currentDID["doc"] = doc
-            else
-                currentDID["error"] = 1
-                currentDID["message"] = "Signatures in log don't match"
-                return currentDID
-                break
+            if el["op"] == 2 # CREATE
+                if match_log_did?(el, doc)
+                    currentDID["doc_log_id"] = i
+                else
+                    currentDID["error"] = 1
+                    currentDID["message"] = "Signatures in log don't match"
+                    return currentDID
+                    break
+                end
             end
+            currentDID["did"] = doc_did
+            currentDID["doc"] = doc
             if oyd_hash(oyd_canonical(doc)) != did_hash
                 currentDID["error"] = 1
                 currentDID["message"] = "DID identifier and DID document don't match"
@@ -237,7 +375,6 @@ def dag_update(currentDID, options)
             doc = retrieve_document(doc_did, did10 + ".doc", doc_location, {})
             term = doc["log"]
             log_location = term.split("@")[1] rescue ""
-
             if log_location.to_s == ""
                 log_location = DEFAULT_LOCATION
             end
@@ -325,23 +462,11 @@ def dag_update(currentDID, options)
                     if log_el["op"] == 3
                         if log_el["previous"].include?(oyd_hash(oyd_canonical(revocation_record)))
                             update_term_found = true
+                            message = log_el["doc"].to_s
 
-                            pubKey_string = current_public_doc_key.to_s
-                            pubKey = Ed25519::VerifyKey.new(oyd_decode(pubKey_string))
-                            signature = oyd_decode(log_el["sig"])
-                            # new_doc_did = log_el["doc"]
-                            # new_doc_location = get_location(new_doc_did)
-                            # new_did_hash = new_doc_did.delete_prefix("did:oyd:")
-                            # new_did_hash = new_did_hash.split("@").first
-                            # new_did10 = new_did_hash[0,10]
-                            # new_doc = retrieve_document(new_doc_did, new_did10 + ".doc", new_doc_location, {})
-                            signature_verification = false
-                            begin
-                                pubKey.verify(signature, log_el["doc"].to_s)
-                                signature_verification = true
-                            rescue Ed25519::VerifyError
-                                signature_verification = false
-                            end
+                            signature = log_el["sig"]
+                            public_key = current_public_doc_key.to_s
+                            signature_verification = oyd_verify(message, signature, public_key)
                             if signature_verification
                                 if options[:show_verification]
                                     if verification_output
@@ -352,7 +477,13 @@ def dag_update(currentDID, options)
                                         puts log_el["sig"].to_s
                                         puts "of next DID Document (Details: https://ownyourdata.github.io/oydid/#verify_signature)"
 
-                                        if pubKey_string == doc["key"].split(":").first
+                                        next_doc_did = log_el["doc"].to_s
+                                        next_doc_location = get_location(next_doc_did)
+                                        next_did_hash = next_doc_did.delete_prefix("did:oyd:")
+                                        next_did_hash = next_did_hash.split("@").first
+                                        next_did10 = next_did_hash[0,10]
+                                        next_doc = retrieve_document(next_doc_did, next_did10 + ".doc", next_doc_location, {})
+                                        if public_key == next_doc["key"].split(":").first
                                             puts "⚠️  no key rotation in updated DID Document"
                                         end
 
@@ -408,42 +539,11 @@ end
 def match_log_did?(log, doc)
     # check if signature matches current document
     # check if signature in log is correct
-    publicKeys = doc["key"]
-    pubKey_string = publicKeys.split(":")[0] rescue ""
-    pubKey = Ed25519::VerifyKey.new(oyd_decode(pubKey_string))
-    signature = oyd_decode(log["sig"])
-    begin
-        pubKey.verify(signature, log["doc"])
-        return true
-    rescue Ed25519::VerifyError
-        return false
-    end
-end
-
-def get_key(filename, key_type)
-    begin
-        f = File.open(filename)
-        key_encoded = f.read
-        f.close
-    rescue
-        return nil
-    end
-    if key_type == "sign"
-        return Ed25519::SigningKey.new(oyd_decode(key_encoded))
-    else
-        return Ed25519::VerifyKey.new(oyd_decode(key_encoded))
-    end
-end
-
-def get_file(filename)
-    begin
-        f = File.open(filename)
-        content = f.read
-        f.close
-    rescue
-        return nil
-    end
-    return content.to_s
+    message = log["doc"]
+    signature = log["sig"]
+    public_keys = doc["key"]
+    public_key = public_keys.split(":")[0] rescue ""
+    return oyd_verify(message, signature, public_key)
 end
 
 def get_location(id)
@@ -668,10 +768,10 @@ def delete_did(did, options)
             end
             exit 1
         else
-            privateKey = Ed25519::SigningKey.new(RbNaCl::Hash.sha256(options[:doc_pwd].to_s))
+            privateKey = oyd_generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv')
         end
     else
-        privateKey = get_key(options[:doc_key].to_s, "sign")
+        privateKey = read_private_key(options[:doc_key].to_s)
         if privateKey.nil?
             if options[:silent].nil? || !options[:silent]
                 if options[:json].nil? || !options[:json]
@@ -694,10 +794,10 @@ def delete_did(did, options)
             end
             exit 1
         else
-            revocationKey = Ed25519::SigningKey.new(RbNaCl::Hash.sha256(options[:rev_pwd].to_s))
+            revocationKey = oyd_generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv')
         end
     else
-        revocationKey = get_key(options[:rev_key].to_s, "sign")
+        revocationKey = read_private_key(options[:rev_key].to_s)
         if revocationKey.nil?
             if options[:silent].nil? || !options[:silent]
                 if options[:json].nil? || !options[:json]
@@ -711,8 +811,8 @@ def delete_did(did, options)
     end
 
     did_data = {
-        "dockey": oyd_encode(privateKey.to_bytes),
-        "revkey": oyd_encode(revocationKey.to_bytes)
+        "dockey": privateKey,
+        "revkey": revocationKey
     }
     oydid_url = doc_location.to_s + "/doc/" + did.to_s
     retVal = HTTParty.delete(oydid_url,
@@ -746,9 +846,9 @@ def write_did(content, did, mode, options)
         exit 1
     end        
     did_old = nil
+    log_old = nil
     prev_hash = []
     revoc_log = nil
-    old_log = nil
     doc_location = options[:doc_location]
     if options[:ts].nil?
         ts = Time.now.to_i
@@ -759,13 +859,9 @@ def write_did(content, did, mode, options)
     if mode == "create" || mode == "clone"
         operation_mode = 2 # CREATE
         if options[:doc_key].nil?
-            if options[:doc_pwd].nil?
-                privateKey = Ed25519::SigningKey.generate
-            else
-                privateKey = Ed25519::SigningKey.new(RbNaCl::Hash.sha256(options[:doc_pwd].to_s))
-            end
+            privateKey = oyd_generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv')
         else
-            privateKey = get_key(options[:doc_key].to_s, "sign")
+            privateKey = read_private_key(options[:doc_key].to_s)
             if privateKey.nil?
                 if options[:silent].nil? || !options[:silent]
                     if options[:json].nil? || !options[:json]
@@ -778,13 +874,9 @@ def write_did(content, did, mode, options)
             end
         end
         if options[:rev_key].nil?
-            if options[:rev_pwd].nil?
-                revocationKey = Ed25519::SigningKey.generate
-            else
-                revocationKey = Ed25519::SigningKey.new(RbNaCl::Hash.sha256(options[:rev_pwd].to_s))
-            end
+            revocationKey = oyd_generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv')
         else
-            revocationKey = get_key(options[:rev_key].to_s, "sign")
+            revocationKey = read_private_key(options[:rev_key].to_s)
             if privateKey.nil?
                 if options[:silent].nil? || !options[:silent]
                     if options[:json].nil? || !options[:json]
@@ -820,10 +912,8 @@ def write_did(content, did, mode, options)
         end
 
         did = did_info["did"]
-        did_old = did
         did_hash = did.delete_prefix("did:oyd:")
         did10 = did_hash[0,10]
-        did10_old = did10
         if doc_location.to_s == ""
             if did_hash.include?(LOCATION_PREFIX)
                 hash_split = did_hash.split(LOCATION_PREFIX)
@@ -832,35 +922,39 @@ def write_did(content, did, mode, options)
             end
         end
         operation_mode = 3 # UPDATE
-        old_log = did_info["log"]
 
+        # collect relevant information from previous did
+        did_old = did.dup
+        did10_old = did10.dup
+        log_old = did_info["log"]
+        privateKey_old = read_private_storage(did10_old + "_private_key.b58")
+        revocationKey_old = read_private_storage(did10_old + "_revocation_key.b58")
+
+        # key management
         if options[:doc_key].nil?
-            if options[:doc_pwd].nil?
-                privateKey = get_key(did10 + "_private_key.b58", "sign")
-            else
-                privateKey = Ed25519::SigningKey.new(RbNaCl::Hash.sha256(options[:doc_pwd].to_s))
-            end
+            privateKey = oyd_generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv')
         else
-            privateKey = get_key(options[:doc_key].to_s, "sign")
+            privateKey = read_private_key(options[:doc_key].to_s)
         end
         if options[:rev_key].nil? && options[:rev_pwd].nil?
-            revocationKey = get_key(did10 + "_revocation_key.b58", "sign")
-            revocationLog = get_file(did10 + "_revocation.json")
+            revocationKey = oyd_generate_private_key("", 'ed25519-priv')
+            revocationLog = read_private_storage(did10 + "_revocation.json")
         else
-            if options[:rev_pwd].nil?
-                revocationKey = get_key(options[:rev_key].to_s, "sign")
+            if options[:rev_key].nil?
+                revocationKey = oyd_generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv')
             else
-                revocationKey = Ed25519::SigningKey.new(RbNaCl::Hash.sha256(options[:rev_pwd].to_s))
+                revocationKey = read_private_key(options[:rev_key].to_s)
             end
+
             # re-build revocation document
             did_old_doc = did_info["doc"]["doc"]
             ts_old = did_info["log"].last["ts"]
-            publicKey = privateKey.verify_key
-            pubRevoKey = revocationKey.verify_key
-            did_key = oyd_encode(publicKey.to_bytes) + ":" + oyd_encode(pubRevoKey.to_bytes)
-            subDid = {"doc": did_old_doc, "key": did_key}
-            subDidHash = oyd_hash(oyd_canonical(subDid))
-            signedSubDidHash = oyd_encode(revocationKey.sign(subDidHash))
+            publicKey_old = oyd_public_key(privateKey_old)
+            pubRevoKey_old = oyd_public_key(revocationKey_old)
+            did_key_old = publicKey_old + ":" + pubRevoKey_old
+            subDid = {"doc": did_old_doc, "key": did_key_old}.to_json
+            subDidHash = oyd_hash(subDid)
+            signedSubDidHash = oyd_sign(subDidHash, revocationKey_old)
             revocationLog = { 
                 "ts": ts_old,
                 "op": 1, # REVOKE
@@ -869,38 +963,34 @@ def write_did(content, did, mode, options)
         end
         revoc_log = JSON.parse(revocationLog)
         revoc_log["previous"] = [
-            oyd_hash(oyd_canonical(old_log[did_info["doc_log_id"].to_i])), 
-            oyd_hash(oyd_canonical(old_log[did_info["termination_log_id"].to_i]))
+            oyd_hash(oyd_canonical(log_old[did_info["doc_log_id"].to_i])), 
+            oyd_hash(oyd_canonical(log_old[did_info["termination_log_id"].to_i]))
         ]
         prev_hash = [oyd_hash(oyd_canonical(revoc_log))]
     end
 
-    publicKey = privateKey.verify_key
-    pubRevoKey = revocationKey.verify_key
-    did_key = oyd_encode(publicKey.to_bytes) + ":" + oyd_encode(pubRevoKey.to_bytes)
+    publicKey = oyd_public_key(privateKey)
+    pubRevoKey = oyd_public_key(revocationKey)
+    did_key = publicKey + ":" + pubRevoKey
 
     # build new revocation document
     subDid = {"doc": did_doc, "key": did_key}.to_json
-    subDidHash = oyd_hash(subDid)
-    signedSubDidHash = oyd_encode(revocationKey.sign(subDidHash))
+    subDidHash = oyd_hash(oyd_canonical(subDid))
+    signedSubDidHash = oyd_sign(subDidHash, revocationKey)
     r1 = { "ts": ts,
            "op": 1, # REVOKE
            "doc": subDidHash,
            "sig": signedSubDidHash }.transform_keys(&:to_s)
-    # check if signedSubDidHahs is valid?
-    #   signature = [oyd_decode(signedSubDidHash).to_s(16)].pack('H*')
-    #   message = subDidHash
-    #   pubRevoKey.verify(signature, message)
 
     # build termination log entry
     l2_doc = oyd_hash(oyd_canonical(r1))
     if !doc_location.nil?
         l2_doc += LOCATION_PREFIX + doc_location.to_s
-    end    
+    end
     l2 = { "ts": ts,
            "op": 0, # TERMINATE
            "doc": l2_doc,
-           "sig": oyd_encode(privateKey.sign(l2_doc)),
+           "sig": oyd_sign(l2_doc, privateKey),
            "previous": [] }.transform_keys(&:to_s)
 
     # build actual DID document
@@ -929,7 +1019,7 @@ def write_did(content, did, mode, options)
             "ts": ts,
             "op": 4, # CLONE
             "doc": l1_doc,
-            "sig": oyd_encode(privateKey.sign(l1_doc)),
+            "sig": oyd_sign(l1_doc, privateKey),
             "previous": [options[:previous_clone].to_s]
         }
         retVal = HTTParty.post(options[:source_location] + "/log/" + options[:source_did],
@@ -939,11 +1029,19 @@ def write_did(content, did, mode, options)
     end
 
     # build creation log entry
-    l1 = { "ts": ts,
-           "op": operation_mode, # CREATE
-           "doc": l1_doc,
-           "sig": oyd_encode(privateKey.sign(l1_doc)),
-           "previous": prev_hash }.transform_keys(&:to_s)
+    if operation_mode == 3 # UPDATE
+        l1 = { "ts": ts,
+               "op": operation_mode, # UPDATE
+               "doc": l1_doc,
+               "sig": oyd_sign(l1_doc, privateKey_old),
+               "previous": prev_hash }.transform_keys(&:to_s)
+    else        
+        l1 = { "ts": ts,
+               "op": operation_mode, # CREATE
+               "doc": l1_doc,
+               "sig": oyd_sign(l1_doc, privateKey),
+               "previous": prev_hash }.transform_keys(&:to_s)
+    end
 
     # wirte data based on location
     case doc_location.to_s
@@ -968,29 +1066,19 @@ def write_did(content, did, mode, options)
             end
             exit(1)            
         end
-        if options[:doc_pwd].nil? && options[:doc_key].nil?
-            File.write(did10 + "_private_key.b58", oyd_encode(privateKey.to_bytes))
-        end
-        if options[:rev_pwd].nil? && options[:rev_key].nil?
-            File.write(did10 + "_revocation_key.b58", oyd_encode(revocationKey.to_bytes))
-            File.write(did10 + "_revocation.json", r1.to_json)
-        end
     else
         # write files to disk
-        if options[:doc_pwd].nil? && options[:doc_key].nil?
-            File.write(did10 + "_private_key.b58", oyd_encode(privateKey.to_bytes))
-        end
-        if options[:rev_pwd].nil? && options[:rev_key].nil?
-            File.write(did10 + "_revocation_key.b58", oyd_encode(revocationKey.to_bytes))
-            File.write(did10 + "_revocation.json", r1.to_json)
-        end
-        File.write(did10 + ".log", [old_log, l1, l2].flatten.compact.to_json)
+        File.write(did10 + ".log", [log_old, revoc_log, l1, l2].flatten.compact.to_json)
         if !did_old.nil?
-            File.write(did10_old + ".log", [old_log, l1, l2].flatten.compact.to_json)
+            File.write(did10_old + ".log", [log_old, revoc_log, l1, l2].flatten.compact.to_json)
         end
         File.write(did10 + ".doc", didDocument.to_json)
         File.write(did10 + ".did", did)
     end
+    write_private_storage(privateKey, did10 + "_private_key.b58")
+    write_private_storage(revocationKey, did10 + "_revocation_key.b58")
+    write_private_storage(r1.to_json, did10 + "_revocation.json")
+
 
     if options[:silent].nil? || !options[:silent]
         # write DID to stdout
@@ -1047,10 +1135,8 @@ def revoke_did(did, options)
     end
 
     did = did_info["did"]
-    did_old = did.dup
     did_hash = did.delete_prefix("did:oyd:")
     did10 = did_hash[0,10]
-    did10_old = did10
     if doc_location.to_s == ""
         if did_hash.include?(LOCATION_PREFIX)
             hash_split = did_hash.split(LOCATION_PREFIX)
@@ -1058,16 +1144,22 @@ def revoke_did(did, options)
             doc_location = hash_split[1]
         end
     end
-    old_log = did_info["log"]
+
+    # collect relevant information from previous did
+    did_old = did.dup
+    did10_old = did10.dup
+    log_old = did_info["log"]
+    privateKey_old = read_private_storage(did10_old + "_private_key.b58")
+    revocationKey_old = read_private_storage(did10_old + "_revocation_key.b58")
 
     if options[:doc_key].nil?
         if options[:doc_pwd].nil?
-            privateKey = get_key(did10 + "_private_key.b58", "sign")
+            privateKey = read_private_key(did10 + "_private_key.b58")
         else
-            privateKey = Ed25519::SigningKey.new(RbNaCl::Hash.sha256(options[:doc_pwd].to_s))
+            privateKey = oyd_generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv')
         end
     else
-        privateKey = get_key(options[:doc_key].to_s, "sign")
+        privateKey = read_private_key(options[:doc_key].to_s)
     end
     if privateKey.nil?
         if options[:silent].nil? || !options[:silent]
@@ -1080,23 +1172,23 @@ def revoke_did(did, options)
         exit(1)
     end
     if options[:rev_key].nil? && options[:rev_pwd].nil?
-        revocationKey = get_key(did10 + "_revocation_key.b58", "sign")
-        revocationLog = get_file(did10 + "_revocation.json")
+        revocationKey = read_private_key(did10 + "_revocation_key.b58")
+        revocationLog = read_private_storage(did10 + "_revocation.json")
     else
         if options[:rev_pwd].nil?
-            revocationKey = get_key(options[:rev_key].to_s, "sign")
+            revocationKey = read_private_key(options[:rev_key].to_s)
         else
-            revocationKey = Ed25519::SigningKey.new(RbNaCl::Hash.sha256(options[:rev_pwd].to_s))
+            revocationKey = oyd_generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv')
         end
         # re-build revocation document
         did_old_doc = did_info["doc"]["doc"]
         ts_old = did_info["log"].last["ts"]
-        publicKey = privateKey.verify_key
-        pubRevoKey = revocationKey.verify_key
-        did_key = oyd_encode(publicKey.to_bytes) + ":" + oyd_encode(pubRevoKey.to_bytes)
-        subDid = {"doc": did_old_doc, "key": did_key}.to_json
+        publicKey_old = oyd_public_key(privateKey_old)
+        pubRevoKey_old = oyd_public_key(revocationKey_old)
+        did_key_old = publicKey_old + ":" + pubRevoKey_old
+        subDid = {"doc": did_old_doc, "key": did_key_old}.to_json
         subDidHash = oyd_hash(subDid)
-        signedSubDidHash = oyd_encode(revocationKey.sign(subDidHash))
+        signedSubDidHash = oyd_sign(subDidHash, revocationKey)
         revocationLog = { 
             "ts": ts_old,
             "op": 1, # REVOKE
@@ -1117,8 +1209,8 @@ def revoke_did(did, options)
 
     revoc_log = JSON.parse(revocationLog)
     revoc_log["previous"] = [
-        oyd_hash(oyd_canonical(old_log[did_info["doc_log_id"].to_i])), 
-        oyd_hash(oyd_canonical(old_log[did_info["termination_log_id"].to_i]))
+        oyd_hash(oyd_canonical(log_old[did_info["doc_log_id"].to_i])), 
+        oyd_hash(oyd_canonical(log_old[did_info["termination_log_id"].to_i]))
     ]
 
     if doc_location.to_s == ""
@@ -1144,7 +1236,10 @@ def revoke_did(did, options)
             exit(1)
         end
     else
-        # nothing to do in local mode
+        File.write(did10 + ".log", [log_old, revoc_log].flatten.compact.to_json)
+        if !did_old.nil?
+            File.write(did10_old + ".log", [log_old, revoc_log].flatten.compact.to_json)
+        end
     end
 
     if options[:silent].nil? || !options[:silent]
@@ -1240,13 +1335,13 @@ def w3c_did(did_info, options)
     wd["id"] = "did:oyd:" + did_info["did"]
     wd["verificationMethod"] = [{
         "id": "did:oyd:" + did_info["did"],
-        "type": "Ed25519VerificationKey2018",
+        "type": "Ed25519VerificationKey2020",
         "controller": "did:oyd:" + did_info["did"],
         "publicKeyBase58": pubDocKey
     }]
     wd["keyAgreement"] = [{
         "id": "did:oyd:" + did_info["did"],
-        "type": "X25519KeyAgreementKey2019",
+        "type": "Ed25519VerificationKey2020",
         "controller": "did:oyd:" + did_info["did"],
         "publicKeyBase58": pubRevKey
     }]
@@ -1311,10 +1406,10 @@ def sc_token(did, options)
             end
             exit 1
         else
-            privateKey = Ed25519::SigningKey.new(RbNaCl::Hash.sha256(options[:doc_pwd].to_s))
+            privateKey = oyd_generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv')
         end
     else
-        privateKey = get_key(options[:doc_key].to_s, "sign")
+        privateKey = read_private_key(options[:doc_key].to_s)
         if privateKey.nil?
             if options[:silent].nil? || !options[:silent]
                 if options[:json].nil? || !options[:json]
@@ -1333,7 +1428,7 @@ def sc_token(did, options)
 
     # check if provided private key matches pubkey in DID document
     did_info = resolve_did(did, options)
-    if did_info["doc"]["key"].split(":")[0].to_s != oyd_encode(privateKey.verify_key.to_bytes)
+    if did_info["doc"]["key"].split(":")[0].to_s != oyd_public_key(privateKey)
         if options[:silent].nil? || !options[:silent]
             puts "Error: private key does not match DID document"
             if options[:json].nil? || !options[:json]
@@ -1352,7 +1447,7 @@ def sc_token(did, options)
     response = HTTParty.post(init_url,
         headers: { 'Content-Type' => 'application/json' },
         body: { "session_id": sid, 
-                "public_key": oyd_encode(privateKey.verify_key.to_bytes) }.to_json ).parsed_response rescue {}
+                "public_key": oyd_public_key(privateKey) }.to_json ).parsed_response rescue {}
     if response["challenge"].nil?
         if options[:silent].nil? || !options[:silent]
             if options[:json].nil? || !options[:json]
@@ -1370,7 +1465,7 @@ def sc_token(did, options)
     response = HTTParty.post(token_url,
         headers: { 'Content-Type' => 'application/json' },
         body: { "session_id": sid, 
-                "signed_challenge": oyd_encode(privateKey.sign(challenge)) }.to_json).parsed_response rescue {}
+                "signed_challenge": oyd_sign(challenge, privateKey) }.to_json).parsed_response rescue {}
     puts response.to_json
 
 end
@@ -1597,7 +1692,11 @@ when "read"
         if options[:w3cdid]
             w3c_did(result, options)
         else
-            if (options[:silent].nil? || !options[:silent]) && !options[:show_verification]
+            if (options[:silent].nil? || !options[:silent])
+                if  options[:show_verification]
+                    puts "=== end of verification output ==="
+                    puts ""
+                end
                 puts result["doc"].to_json
             end
         end

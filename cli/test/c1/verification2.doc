@@ -76,11 +76,64 @@ identifier: zQmf6qRANG6XeKKcrbJ1tz2PZem5pndAG5as99dFaPaYvpi
 }
 (Details: https://ownyourdata.github.io/oydid/#calculate_hash)
 
-Revocation reference in log record: zQmPp9J8H6ChWRMUWu2MhphuGwPS5YPnbJUo3j9xcqzYXqu
+'doc' reference in TERMINATE log record: zQmPp9J8H6ChWRMUWu2MhphuGwPS5YPnbJUo3j9xcqzYXqu
+✅ is hash of REVOCATION log record (without 'previous' attribute):
+{
+  "ts": 1610839948,
+  "op": 1,
+  "doc": "zQmV5Bg2wojagooX4JSHpuSEHehYknM6tjT4VyJ6zqm4wN8",
+  "sig": "zT4oCcMGign1J1MKqoxRndyZFoBkZ9T9cPSbkiwFxw1FLbiBNocfD3F2t5o4Mv3jtGfeSxrkfzjAc9Ef4Qztuna3",
+  "previous": [
+    "zQmTZ4qB2DddzvhTKQHW683gZo6et738WeEdLRgNmrh1LU8",
+    "zQmZLcZKyZ1pNy5bAZYC3wgAHy9TWnFsfJqFQSHb9keQCoV"
+  ]
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+found UPDATE log record:
+{
+  "ts": 1610839949,
+  "op": 3,
+  "doc": "zQme7H3X9CheEE9ftWAjDiEsBbomFVmijHsWqP9dn3KsUsd",
+  "sig": "z4yFXuAYjwrd69nJxLvmoGqaeTtJTGGNJUweJaahLZ6132oin32oYDkq8MgxVYsPPdFkCBMcXcDCdPvFr6XHehkBm",
+  "previous": [
+    "zQmRHVNqgrZPfHtnsQQoTBzAiThjqqeJj1WsUzxJW8yiRpH"
+  ]
+}
+✅ public key from last DID Document: z6MuvWooepYBxXLdYggPjxfEZCW3DqDhapLCnYDxnQjkoShA
+verifies 'doc' reference of new DID Document: zQme7H3X9CheEE9ftWAjDiEsBbomFVmijHsWqP9dn3KsUsd
+z4yFXuAYjwrd69nJxLvmoGqaeTtJTGGNJUweJaahLZ6132oin32oYDkq8MgxVYsPPdFkCBMcXcDCdPvFr6XHehkBm
+of next DID Document (Details: https://ownyourdata.github.io/oydid/#verify_signature)
+
+identifier: zQme7H3X9CheEE9ftWAjDiEsBbomFVmijHsWqP9dn3KsUsd
+✅ is hash of DID Document:
+{
+  "doc": {
+    "hello": "world6"
+  },
+  "key": "z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2",
+  "log": "zQmeizddWTFHo4p3MqLgNzXMZQfgYkuWgBJw26gEnJ9opDD"
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+'log' reference in DID Document: zQmeizddWTFHo4p3MqLgNzXMZQfgYkuWgBJw26gEnJ9opDD
+✅ is hash of TERMINATE log record:
+{
+  "ts": 1610839949,
+  "op": 0,
+  "doc": "zQmWq2nhH3rbuQmYmzPzBtj97XM9JvAHbsEsAUdJ9cSYF43",
+  "sig": "zitS2fHKrQt9puVVNWn2CpSPPGh4YWGE5pkRLV8fpidKutEDDyp4GEzabH4AgLwpBCXR3bTQz4DaT1HPkTND9jzR",
+  "previous": [
+
+  ]
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+Revocation reference in log record: zQmWq2nhH3rbuQmYmzPzBtj97XM9JvAHbsEsAUdJ9cSYF43
 ✅ cannot find revocation record searching at
 - https://oydid.ownyourdata.eu
 (Details: https://ownyourdata.github.io/oydid/#retrieve_log)
 
 === end of verification output ===
 
-{"doc":{"hello":"world5"},"key":"z6MuvWooepYBxXLdYggPjxfEZCW3DqDhapLCnYDxnQjkoShA:z6Mv2CANJwu6QJfowhyqeFp5VoZUL4RyNZDwRcpgNrLVc5dh","log":"zQmZLcZKyZ1pNy5bAZYC3wgAHy9TWnFsfJqFQSHb9keQCoV"}
+{"doc":{"hello":"world6"},"key":"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2","log":"zQmeizddWTFHo4p3MqLgNzXMZQfgYkuWgBJw26gEnJ9opDD"}
