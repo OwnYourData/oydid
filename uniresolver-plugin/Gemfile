@@ -13,6 +13,8 @@ gem 'ed25519'
 gem 'dag'
 gem 'multibases'
 gem 'multihashes'
+gem 'multicodecs'
+gem 'json-canonicalization', '~> 0.2.1'
 gem 'bootsnap'
 
 group :development, :test do
