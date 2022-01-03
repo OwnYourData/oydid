@@ -4,7 +4,7 @@
   "verificationMethod": [
     {
       "id": "did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj",
-      "type": "Ed25519VerificationKey2018",
+      "type": "Ed25519VerificationKey2020",
       "controller": "did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj",
       "publicKeyBase58": "zJ28iS4E3c1vVwvxnVFqdpxvw8kA6bZVz6PqaWCg3d96F"
     }
@@ -12,7 +12,7 @@
   "keyAgreement": [
     {
       "id": "did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj",
-      "type": "X25519KeyAgreementKey2019",
+      "type": "Ed25519VerificationKey2020",
       "controller": "did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj",
       "publicKeyBase58": "z5NewiTaFLojX1VehgZKpNNKFKt7TpfF55iHE4cKhZCCH"
     }

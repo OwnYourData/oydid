@@ -559,6 +559,11 @@ def retrieve_document(doc_hash, doc_file, doc_location, options)
     if doc_location == ""
         doc_location = DEFAULT_LOCATION
     end
+    if !(doc_location == "" || doc_location == "local")
+        if !doc_location.start_with?("http")
+            doc_location = "https://" + doc_location
+        end
+    end
 
     case doc_location
     when /^http/
@@ -601,6 +606,11 @@ end
 def retrieve_log(did_hash, log_file, log_location, options)
     if log_location == ""
         log_location = DEFAULT_LOCATION
+    end
+    if !(log_location == "" || log_location == "local")
+        if !log_location.start_with?("http")
+            log_location = "https://" + log_location
+        end
     end
 
     case log_location
@@ -1731,6 +1741,11 @@ when "log", "logs"
         end
         if log_location.to_s == ""
             log_location = DEFAULT_LOCATION
+        end
+        if !(log_location == "" || log_location == "local")
+            if !log_location.start_with?("http")
+                log_location = "https://" + log_location
+            end
         end
         result = HTTParty.get(log_location.to_s + "/log/" + log_hash.to_s)
         if options[:silent].nil? || !options[:silent]

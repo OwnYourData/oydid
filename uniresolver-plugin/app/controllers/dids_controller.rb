@@ -1,5 +1,6 @@
 class DidsController < ApplicationController
     include ApplicationHelper
+    include ApplicationHelperLegacy
     include ActionController::MimeResponds
 
     # respond only to JSON requests
@@ -11,6 +12,9 @@ class DidsController < ApplicationController
         options = {}
         did = params[:did]
         result = resolve_did(did, options)
+        if result.nil? || result["error"] != 0
+            result = resolve_did_legacy(did, options)
+        end
         if result.nil?
             render json: {"error": "not found"},
                    status: 404
@@ -24,7 +28,7 @@ class DidsController < ApplicationController
 
         retVal = {
             "didResolutionMetadata":{},
-            "didDocument": w3c_did(result),
+            "didDocument": w3c_did(result, {}),
             "didDocumentMetadata": {
                 "did": result["did"].to_s,
                 "registry": get_location(result["did"].to_s),
