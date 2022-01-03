@@ -8,7 +8,7 @@
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
   <meta content="Bikeshed version cace53f8c, updated Tue Dec 7 12:12:54 2021 -0800" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="f051da73363924c8d710e42840e2709629961d10" name="document-revision">
+  <meta content="1421abb9809dc9af5f10fa68c67ca780daa8c34d" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -528,7 +528,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">OYD DID Method</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2022-01-01">1 January 2022</time></p>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2022-01-03">3 January 2022</time></p>
    <details open>
     <summary>More details about this document</summary>
     <div data-fill-with="spec-metadata">
@@ -595,8 +595,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
       <li><a href="#key_rotation"><span class="secno">6.3</span> <span class="content">Scaling</span></a>
       <li><a href="#updating_clones"><span class="secno">6.4</span> <span class="content">Updating Clones</span></a>
       <li><a href="#long_term_usage"><span class="secno">6.5</span> <span class="content">Long-term Usage</span></a>
-      <li><a href="#correlation"><span class="secno">6.6</span> <span class="content">Correlation {#correlation}</span></a>
-      <li><a href="#cryptographic_agility"><span class="secno">6.7</span> <span class="content">Cryptographic Agility {#cryptographic_agility}</span></a>
+      <li><a href="#correlation"><span class="secno">6.6</span> <span class="content">Correlation</span></a>
+      <li><a href="#cryptographic_agility"><span class="secno">6.7</span> <span class="content">Cryptographic Agility</span></a>
      </ol>
     <li><a href="#ethics"><span class="secno">7</span> <span class="content">Ethical Aspects</span></a>
     <li><a href="#implementation"><span class="secno">8</span> <span class="content">Reference Implementation</span></a>
@@ -631,32 +631,39 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <p>The format for the <code>did:oyd</code> method conforms to the DID core specification <a data-link-type="biblio" href="#biblio-did-core">[DID-CORE]</a> as outlined by W3C. It consists of the <code>did:oyd</code> prefix, followed by a Multibase <a data-link-type="biblio" href="#biblio-multibase">[MULTIBASE]</a> (default: <code>base58-btc</code>) encoded value that is a Multihash <a data-link-type="biblio" href="#biblio-multihash">[MULTIHASH]</a> (default: <code>sha2-256</code>) value of composed of information from the payload, keys, and log.</p>
    <p>The detailed calculation of the DID identifier from the internal document and log information via ABNF is described here:</p>
 <pre class="include-code highlight"><c- c1>; !syntax("abnf")</c->
-<c- nc>did-oyd-format</c->                <c- o>=</c-> <c- l>"did:oyd:"</c-> <c- nc>identifier</c->
-<c- nc>identifier</c->                    <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>did-information-hash</c-> <c- p>)</c->
-<c- nc>did-information-hash</c->          <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>did-information</c-> <c- p>)</c->
-<c- nc>did-information</c->               <c- o>=</c-> <c- l>"{doc:"</c-> <c- nc>payload</c-> <c- l>",key:"</c-> <c- nc>key-value</c-> <c- l>",log:"</c-> <c- nc>log-value</c-> <c- l>"}"</c->
-<c- nc>payload</c->                       <c- o>=</c-> &lt;<c- nc>json-grammar-rules</c->>
-<c- nc>key-value</c->                     <c- o>=</c-> <c- nc>public-doc-key-encoded</c-> <c- l>":"</c-> <c- nc>public-revocation-key-encoded</c->
-<c- nc>log-value</c->                     <c- o>=</c-> <c- nc>termination-hash-encoded</c->
-<c- nc>public-doc-key-encoded</c->        <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>public-doc-key</c-> <c- p>)</c->
-<c- nc>public-doc-key</c->                <c- o>=</c-> &lt;<c- nc>public</c-> <c- nc>key</c-> <c- nc>from</c-> <c- nc>Ed25519</c-> <c- nc>key</c-> <c- nc>pair</c-> <c- nc>used</c-> <c- nc>for</c-> <c- nc>verifying</c-> <c- nc>payload</c->> 
-<c- nc>public-revocation-key-encoded</c-> <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>public-revocation-key</c-> <c- p>)</c->
-<c- nc>public-revocation-key</c->         <c- o>=</c-> &lt;<c- nc>public</c-> <c- nc>key</c-> <c- nc>from</c-> <c- nc>Ed25519</c-> <c- nc>key</c-> <c- nc>pair</c-> <c- nc>used</c-> <c- nc>for</c-> <c- nc>verifying</c-> <c- nc>revocations</c->>
-<c- nc>termination-hash-encoded</c->      <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>termination-log-entry-hash</c-> <c- p>)</c->
-<c- nc>termination-log-entry-hash</c->    <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>termination-log-entry</c-> <c- p>)</c->
-<c- nc>termination-log-entry</c->         <c- o>=</c-> <c- l>"{op:"</c-> <c- k>DIGIT</c-> <c- l>",ts:"</c-> <c- k>DIGIT</c-> <c- l>",doc:"</c-> <c- nc>revoke-encoded</c-> <c- l>",sig:"</c-> <c- nc>sig-revoke-encoded</c-> <c- l>",previous: []}"</c->
-<c- nc>revoke-encoded</c->                <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>revoke-hash</c-> <c- p>)</c->
-<c- nc>revoke-hash</c->                   <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>sub-revocation-log-entry</c-> <c- p>)</c->
-<c- nc>sub-revocation-log-entry</c->      <c- o>=</c-> <c- l>"{op:"</c-> <c- k>DIGIT</c-> <c- l>", ts:"</c-> <c- k>DIGIT</c-> <c- l>", doc:"</c-> <c- nc>sub-doc-encoded</c-> <c- l>", sig:"</c-> <c- nc>sig-sub-doc-encoded</c-> <c- l>"}"</c->
-<c- nc>sig-revoke-encoded</c->            <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sig-revoke</c-> <c- p>)</c->
-<c- nc>sig-revoke</c->                    <c- o>=</c-> &lt;<c- nc>signed</c-> <c- nc>revoke-encoded</c-> <c- nc>with</c-> <c- nc>private</c-> <c- nc>key</c-> <c- nc>from</c-> <c- nc>Ed25519</c-> <c- nc>key-pair</c-> <c- nc>used</c-> <c- nc>for</c-> <c- nc>verifying</c-> <c- nc>revocation</c->>
-<c- nc>sub-doc-encoded</c->               <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sub-doc-hash</c-> <c- p>)</c->
-<c- nc>sub-doc-hash</c->                  <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>sub-doc</c-> <c- p>)</c->
-<c- nc>sub-doc</c->                       <c- o>=</c-> <c- l>"{doc:"</c-> <c- nc>payload</c-> <c- l>",key:"</c-> <c- nc>key-value</c-> <c- l>"}"</c->
-<c- nc>sig-sub-doc-encoded</c->           <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sig-sub-doc</c-> <c- p>)</c->
-<c- nc>sig-sub-doc</c->                   <c- o>=</c-> &lt;<c- nc>sign</c-> <c- nc>sub-doc-encoded</c-> <c- nc>with</c-> <c- nc>private</c-> <c- nc>key</c-> <c- nc>from</c-> <c- nc>Ed25519</c-> <c- nc>key-pair</c-> <c- nc>used</c-> <c- nc>for</c-> <c- nc>payload</c->>
-<c- nc>base-identifier</c->               <c- o>=</c-> <c- nc>DEFAULT</c-> <c- nc>base58btc</c->
-<c- nc>hash-identifier</c->               <c- o>=</c-> <c- nc>DEFAULT</c-> <c- nc>sha2-256</c-></pre>
+<c- nc>did-oyd-format</c->                     <c- o>=</c-> <c- l>"did:oyd:"</c-> <c- nc>identifier</c->
+<c- nc>identifier</c->                         <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>did-information-hash</c-> <c- p>)</c->
+<c- nc>did-information-hash</c->               <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>did-canoncial-information</c-> <c- p>)</c->
+<c- nc>did-canonical-information</c->          <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonicla</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>did-information</c->>
+<c- nc>did-information</c->                    <c- o>=</c-> <c- l>"{doc:"</c-> <c- nc>payload</c-> <c- l>",key:"</c-> <c- nc>key-value</c-> <c- l>",log:"</c-> <c- nc>log-value</c-> <c- l>"}"</c->
+<c- nc>payload</c->                            <c- o>=</c-> &lt;<c- nc>json-grammar-rules</c->>
+<c- nc>key-value</c->                          <c- o>=</c-> <c- nc>public-doc-key-encoded</c-> <c- l>":"</c-> <c- nc>public-revocation-key-encoded</c->
+<c- nc>log-value</c->                          <c- o>=</c-> <c- nc>termination-hash-encoded</c->
+<c- nc>public-doc-key-encoded</c->             <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>public-doc-key-codec</c-> <c- p>)</c->
+<c- nc>public-doc-key-codec</c->               <c- o>=</c-> <c- nc>MULTICODEC</c-> <c- p>(</c-> <c- nc>codec-identifier</c-> <c- nc>public-doc-key</c-> <c- p>)</c->
+<c- nc>public-doc-key</c->                     <c- o>=</c-> &lt;<c- nc>public</c-> <c- nc>key</c-> <c- nc>from</c-> <c- nc>key</c-> <c- nc>pair</c-> <c- nc>used</c-> <c- nc>for</c-> <c- nc>verifying</c-> <c- nc>payload</c->>
+<c- nc>public-revocation-key-encoded</c->      <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>public-revocation-key-codec</c-> <c- p>)</c->
+<c- nc>public-revocation-key-codec</c->        <c- o>=</c-> <c- nc>MULTICODEC</c-> <c- p>(</c-> <c- nc>codec-identifier</c-> <c- nc>public-revocation-key</c-> <c- p>)</c->
+<c- nc>public-revocation-key</c->              <c- o>=</c-> &lt;<c- nc>public</c-> <c- nc>key</c-> <c- nc>from</c-> <c- nc>key</c-> <c- nc>pair</c-> <c- nc>used</c-> <c- nc>for</c-> <c- nc>verifying</c-> <c- nc>revocations</c->>
+<c- nc>termination-hash-encoded</c->           <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>termination-log-entry-hash</c-> <c- p>)</c->
+<c- nc>termination-log-entry-hash</c->         <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>termination-canonical-log-entry</c-> <c- p>)</c->
+<c- nc>termination-canonical-log-entry</c->    <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonicla</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>termination-log-entry</c->>
+<c- nc>termination-log-entry</c->              <c- o>=</c-> <c- l>"{op:"</c-> <c- k>DIGIT</c-> <c- l>",ts:"</c-> <c- k>DIGIT</c-> <c- l>",doc:"</c-> <c- nc>revoke-encoded</c-> <c- l>",sig:"</c-> <c- nc>sig-revoke-encoded</c-> <c- l>",previous: []}"</c->
+<c- nc>revoke-encoded</c->                     <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>revoke-hash</c-> <c- p>)</c->
+<c- nc>revoke-hash</c->                        <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>sub-revocation-canonical-log-entry</c-> <c- p>)</c->
+<c- nc>sub-revocation-canonical-log-entry</c-> <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonicla</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>sub-revocation-log-entry</c->>
+<c- nc>sub-revocation-log-entry</c->           <c- o>=</c-> <c- l>"{op:"</c-> <c- k>DIGIT</c-> <c- l>", ts:"</c-> <c- k>DIGIT</c-> <c- l>", doc:"</c-> <c- nc>sub-doc-encoded</c-> <c- l>", sig:"</c-> <c- nc>sig-sub-doc-encoded</c-> <c- l>"}"</c->
+<c- nc>sig-revoke-encoded</c->                 <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sig-revoke</c-> <c- p>)</c->
+<c- nc>sig-revoke</c->                         <c- o>=</c-> &lt;<c- nc>signed</c-> <c- nc>revoke-encoded</c-> <c- nc>with</c-> <c- nc>private</c-> <c- nc>key</c-> <c- nc>corresponding</c-> <c- nc>to</c-> <c- nc>public-revocation-key</c-> <c- nc>in</c-> <c- nc>payload</c->>
+<c- nc>sub-doc-encoded</c->                    <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sub-doc-hash</c-> <c- p>)</c->
+<c- nc>sub-doc-hash</c->                       <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>sub-doc-canonical</c-> <c- p>)</c->
+<c- nc>sub-doc-canonical</c->                  <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonicla</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>sub-doc</c->>
+<c- nc>sub-doc</c->                            <c- o>=</c-> <c- l>"{doc:"</c-> <c- nc>payload</c-> <c- l>",key:"</c-> <c- nc>key-value</c-> <c- l>"}"</c->
+<c- nc>sig-sub-doc-encoded</c->                <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sig-sub-doc</c-> <c- p>)</c->
+<c- nc>sig-sub-doc</c->                        <c- o>=</c-> &lt;<c- nc>sign</c-> <c- nc>sub-doc-encoded</c-> <c- nc>with</c-> <c- nc>private</c-> <c- nc>key</c-> <c- nc>corresponding</c-> <c- nc>to</c-> <c- nc>public-doc-key</c-> <c- nc>in</c-> <c- nc>payload</c->>
+<c- nc>base-identifier</c->                    <c- o>=</c-> <c- nc>DEFAULT</c-> <c- nc>base58btc</c->
+<c- nc>hash-identifier</c->                    <c- o>=</c-> <c- nc>DEFAULT</c-> <c- nc>sha2-256</c->
+<c- nc>codec-identifier</c->                   <c- o>=</c-> <c- nc>DEFAULT</c-> <c- nc>ed25519-pub</c-></pre>
    <h2 class="heading settled" data-level="3" id="operations"><span class="secno">3. </span><span class="content">DID Operations</span><a class="self-link" href="#operations"></a></h2>
    <p>The following section outlines the DID operations for the <code>did:oyd</code> method.</p>
    <h3 class="heading settled" data-level="3.1" id="create"><span class="secno">3.1. </span><span class="content">Create (Register)</span><a class="self-link" href="#create"></a></h3>
@@ -667,7 +674,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     <li data-md>
      <p>two cryptographic key pairs (default: ED25519)</p>
    </ul>
-   <p>in the format described in Section <a href="#format">§ 2 The did:oyd Format</a> (<code>public-doc-key-encoded</code>, <code>public-revocation-key-encoded</code>).</p>
+   <p>in the format described in Section <a href="#format">§ 2 The did:oyd Format</a>.</p>
    <p>The DID document and associated log entries are stored in a registry accessible by relevant stakeholders. An example is given below (<em><a href="#example_did_artefacts">EXAMPLE 1</a></em>) listing a payload, internal and W3C conform DID document, log entries, private keys, and private revocation document.</p>
    <div class="example" id="example_did_artefacts">
     <a class="self-link" href="#example_did_artefacts"></a> An example DID with all associated information and representations: 
@@ -689,65 +696,74 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <li data-md>
       <p>Private revocation document</p>
     </ul>
-    <p><strong>DID:</strong> <code>did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj</code></p>
+    <p><strong>DID:</strong> <code>did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz</code></p>
     <p><strong>Payload:</strong></p>
 <pre>{
-    "foo": "bar"
+  "foo": "bar"
 }
 </pre>
     <p><strong>Internal DID document:</strong></p>
 <pre>{
-    "doc": {
-        "foo": "bar"
-    },
-    "key": "z2MC8dVTmUN5sR4pf5H8CiEPJiqqsdyTSp8Jd8YZ8MBR3:zBD5cx11PaXDLG7vUmhKBzDeZnXFPAaNTqpWFZsAQom2M",
-    "log": "zQmcE3b3ENZ5aDCyCcqe2wsbUytUexBubaUuAfTTfTJ7dhA"
+  "doc": {
+    "foo": "bar"
+  },
+  "key": "z6MusWcRn7TWW3XAa96vrST5Fx8n3xndSEVEfMCQBDAMrQpP:z6Mv1rQ3ZTsLwfV8neZ1zKp17NHeb1Xv3KK5EB4D8t5mxJ3V",
+  "log": "zQmSkagv16yPWiLAsUXRX5RKmejXuHTMTNodZewXpFCFYvj"
 }
 </pre>
     <p><strong>W3C conform DID document:</strong></p>
 <pre>{
-    "@context": "https://www.w3.org/ns/did/v1",
-    "id": "did:oyd:zQmaV8M4Pazau8WWwsVeyMQWmmckHXr1L2UPtyEjqfy6wXe",
-    "verificationMethod": [{
-        "id": "did:oyd:zQmaV8M4Pazau8WWwsVeyMQWmmckHXr1L2UPtyEjqfy6wXe",
-        "type": "Ed25519VerificationKey2018",
-        "controller": "did:oyd:zQmaV8M4Pazau8WWwsVeyMQWmmckHXr1L2UPtyEjqfy6wXe",
-        "publicKeyBase58": "z2MC8dVTmUN5sR4pf5H8CiEPJiqqsdyTSp8Jd8YZ8MBR3"
-    }],
-    "keyAgreement": [{
-        "id": "did:oyd:zQmaV8M4Pazau8WWwsVeyMQWmmckHXr1L2UPtyEjqfy6wXe",
-        "type": "X25519KeyAgreementKey2019",
-        "controller": "did:oyd:zQmaV8M4Pazau8WWwsVeyMQWmmckHXr1L2UPtyEjqfy6wXe",
-        "publicKeyBase58": "zBD5cx11PaXDLG7vUmhKBzDeZnXFPAaNTqpWFZsAQom2M"
-    }],
-    "service": [{
-        "foo": "bar"
-    }]
+  "@context": "https://www.w3.org/ns/did/v1",
+  "id": "did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz",
+  "verificationMethod": [
+    {
+      "id": "did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz",
+      "type": "Ed25519VerificationKey2020",
+      "controller": "did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz",
+      "publicKeyBase58": "z6MusWcRn7TWW3XAa96vrST5Fx8n3xndSEVEfMCQBDAMrQpP"
+    }
+  ],
+  "keyAgreement": [
+    {
+      "id": "did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz",
+      "type": "Ed25519VerificationKey2020",
+      "controller": "did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz",
+      "publicKeyBase58": "z6Mv1rQ3ZTsLwfV8neZ1zKp17NHeb1Xv3KK5EB4D8t5mxJ3V"
+    }
+  ],
+  "service": [
+    {
+      "foo": "bar"
+    }
+  ]
 }
 </pre>
     <p><strong>Log entries:</strong></p>
-<pre>[{
-    "ts": 1633298265,
+<pre>[
+  {
+    "ts": 1641122585,
     "op": 2,
-    "doc": "zQmaV8M4Pazau8WWwsVeyMQWmmckHXr1L2UPtyEjqfy6wXe",
-    "sig": "z2useWt4sdvyhS9ShFdVVUaF4can1dZP3me2ZZYCoSCppendHnhRH8t9MprMCeG7Z8m8Yc77WhqBXLpzQ9gbA5SQU",
+    "doc": "zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz",
+    "sig": "z2BQRPP8e26kFRXoQxBB2ERFZgFVu1Eov7VdTjt9diSipRxWnx8rm4knHMsdERteE7Ry66GkVmp9Ghnp9d5cigA26",
     "previous": []
-}, {
-    "ts": 1633298265,
+  },
+  {
+    "ts": 1641122585,
     "op": 0,
-    "doc": "zQmSNQmMSZixRoDWAorp8FsSmonGn6R2EKhNbEZCZqQEL7J",
-    "sig": "z4vr45B8M91xRaMuWXgX796JA2p1WfQ2i6URMtULwKtz4cgjSVDxDUgVdKBM9Ftn6RoAsgE6C2EDp2YaRUVQgNWVB",
+    "doc": "zQmeugQwCyHSdSQPbPBYmMV4qhitnJ6m4ZHTvH4GJZN3SRh",
+    "sig": "zYo8FztfFvRpctfifYjgL4uswEMWagRELDqBpwMvMjLBR5dfsL4WzZc3hmG4HVKp6dhmVy4dGbfGot5kYLV2LgD9",
     "previous": []
-}]
+  }
+]
 </pre>
-    <p><strong>Private doc key:</strong> <code>z8H1vqLXBt566s7Zt8Zpr4qYLvh4dngS4bb9vuwX4X3n7</code></p>
-    <p><strong>Private revocation key:</strong> <code>z4oACjiKVzDTdHuocH3DDqhdSBqsVpQb1HBZo7rAJduz4</code></p>
+    <p><strong>Private doc key:</strong> <code>z1S5YqYg92n7q9g581jNsiMs7mwLzPtZ6tzBZTGNCwxxj2Hf</code></p>
+    <p><strong>Private revocation key:</strong> <code>z1S5WvZDDNAGQEnjSET1NA7MuMdVGZ12ZW2SqED5dxcLbLt8</code></p>
     <p><strong>Private revocation document:</strong></p>
 <pre>{
-    "ts": 1633298265,
-    "op": 1,
-    "doc": "zQmaE6SWSzdW8dhub7K4fff5NHUy9bieEwarPZDq7BubaJr",
-    "sig": "z4o77Eq665Bjp5KfHc4x7PTvwnyF9LhgUB7n4u5Skqi7Wv1CaGdXknvUQjdimzNTtpXpf4uDCciDfe2vn6SyBR4Vk"
+  "ts": 1641122585,
+  "op": 1,
+  "doc": "zQmQ8pDd2gkWAu5tNpm9JtMBpPZ9eYSwKycobTVVszjdoMc",
+  "sig": "z5ZbPS243WSimHJzVigJ9Bb3AKn6DtHTXHaAc13X7uUVFpbhgmCSp8v9vZXScj9zJP4sdouip6KckSM3P26Nw3p2"
 }
 </pre>
    </div>
@@ -757,9 +773,9 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     <li data-md>
      <p>the identifier is the encoded hash value of the internal DID document (the hashing algorithm is encoded in the identifier using MULTIHASH, default: <code>SHA2-256</code>, the encoding algorithm is also encoded in the identifier using MULTIBASE, default: <code>base58-btc</code>)</p>
     <li data-md>
-     <p>the DID document includes public keys (encoded with MULTIBASE, default: <code>base58-btc</code>) and the hash value of a DID log entry</p>
+     <p>the DID document includes public keys (encoded with MULTIBASE, default: <code>base58-btc</code> and specified with MULTICODECS, default: <code>ed25519-pub</code>) and the hash value of a DID log entry (the hashing algorithm is encoded in the identifier using MULTIHASH, default: <code>SHA2-256</code>, the encoding algorithm is also encoded in the identifier using MULTIBASE, default: <code>base58-btc</code>)</p>
     <li data-md>
-     <p>the log entry (create, op=2) for the DID document provides a signature ("sig") of the identifier ("doc") to prove possession of the private key, i.e., use the public ED25519 payload key in the DID document to verify this signature)</p>
+     <p>the log entry (create, op=2) for the DID document provides a signature ("sig" - encoded with MULTIBASE, default: <code>base58-btc</code>) of the identifier ("doc") to prove possession of the private key, i.e., use the public payload key in the DID document to verify this signature</p>
     <li data-md>
      <p>the other log entry (terminate, op=0) provides revocation info; in case a log entry with the stated hash in doc exists the DID resolving process must continue</p>
    </ol>
@@ -771,7 +787,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <p>Process:</p>
    <ol>
     <li data-md>
-     <p>User wants to resolves DID v1 and queries OYDID registry with identifier</p>
+     <p>User wants to resolves DID v1 and queries an OYDID registry with identifier</p>
     <li data-md>
      <p>OYDID registry responds with (outdated) DID document for DID v1 and log entries "create" and "terminate" (shown on the very left in the picture above)</p>
     <li data-md>
@@ -788,8 +804,9 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <p>OYDID repository finds no information of such a revocation entry and therefore the resolver can return DID v2 as the latest document</p>
    </ol>
    <p class="note" role="note"><span>Note:</span> it is in the interest of the owner to publish revocation entries and make those easily accessible to ensure that even outdated DID identifier resolve to the latest DID document</p>
+   <p class="note" role="note"><span>Note:</span> see section <a href="#verification">§ 4.2 Verification Steps</a> for a detailed description of using the OYDID command line tool to output step-wise verification information for independent proof.</p>
    <h3 class="heading settled" data-level="3.3" id="update"><span class="secno">3.3. </span><span class="content">Update</span><a class="self-link" href="#update"></a></h3>
-   <p>Updating in <code>did:oyd</code> is providing a new DID document (and/or new keys for key rotation) while also publishing the revocation document and signing with original keys to prove ownership. An example is given below (<em><a href="#example_did_update">EXAMPLE 3</a></em>) of all log entries for an updated DID.</p>
+   <p>Updating in <code>did:oyd</code> is providing a new DID document and/or new keys for key rotation while also publishing the revocation document and signing with original keys to prove ownership. An example is given below (<em><a href="#example_did_update">EXAMPLE 3</a></em>) of all log entries for an updated DID.</p>
    <div class="example" id="example_did_update">
     <a class="self-link" href="#example_did_update"></a> Log information of an update DID. 
 <pre>[{
@@ -957,9 +974,9 @@ use the following Docker command to run the OYDID command line tool without inst
     <li data-md>
      <p>it is in the nature of centralized systems that they are offline and DID maintainerd need to ensure that a minimum number of clones are always online (based on how valuable the DID is)</p>
    </ul>
-   <h3 class="heading settled" data-level="6.6" id="correlation"><span class="secno">6.6. </span><span class="content">Correlation {#correlation}</span><a class="self-link" href="#correlation"></a></h3>
+   <h3 class="heading settled" data-level="6.6" id="correlation"><span class="secno">6.6. </span><span class="content">Correlation</span><a class="self-link" href="#correlation"></a></h3>
    <p>The source for generating OYDID identifiers are hashing algorithms which have as intrinsic property as much entropy as possible and therefore offer no direct means of correlation.</p>
-   <h3 class="heading settled" data-level="6.7" id="cryptographic_agility"><span class="secno">6.7. </span><span class="content">Cryptographic Agility {#cryptographic_agility}</span><a class="self-link" href="#cryptographic_agility"></a></h3>
+   <h3 class="heading settled" data-level="6.7" id="cryptographic_agility"><span class="secno">6.7. </span><span class="content">Cryptographic Agility</span><a class="self-link" href="#cryptographic_agility"></a></h3>
    <p>As described in the <a href="#operations">§ 3 DID Operations</a> section, currently only ed25519 public keys are supported. This can be easily extended by using other multicodec encoded keys. The multicodec table already has support for BLS keys for example, so adding support for it would be trivial. Once good post quantum cryptography becomes more widely available extending OYDID to support that will also be fairly straight forward.</p>
    <h2 class="heading settled" data-level="7" id="ethics"><span class="secno">7. </span><span class="content">Ethical Aspects</span><a class="self-link" href="#ethics"></a></h2>
    <p>DIDs provide a standardization to share specific information (public keys, service endpoints) publicly. However, storing this information on a distributed ledger requires resources (storage and processing capacities) that may seem unjustified for certain use cases where the immediate benefit is not obvious. As a result, in some cases the DID concept is already excluded in the design phase, which hinders adoption and further growth of using DIDs and Verifiable Credentials. Another challenge for DIDs can be privacy-preserving data exchanges and the simple fact of resolving a DID at a public ledger might allow it to infer certain information.</p>
