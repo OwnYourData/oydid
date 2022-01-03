@@ -464,7 +464,7 @@ Perform the following steps to retrieve log record:
 2. based on repository type retrieve log information:<br>
     * online: via `http(s):HOST/log/{:id}`    
     * file storage: use the file named `{:did_identifer}.log`    
-    
+
     Log records are an array of JSON objects in the format described in [[#log]]
 
 3. calculate the hash value for a record according to [[#calculate_hash]] and compare it to the reference
@@ -484,24 +484,24 @@ This section provides samples of typical OYDID DIDs.
 <div class=example id=sample_new>
 A DID created with a simple payload:
 
-`did:oyd:zQmZPsXSt3QbKZvjPEMdZZ6q8MtfFhPSeQmKx2g8khZq6YG`
+`did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh`
 </div>
 
 
 <div class=example id=sample_update>
 A DID created and updated can be resolved using the following two identifier:
 
-`did:oyd:zQmZjUKm2n28LHkEufYNHicRbt31aAG8g6fwuTp35Nxmzzy`
+`did:oyd:zQmdXNRiMWEYTiYF58a9BaiUkfB2xWUgL7G7ozyCCNPqjKV`
 
-`did:oyd:zQmbePD4HavGGvmEQfGaAS5h9ms2BNZVewXVx3T7w9ypPgA`
+`did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR`
 </div>
 
 <div class=example id=sample_external>
-A DID created and updated can be resolved using the following two identifier:
+A DID created at a non-default location:
 
-`did:oyd:zQmNPqMwUWBuUSQnwFBacLtGFzdfFCDYS7msZntERecPj6r@https://did2.data-container.net`
+`did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W@https://did2.data-container.net`
 
-Note: a W3C conform representation is the percent-encoded `@`<br>`did:oyd:zQmNPqMwUWBuUSQnwFBacLtGFzdfFCDYS7msZntERecPj6r%40https://did2.data-container.net`
+Note: a W3C conform representation is the percent-encoded `@`<br>`did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W%40https://did2.data-container.net`
 </div>
 
 
