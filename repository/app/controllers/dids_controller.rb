@@ -126,7 +126,7 @@ class DidsController < ApplicationController
                    status: 412
             return
         end
-        if didHash != oyd_hash(didDocument.to_json)
+        if didHash != oyd_hash(oyd_canonical(didDocument))
             render json: {"error": "DID does not match did-document"},
                    status: 400
             return
@@ -142,13 +142,28 @@ class DidsController < ApplicationController
                    status: 412
             return
         end
+        log_entry_hash = ""
+        logs.each do |item|
+            if item["op"] == 0 # TERMINATE
+                log_entry_hash = oyd_hash(oyd_canonical(item))
+            end
+        end
+        if log_entry_hash != ""
+            did_log = didDoc["log"].to_s
+            did_log = did_log.split(LOCATION_PREFIX)[0] rescue did_log
+            if did_log != log_entry_hash
+                render json: {"error": "invalid 'log' key in did-document"},
+                       status: 412
+                return
+            end
+        end
 
         Did.new(did: didHash, doc: didDocument.to_json).save
         logs.each do |item|
             if item["op"] == 1 # REVOKE
-                Log.new(did: didHash, item: item.to_json, oyd_hash: oyd_hash(item.except("previous").to_json), ts: Time.now.to_i).save
+                Log.new(did: didHash, item: item.to_json, oyd_hash: oyd_hash(oyd_canonical(item.except("previous"))), ts: Time.now.to_i).save
             else
-                Log.new(did: didHash, item: item.to_json, oyd_hash: oyd_hash(item.to_json), ts: Time.now.to_i).save
+                Log.new(did: didHash, item: item.to_json, oyd_hash: oyd_hash(oyd_canonical(item)), ts: Time.now.to_i).save
             end
         end
 
@@ -166,10 +181,10 @@ class DidsController < ApplicationController
         keys = JSON.parse(@did.doc)["key"]
         public_doc_key = keys.split(":")[0]
         public_rev_key = keys.split(":")[1]
-        private_doc_key = Ed25519::SigningKey.new(oyd_decode(params[:dockey]))
-        private_rev_key = Ed25519::SigningKey.new(oyd_decode(params[:revkey]))
-        if public_doc_key == oyd_encode(private_doc_key.verify_key.to_bytes) &&
-           public_rev_key == oyd_encode(private_rev_key.verify_key.to_bytes)
+        private_doc_key = params[:dockey]
+        private_rev_key = params[:revkey]
+        if public_doc_key == oyd_public_key(private_doc_key) &&
+           public_rev_key == oyd_public_key(private_rev_key)
                 Log.where(did: params[:did].to_s).destroy_all
                 Did.where(did: params[:did].to_s).destroy_all
                 render plain: "",

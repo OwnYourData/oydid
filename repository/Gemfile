@@ -17,6 +17,8 @@ gem 'ed25519'
 gem 'dag'
 gem 'multibases'
 gem 'multihashes'
+gem 'multicodecs'
+gem 'json-canonicalization', '~> 0.2.1'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
