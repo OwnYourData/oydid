@@ -8,7 +8,7 @@
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
   <meta content="Bikeshed version cace53f8c, updated Tue Dec 7 12:12:54 2021 -0800" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="a68f9d8f79cd4cae38b48a30a1bc5c29d9099730" name="document-revision">
+  <meta content="24273a91eb1de08302636a6513529943da1ec3ec" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -577,8 +577,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
        <a href="#verification"><span class="secno">4.2</span> <span class="content">Verification Steps</span></a>
        <ol class="toc">
         <li><a href="#calculate_hash"><span class="secno">4.2.1</span> <span class="content">Hash value calculation</span></a>
-        <li><a href="#retrieve_log"><span class="secno">4.2.2</span> <span class="content">Log record retrieval</span></a>
-        <li><a href="#verify_signature"><span class="secno">4.2.3</span> <span class="content">Signature verification</span></a>
+        <li><a href="#verify_signature"><span class="secno">4.2.2</span> <span class="content">Signature verification</span></a>
+        <li><a href="#retrieve_log"><span class="secno">4.2.3</span> <span class="content">Log record retrieval</span></a>
        </ol>
      </ol>
     <li>
@@ -872,7 +872,96 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    </ul>
    <h3 class="heading settled" data-level="4.2" id="verification"><span class="secno">4.2. </span><span class="content">Verification Steps</span><a class="self-link" href="#verification"></a></h3>
    <p>Processing the log provides unambiguous evidence for authenticity, correctness, and timeliness of resolving a DID to the DID document. This section describes all operations to perform independent verification when resolving a DID.</p>
-   <p class="note" role="note"><span>Note:</span> Use the <code>--show-verification</code> flag in the [<code>oydid</code> command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification.</p>
+   <p class="note" role="note"><span>Note:</span> Use the <code>--show-verification</code> flag in the [<code>oydid</code> command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification. <em><a href="#example_verification">EXAMPLE 4</a></em> is the output of such a verification.</p>
+   <div class="example" id="example_verification">
+    <a class="self-link" href="#example_verification"></a> Output of command<br> <code>oydid read --show-verification did:oyd:zQmYhESMRSvN9BkrCf7YcBfxNzigVphyBUbFMfJpEm1fdPF</code> 
+<pre>identifier: zQmYhESMRSvN9BkrCf7YcBfxNzigVphyBUbFMfJpEm1fdPF
+✅ is hash of DID Document:
+{
+  "doc": [
+    "payload"
+  ],
+  "key": "z6Mv8rFnUqnHArmaGJCHTxBCtM7GcNXpi8DWWKN1qEbeWdvP:z6MuztHorNR1h7Ds79sYsxeFF7vSu7eFcLdYsU99qyJPWJyB",
+  "log": "zQmYmirw77JK4SX34zwmjgjE3F8BXnsDoBuPPbgjSQNcnZN"
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+'log' reference in DID Document: zQmYmirw77JK4SX34zwmjgjE3F8BXnsDoBuPPbgjSQNcnZN
+✅ is hash of TERMINATE log record:
+{
+  "ts": 1641208742,
+  "op": 0,
+  "doc": "zQmW3EpDiEmDnk2epFQ2t8hXuygmivW2LJDZyUn3v9G4pj2",
+  "sig": "z4Fq84y8Mg1Z52A5XUXdHES5fzGwBEGVTP6Nx2gz1Zvy7XuA8UH77f7wP7g7Dh2WtbAW2oThg2VmZSN5YySytNiGj",
+  "previous": [
+
+  ]
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+'doc' reference in TERMINATE log record: zQmW3EpDiEmDnk2epFQ2t8hXuygmivW2LJDZyUn3v9G4pj2
+✅ is hash of REVOCATION log record (without 'previous' attribute):
+{
+  "ts": 1641208742,
+  "op": 1,
+  "doc": "zQmSswGSXLgjqBZ9f2RdRkK4AQvJEpxXVCNQNoGYr2grpmZ",
+  "sig": "z2umhsnyM27JyLf3k15JyhPKh7ctKWZLgajrc7wWNJtjwUgrswoGkmVqFAyLbM8GfNDB6xHNLf1mo6rNMtDHSGc8V",
+  "previous": [
+    "zQmbcKwoqHbNBwNduTGFdsFb4MCLFayBNxdC6x5qUTVwKU8",
+    "zQmYmirw77JK4SX34zwmjgjE3F8BXnsDoBuPPbgjSQNcnZN"
+  ]
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+found UPDATE log record:
+{
+  "ts": 1641208760,
+  "op": 3,
+  "doc": "zQmfDsSChwWjAxz8FYXXjJCdUqq9ZiUCtBiXnZVGUTGku72",
+  "sig": "zCQKpYAK1erKjqVwPExRCzBQkxHTbvaKkq9FAo4zD5JXgmzZJz6UVKSYVJvk43vmkaYcZ38eesEG5YUZ2f5pzr8q",
+  "previous": [
+    "zQmW8MKzWJ3dSfRgVqaq2PYQEksnry1BBocaXhxtfRf1jjv"
+  ]
+}
+✅ public key from last DID Document: z6Mv8rFnUqnHArmaGJCHTxBCtM7GcNXpi8DWWKN1qEbeWdvP
+verifies 'doc' reference of new DID Document: zQmfDsSChwWjAxz8FYXXjJCdUqq9ZiUCtBiXnZVGUTGku72
+zCQKpYAK1erKjqVwPExRCzBQkxHTbvaKkq9FAo4zD5JXgmzZJz6UVKSYVJvk43vmkaYcZ38eesEG5YUZ2f5pzr8q
+of next DID Document (Details: https://ownyourdata.github.io/oydid/#verify_signature)
+
+identifier: zQmfDsSChwWjAxz8FYXXjJCdUqq9ZiUCtBiXnZVGUTGku72
+✅ is hash of DID Document:
+{
+  "doc": [
+    "new payload"
+  ],
+  "key": "z6Muztkm7Nrf6uEPCPhe5Cu1vL4NfXJwaCKxWd5tgHbvk6qm:z6Mv1Zdz5SqYx94YmG7UrpPVSXNQSJKCMBanHvLx1SdPUgfH",
+  "log": "zQmaRxpQFsvP9i1ZyZhT5X4V2h7pNqZ4an7vgwpwK3yW7x8"
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+'log' reference in DID Document: zQmaRxpQFsvP9i1ZyZhT5X4V2h7pNqZ4an7vgwpwK3yW7x8
+✅ is hash of TERMINATE log record:
+{
+  "ts": 1641208760,
+  "op": 0,
+  "doc": "zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS2Zo",
+  "sig": "z5HGPMqoi83q5GvGQjr2c2xRvqJJGtpxEjpNtGjCUixGWV8tbeKg7sBGdp1qsZYfKNFhFxfQnG67NRoraVsEMi8DL",
+  "previous": [
+
+  ]
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+Revocation reference in log record: zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS2Zo
+✅ cannot find revocation record searching at
+- https://oydid.ownyourdata.eu
+(Details: https://ownyourdata.github.io/oydid/#retrieve_log)
+
+=== end of verification output ===
+
+{"doc":["new payload"],"key":"z6Muztkm7Nrf6uEPCPhe5Cu1vL4NfXJwaCKxWd5tgHbvk6qm:z6Mv1Zdz5SqYx94YmG7UrpPVSXNQSJKCMBanHvLx1SdPUgfH","log":"zQmaRxpQFsvP9i1ZyZhT5X4V2h7pNqZ4an7vgwpwK3yW7x8"}
+</pre>
+   </div>
    <h4 class="heading settled" data-level="4.2.1" id="calculate_hash"><span class="secno">4.2.1. </span><span class="content">Hash value calculation</span><a class="self-link" href="#calculate_hash"></a></h4>
    <p>Perform the following steps to verify that a hash value conforms to a message:</p>
    <ol>
@@ -881,17 +970,59 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     <li data-md>
      <p>identify hashing algorithm in multibase string (second &amp; third character)<br> you can use the information here: <a href="https://github.com/multiformats/multicodec#multicodec-table">https://github.com/multiformats/multicodec#multicodec-table</a><br> example: if the string starts with "zQm" it is the sha2-256 hash algorithm</p>
     <li data-md>
-     <p>if the message is a JSON is must be transformed to its canonical form based on this standard (currently still in draft): <a href="https://datatracker.ietf.org/doc/html/rfc8785">https://datatracker.ietf.org/doc/html/rfc8785</a></p>
+     <p>if the message is a JSON is must be transformed to its canonical form based on this standard: <a href="https://datatracker.ietf.org/doc/html/rfc8785">https://datatracker.ietf.org/doc/html/rfc8785</a></p>
     <li data-md>
      <p>calculate hash value from message (check if pre-processing step #3 applies!) using the algorithm from step #2</p>
     <li data-md>
      <p>encode hash value using encoding algorithm from step #1</p>
    </ol>
    <p>✅ This verification step passes iif presented hash value and message match.</p>
-   <h4 class="heading settled" data-level="4.2.2" id="retrieve_log"><span class="secno">4.2.2. </span><span class="content">Log record retrieval</span><a class="self-link" href="#retrieve_log"></a></h4>
-   <p>Retrieve log record from a repository based on hash value...</p>
-   <h4 class="heading settled" data-level="4.2.3" id="verify_signature"><span class="secno">4.2.3. </span><span class="content">Signature verification</span><a class="self-link" href="#verify_signature"></a></h4>
-   <p>Verifiy signature in a log record...</p>
+   <h4 class="heading settled" data-level="4.2.2" id="verify_signature"><span class="secno">4.2.2. </span><span class="content">Signature verification</span><a class="self-link" href="#verify_signature"></a></h4>
+   <p>Perform the following steps to verify the signature in a log record:</p>
+   <ol>
+    <li data-md>
+     <p>collect necesary artefacts for verification<br></p>
+     <ul>
+      <li data-md>
+       <p>payload to sign: this is the <code>doc</code> attribute in a log record; make sure to check that this is the correct hash value of the referenced document/record using <a href="#calculate_hash">§ 4.2.1 Hash value calculation</a></p>
+      <li data-md>
+       <p>signature: this is the <code>sig</code> attribute in a log record</p>
+      <li data-md>
+       <p>public key used for verification: this is provided in the corresponding DID Document; for UPDATE log records it must be the <code>public-doc-key</code> of the old DID Document to proof original ownership</p>
+     </ul>
+    <li data-md>
+     <p>identify cryptographic algorithm in multibase encoded string of <code>key</code><br> you can use the information here: <a href="https://github.com/multiformats/multicodec#multicodec-table">https://github.com/multiformats/multicodec#multicodec-table</a><br> example: if the string start with "z6M" it is an Ed25519 public key</p>
+    <li data-md>
+     <p>use the public key to verify the validity of the payload’s signature; adhere to the respective encodings for each attribute</p>
+   </ol>
+   <p>✅ This verification step passes iif payload’s signature is valid.</p>
+   <h4 class="heading settled" data-level="4.2.3" id="retrieve_log"><span class="secno">4.2.3. </span><span class="content">Log record retrieval</span><a class="self-link" href="#retrieve_log"></a></h4>
+   <p>Perform the following steps to retrieve log record:</p>
+   <ol>
+    <li data-md>
+     <p>identify location and type of repository for storing DID Documents and DID Log records:<br></p>
+     <ul>
+      <li data-md>
+       <p>location is indicted with <code>@</code> at the end of an identifier; if no location is specified the default online repository at <code>https://oydid.ownyourdata.eu</code> is used</p>
+      <li data-md>
+       <p>type: online repository with <a href="https://oydid.ownyourdata.eu/api-docs/index.html">Swagger API documentation</a></p>
+      <li data-md>
+       <p>type: file storage usage the local working directory and indicated with <code>@local</code> at the end</p>
+     </ul>
+    <li data-md>
+     <p>based on repository type retrieve log information:<br></p>
+     <ul>
+      <li data-md>
+       <p>online: via <code>http(s):HOST/log/{:id}</code></p>
+      <li data-md>
+       <p>file storage: use the file named <code>{:did_identifer}.log</code></p>
+     </ul>
+     <p>Log records are an array of JSON objects in the format described in <a href="#log">§ 4 DID Log</a></p>
+    <li data-md>
+     <p>calculate the hash value for a record according to <a href="#calculate_hash">§ 4.2.1 Hash value calculation</a> and compare it to the reference</p>
+   </ol>
+   <p>✅ This verification step passes if a reference can be established.</p>
+   <p class="note" role="note"><span>Note:</span> For TERMINATE log records the reference to a REVOKE record indicates if there are updates available. Being unable to find a REVOKE record with a given hash indicates that the DID resolve process successfully completes.</p>
    <h2 class="heading settled" data-level="5" id="test"><span class="secno">5. </span><span class="content">Test Vectors</span><a class="self-link" href="#test"></a></h2>
    <h3 class="heading settled" data-level="5.1" id="samples"><span class="secno">5.1. </span><span class="content">Samples</span><a class="self-link" href="#samples"></a></h3>
    <p>This section provides samples of typical OYDID DIDs.</p>
