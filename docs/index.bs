@@ -559,38 +559,49 @@ There are a number of security and privacy considerations that implementers will
 
 ## Centralized Storage ## {#centralized_storage}
 
-* maintainer of OYDID repository cannot change content due to hash values
-* the problem of a repository being unavailable can be mitigated by cloning DID to a local repository
-* the problem of a storage provider hindering publication of updates can be also mitigated by cloning DID to other repositories and publishing updates using initial private keys there
+Since the `did:oyd` method does not rely on a distributed ledger (although it would be possible to implement OYDID with DLT as storage medium!) special measures are taken to ensure immutability and availability:
+
+* maintainer of an OYDID repository cannot change content due to hash values    
+* the problem of a repository being unavailable can be mitigated by cloning DID to another repository
+* the problem of a storage provider hindering publication of updates can be also mitigated by cloning DID to other repositories and publishing updates using the same initial private keys there
+
 
 ## Key Rotation ## {#key_rotatioin}
 
-Key Rotation is supported through using different key(s) when publishing an update.
+Key Rotation is supported and enabled by default. Different keys are used when publishing an update and a warning messag is displayed in case a key is re-used.
+
 
 ## Scaling ## {#key_rotation}
 
-To scale access for frequently requested DID it is recommended to clone a DID to multiple locations.
+To scale access for frequently requested DIDs, it is recommended to clone a DID to multiple locations.
+
 
 ## Updating Clones ## {#updating_clones}
 
-* it is in the interest of the DID author to provide consistent information
-* recommended approach    
-    * create new DID (but do not publish revocation log record for old DID yet)
-    * clone new DID to all relevant hosts
-    * only then publish revocation log
+It is in the interest of the DID author to provide consistent and highly available information. The recommended approach when updating DIDs with clones available is therefore:    
+
+* create new DID (but do not publish revocation log record for old DID yet)    
+* clone new DID to all relevant hosts    
+* only then publish revocation log    
+
 
 ## Long-term Usage ## {#long_term_usage}
 
+For long-term usage the following preventive measures have been taken:
+
 * Multiformat used to ensure digest agility    
-* it is in the nature of centralized systems that they are offline and DID maintainerd need to ensure that a minimum number of clones are always online (based on how valuable the DID is)
+* it is in the nature of centralized systems that they are offline and DID maintainers need to ensure that a minimum number of clones are always online (based on how valuable the DID is)
+
 
 ## Correlation ## {#correlation}
 
 The source for generating OYDID identifiers are hashing algorithms which have as intrinsic property as much entropy as possible and therefore offer no direct means of correlation.
 
+
 ## Cryptographic Agility ## {#cryptographic_agility}
 
-As described in the [[#operations]] section, currently only ed25519 public keys are supported. This can be easily extended by using other multicodec encoded keys. The multicodec table already has support for BLS keys for example, so adding support for it would be trivial. Once good post quantum cryptography becomes more widely available extending OYDID to support that will also be fairly straight forward.
+As described in the [[#operations]] section, currently only ed25519 public keys are supported. This can be easily extended by using other multicodec encoded keys. The multicodec table already has support for BLS keys for example, so adding support for it is a simple extension. Once good post quantum cryptography becomes more widely available extending OYDID to support that will also be fairly straight forward.
+
 
 Ethical Aspects {#ethics}
 ===============
