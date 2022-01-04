@@ -33,15 +33,15 @@ done
 
 if $BUILD_CLEAN; then
     if $BUILD_LOCAL; then
-        docker build --no-cache -f ./docker/Dockerfile.local -t $REPOSITORY/$CONTAINER .
+        docker build --platform linux/amd64 --no-cache -f ./docker/Dockerfile.local -t $REPOSITORY/$CONTAINER .
     else
-        docker build --no-cache -f ./docker/Dockerfile -t $REPOSITORY/$CONTAINER .
+        docker build --platform linux/amd64 --no-cache -f ./docker/Dockerfile -t $REPOSITORY/$CONTAINER .
     fi
 else
     if $BUILD_LOCAL; then
-        docker build -f ./docker/Dockerfile.local -t $REPOSITORY/$CONTAINER .
+        docker build --platform linux/amd64 -f ./docker/Dockerfile.local -t $REPOSITORY/$CONTAINER .
     else
-        docker build -f ./docker/Dockerfile -t $REPOSITORY/$CONTAINER .
+        docker build --platform linux/amd64 -f ./docker/Dockerfile -t $REPOSITORY/$CONTAINER .
     fi
 fi
 
