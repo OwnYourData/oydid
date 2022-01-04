@@ -1,6 +1,6 @@
 # OYDID Tutorial
 
-*latest update: 3 January 2022*
+*latest update: 5 January 2022*
 
 This tutorial introduces the use of `did:oyd` DIDs. It describes the typical life-cycle of a DID using concrete and simple examples of entities exchanging information and parties trying to interfere or manipulate this exchange. The following actors and roles are used:    
 * Alice (A) wants to share information using OYDID    
