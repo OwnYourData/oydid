@@ -35,6 +35,46 @@ echo '{"service":"https://business.data-container.net/api/data"}' | oydid create
 ```
 
 
+## Bob resolves the DID
+
+Bob receives the DID (e.g., `did:oyd:123aBz`) and wants to resolve the linked DID document to get access to the service endpoint provided by Alice.
+
+run the following command:    
+```console
+oydid read 123aBz
+```
+
+
+## Alice updates the DID Document
+
+Alice moves her data to another service and wants to update the service endpoint in the DID document.
+
+run the following command:    
+```console
+echo '{"service":"https://biz2.data-container.net/api/data"}' | oydid update 123aBz
+```
+
+
+## Bob clones Alice's DID Document
+
+Bob has a stake in the DID document published by Alice and therefore, wants to maintain a separate copy of the DID in case Alice's hosting is not available.
+
+run the following command:    
+```console
+oydid clone 456aBz -l https://did2.data-container.net
+```
+
+
+## Alice deactivates the DID
+
+Alice wants to publish the information that the previously released DID document is not valid anymore.
+
+run the following command:    
+```console
+oydid revoke 456aBz
+```
+
+
 &nbsp;    
 
 ## OYDID Tutorial
