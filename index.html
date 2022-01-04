@@ -8,7 +8,7 @@
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
   <meta content="Bikeshed version cace53f8c, updated Tue Dec 7 12:12:54 2021 -0800" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="8fe8d880b99a34360add2f3ce68f1729f0f3fe59" name="document-revision">
+  <meta content="72ae835aadc2d6fbc9c5e7d9552f79c1d2c79077" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -528,7 +528,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">OYD DID Method</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2022-01-03">3 January 2022</time></p>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2022-01-04">4 January 2022</time></p>
    <details open>
     <summary>More details about this document</summary>
     <div data-fill-with="spec-metadata">
@@ -1073,44 +1073,41 @@ use the following Docker command to run the OYDID command line tool without inst
     <h2 class="heading settled" data-level="6" id="privacy"><span class="secno">6. </span><span class="content">Security and Privacy Considerations</span><a class="self-link" href="#privacy"></a></h2>
     <p>There are a number of security and privacy considerations that implementers will want to take into consideration upon working with this specification.</p>
     <h3 class="heading settled" data-level="6.1" id="centralized_storage"><span class="secno">6.1. </span><span class="content">Centralized Storage</span><a class="self-link" href="#centralized_storage"></a></h3>
+    <p>Since the <code>did:oyd</code> method does not rely on a distributed ledger (although it would be possible to implement OYDID with DLT as storage medium!) special measures are taken to ensure immutability and availability:</p>
     <ul>
      <li data-md>
-      <p>maintainer of OYDID repository cannot change content due to hash values</p>
+      <p>maintainer of an OYDID repository cannot change content due to hash values</p>
      <li data-md>
-      <p>the problem of a repository being unavailable can be mitigated by cloning DID to a local repository</p>
+      <p>the problem of a repository being unavailable can be mitigated by cloning DID to another repository</p>
      <li data-md>
-      <p>the problem of a storage provider hindering publication of updates can be also mitigated by cloning DID to other repositories and publishing updates using initial private keys there</p>
+      <p>the problem of a storage provider hindering publication of updates can be also mitigated by cloning DID to other repositories and publishing updates using the same initial private keys there</p>
     </ul>
     <h3 class="heading settled" data-level="6.2" id="key_rotatioin"><span class="secno">6.2. </span><span class="content">Key Rotation</span><a class="self-link" href="#key_rotatioin"></a></h3>
-    <p>Key Rotation is supported through using different key(s) when publishing an update.</p>
+    <p>Key Rotation is supported and enabled by default. Different keys are used when publishing an update and a warning messag is displayed in case a key is re-used.</p>
     <h3 class="heading settled" data-level="6.3" id="key_rotation"><span class="secno">6.3. </span><span class="content">Scaling</span><a class="self-link" href="#key_rotation"></a></h3>
-    <p>To scale access for frequently requested DID it is recommended to clone a DID to multiple locations.</p>
+    <p>To scale access for frequently requested DIDs, it is recommended to clone a DID to multiple locations.</p>
     <h3 class="heading settled" data-level="6.4" id="updating_clones"><span class="secno">6.4. </span><span class="content">Updating Clones</span><a class="self-link" href="#updating_clones"></a></h3>
+    <p>It is in the interest of the DID author to provide consistent and highly available information. The recommended approach when updating DIDs with clones available is therefore:</p>
     <ul>
      <li data-md>
-      <p>it is in the interest of the DID author to provide consistent information</p>
+      <p>create new DID (but do not publish revocation log record for old DID yet)</p>
      <li data-md>
-      <p>recommended approach</p>
-      <ul>
-       <li data-md>
-        <p>create new DID (but do not publish revocation log record for old DID yet)</p>
-       <li data-md>
-        <p>clone new DID to all relevant hosts</p>
-       <li data-md>
-        <p>only then publish revocation log</p>
-      </ul>
+      <p>clone new DID to all relevant hosts</p>
+     <li data-md>
+      <p>only then publish revocation log</p>
     </ul>
     <h3 class="heading settled" data-level="6.5" id="long_term_usage"><span class="secno">6.5. </span><span class="content">Long-term Usage</span><a class="self-link" href="#long_term_usage"></a></h3>
+    <p>For long-term usage the following preventive measures have been taken:</p>
     <ul>
      <li data-md>
       <p>Multiformat used to ensure digest agility</p>
      <li data-md>
-      <p>it is in the nature of centralized systems that they are offline and DID maintainerd need to ensure that a minimum number of clones are always online (based on how valuable the DID is)</p>
+      <p>it is in the nature of centralized systems that they are offline and DID maintainers need to ensure that a minimum number of clones are always online (based on how valuable the DID is)</p>
     </ul>
     <h3 class="heading settled" data-level="6.6" id="correlation"><span class="secno">6.6. </span><span class="content">Correlation</span><a class="self-link" href="#correlation"></a></h3>
     <p>The source for generating OYDID identifiers are hashing algorithms which have as intrinsic property as much entropy as possible and therefore offer no direct means of correlation.</p>
     <h3 class="heading settled" data-level="6.7" id="cryptographic_agility"><span class="secno">6.7. </span><span class="content">Cryptographic Agility</span><a class="self-link" href="#cryptographic_agility"></a></h3>
-    <p>As described in the <a href="#operations">§ 3 DID Operations</a> section, currently only ed25519 public keys are supported. This can be easily extended by using other multicodec encoded keys. The multicodec table already has support for BLS keys for example, so adding support for it would be trivial. Once good post quantum cryptography becomes more widely available extending OYDID to support that will also be fairly straight forward.</p>
+    <p>As described in the <a href="#operations">§ 3 DID Operations</a> section, currently only ed25519 public keys are supported. This can be easily extended by using other multicodec encoded keys. The multicodec table already has support for BLS keys for example, so adding support for it is a simple extension. Once good post quantum cryptography becomes more widely available extending OYDID to support that will also be fairly straight forward.</p>
     <h2 class="heading settled" data-level="7" id="ethics"><span class="secno">7. </span><span class="content">Ethical Aspects</span><a class="self-link" href="#ethics"></a></h2>
     <p>DIDs provide a standardization to share specific information (public keys, service endpoints) publicly. However, storing this information on a distributed ledger requires resources (storage and processing capacities) that may seem unjustified for certain use cases where the immediate benefit is not obvious. As a result, in some cases the DID concept is already excluded in the design phase, which hinders adoption and further growth of using DIDs and Verifiable Credentials. Another challenge for DIDs can be privacy-preserving data exchanges and the simple fact of resolving a DID at a public ledger might allow it to infer certain information.</p>
     <p>Therefore, OYDID takes the approach to not maintain DID and DID Document on a public ledger but on one or more local storages (that usually are publicly available). Through cryptographically linking the DID identifier to the DID Document, and furthermore linking the DID Document to a chained provenance trail (log), the same security and validation properties as a traditional DID are  maintained while avoiding highly redundant storage and general public access.</p>
