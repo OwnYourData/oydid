@@ -33,9 +33,9 @@ oydid read {use output from above did:oyd:...}
 
 ## Further Resources
 Read about the concept and examples: [OYDIDintro.pdf](https://github.com/OwnYourData/oydid/blob/main/docs/OYDIDintro.pdf)    
-W3C conform DID Method Specification: https://github.com/OwnYourData/oydid/blob/main/docs/did-spec.md    
+W3C conform DID Method Specification: https://ownyourdata.github.io/oydid/    
 `oydid` commandline tool in a Docker image: https://hub.docker.com/r/oydeu/oydid-cli         
-To host DIDs yourself you can use the `oydid/did-base` image on Dockerhub: https://hub.docker.com/r/oydid/did-base    
+To host DIDs yourself you can use the `oydeu/oydid-base` image on Dockerhub: https://hub.docker.com/r/oydeu/oydid-base    
 API documentation is available here: https://api-docs.ownyourdata.eu/oydid/    
 Universal Resolver driver: https://github.com/OwnYourData/oydid/tree/main/uniresolver-plugin    
 JS library for `did-resolver`: https://github.com/OwnYourData/oydid/tree/main/js-resolver    
@@ -58,6 +58,6 @@ If you want to contribute, please follow these steps:
 
 &nbsp;    
 
-## Lizenz
+## License
 
-[MIT License 2021 - OwnYourData.eu](https://raw.githubusercontent.com/OwnYourData/oydid/main/LICENSE)
+[MIT License 2022 - OwnYourData.eu](https://raw.githubusercontent.com/OwnYourData/oydid/main/LICENSE)

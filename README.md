@@ -4,11 +4,11 @@ OYDID provides a self-sustained environment for managing digital identifiers (DI
 
 ## Resources
 * Read about the concept and examples: [OYDIDintro.pdf](https://github.com/OwnYourData/oydid/raw/main/docs/OYDIDintro.pdf)    
-* W3C conform DID Method Specification: https://github.com/OwnYourData/did-cmd/blob/main/docs/did-spec.md    
+* W3C conform DID Method Specification: https://ownyourdata.github.io/oydid/    
 * `oydid` commandline tool:    
     * Sources: https://github.com/OwnYourData/oydid/tree/main/cli    
     * run in a Docker image: https://hub.docker.com/r/oydeu/oydid-cli     
-    * Examples & Tutorial: https://github.com/OwnYourData/oydid/tree/main/cli#example
+    * Tutorial and examples: https://github.com/OwnYourData/oydid/tree/main/tutorial
 * host OYDIDs yourself in a repository:    
     * Sources: https://github.com/OwnYourData/oydid/tree/main/repository    
     * use the `oydeu/oydid-base` image on Dockerhub: https://hub.docker.com/r/oydeu/oydid-base    
@@ -34,4 +34,4 @@ If you want to contribute, please follow these steps:
 
 ## Lizenz
 
-[MIT License 2021 - OwnYourData.eu](https://raw.githubusercontent.com/OwnYourData/oydid/main/LICENSE)
+[MIT License 2022 - OwnYourData.eu](https://raw.githubusercontent.com/OwnYourData/oydid/main/LICENSE)

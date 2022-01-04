@@ -1,4 +1,4 @@
-# Universal Resolver Driver: did:oyd
+# Universal Resolver Driver: `did:oyd`
 
 This is a [Universal Resolver](https://github.com/decentralized-identity/universal-resolver/) driver for **did:oyd** identifiers.
 
@@ -10,8 +10,8 @@ This is a [Universal Resolver](https://github.com/decentralized-identity/univers
 ## Example DIDs
 
 ```
-did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj
-did:oyd:zQmNUV1MJ5xKkFm6Lc9EKqAauGzbKP7amvbyxsx79mKwqPB
+did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
+did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W%40did2.data-container.net
 ```
 
 ## Build and Run (Docker)
@@ -19,13 +19,13 @@ did:oyd:zQmNUV1MJ5xKkFm6Lc9EKqAauGzbKP7amvbyxsx79mKwqPB
 ```
 docker build -f ./docker/Dockerfile . -t oydeu/oydid-resolver
 docker run -p 8080:3000 oydeu/oydid-resolver
-curl -X GET http://localhost:8080/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj
+curl -X GET http://localhost:8080/1.0/identifiers/did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
 ```
 
 
 ## OYDID Universal Resolver Driver
 
-Please report bugs and suggestions for new features using the [GitHub Issue-Tracker](https://github.com/OwnYourData/did-cmd/issues) and follow the [Contributor Guidelines](https://github.com/twbs/ratchet/blob/master/CONTRIBUTING.md).
+Please report bugs and suggestions for new features using the [GitHub Issue-Tracker](https://github.com/OwnYourData/oydid/issues) and follow the [Contributor Guidelines](https://github.com/twbs/ratchet/blob/master/CONTRIBUTING.md).
 
 If you want to contribute, please follow these steps:
 
@@ -37,6 +37,6 @@ If you want to contribute, please follow these steps:
 
 &nbsp;    
 
-## Lizenz
+## License
 
-[MIT License 2021 - OwnYourData.eu](https://raw.githubusercontent.com/OwnYourData/did-cmd/main/LICENSE)
+[MIT License 2022 - OwnYourData.eu](https://raw.githubusercontent.com/OwnYourData/oydid/main/LICENSE)
