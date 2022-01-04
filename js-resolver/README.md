@@ -13,7 +13,7 @@ There is also a publicly available resolver at https://oydid-resolver.data-conta
 The `did:oyd` method links the identifier cryptographically to the DID Document and through also cryptographically linked provenance information in a public log it ensures resolving to the latest valid version of the DID Document. Read more about OYDID at https://github.com/OwnYourData/oydid
 
 Example:    
-`did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj`
+`did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh`
 
 ## Installation
 
@@ -36,7 +36,7 @@ const resolver = new Resolver({
 });
 
 // resolve test-did
-resolver.resolve('did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj').then(data =>
+resolver.resolve('did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh').then(data =>
   console.log(JSON.stringify(data, undefined, 2))
 );
 ```
@@ -49,47 +49,60 @@ A minimal DID document using the above sample DID looks like this:
 
 ```
 {
-	"didResolutionMetadata": {},
-	"didDocument": {
-		"@context": "https://www.w3.org/ns/did/v1",
-		"id": "did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj",
-		"verificationMethod": [{
-			"id": "did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj",
-			"type": "Ed25519VerificationKey2018",
-			"controller": "did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj",
-			"publicKeyBase58": "zJ28iS4E3c1vVwvxnVFqdpxvw8kA6bZVz6PqaWCg3d96F"
-		}],
-		"keyAgreement": [{
-			"id": "did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj",
-			"type": "X25519KeyAgreementKey2019",
-			"controller": "did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj",
-			"publicKeyBase58": "z5NewiTaFLojX1VehgZKpNNKFKt7TpfF55iHE4cKhZCCH"
-		}],
-		"service": [{
-			"services": [{
-				"foo": "bar"
-			}]
-		}]
-	},
-	"didDocumentMetadata": {
-		"did": "zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj",
-		"registry": "https://oydid.ownyourdata.eu",
-		"log_hash": "zQmdtRUF646gzvmmv7aFCqfhcv4ABB2J1pzq4t7VKdaHCMC",
-		"log": [{
-			"ts": 1633297715,
-			"op": 2,
-			"doc": "zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj",
-			"sig": "z41WRGuR8pFkJ5UWkW6W42fEsE8s3ksfaUPyVf1MdFzRpuu2HmCbN7zQcEHbBMiCiTJV2tWbFE2exgaSmobWFm5vW",
-			"previous": []
-		}, {
-			"ts": 1633297715,
-			"op": 0,
-			"doc": "zQmTTWppEjD2WdJ47PDNQR3gEZ2bhV4Q6G4KH7LYS4r73di",
-			"sig": "z3XEuFmc7v4WReooRdCFNsYc74SCDjGwQQzwVuuJe79ARaMwKqp9v4ED4tQxsukwxJD5bGdHDvtKzce9DNYFZ3CrC",
-			"previous": []
-		}],
-		"document_log_id": 0,
-		"termination_log_id": 1
-	}
+  "didResolutionMetadata": {},
+  "didDocument": {
+    "@context": "https://www.w3.org/ns/did/v1",
+    "id": "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
+    "verificationMethod": [
+      {
+        "id": "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
+        "type": "Ed25519VerificationKey2020",
+        "controller": "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
+        "publicKeyBase58": "z6MusYB5iT5krCHYsZ76EzBaTdRwGKsaBhMcSbrXaPJgkuRQ"
+      }
+    ],
+    "keyAgreement": [
+      {
+        "id": "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
+        "type": "Ed25519VerificationKey2020",
+        "controller": "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
+        "publicKeyBase58": "z6Mv7EYihbAat6Wq7GsjNsjcxt58dZT8fmsRjQGTkYamYrjB"
+      }
+    ],
+    "service": [
+      {
+        "simple": "example"
+      }
+    ]
+  },
+  "didDocumentMetadata": {
+    "did": "zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
+    "registry": "https://oydid.ownyourdata.eu",
+    "log_hash": "zQmVwMvovLy5KNYHHVHQ1wv8J7y9L6UPE8eyU4tzypFWtYe",
+    "log": [
+      {
+        "ts": 1641224736,
+        "op": 2,
+        "doc": "zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
+        "sig": "z3Kb5qeReCqr3ftxpf2i5UypUwrzrVkyspMtaDcb6e9YdHVSptcAFgvwbgk3qWqspTcGiKDYKXZZh8g6XyM2WPmNp",
+        "previous": []
+      },
+      {
+        "ts": 1641224736,
+        "op": 0,
+        "doc": "zQmT8SG7a238bF7wdV7LdrEAQpimqhKGor7CQsjtCYdZdTS",
+        "sig": "z63hu8LseptBrvB2kEDwhPP35sBj7JDDJsEDW85cjRkrjjac9ZV3HxPW9NVKewHcQYwrVLVsnDCcm1RjbEARE5rJU",
+        "previous": []
+      }
+    ],
+    "document_log_id": 0,
+    "termination_log_id": 1
+  }
 }
 ```
+
+&nbsp;    
+
+## License
+
+[MIT License 2022 - OwnYourData.eu](https://raw.githubusercontent.com/OwnYourData/oydid/main/LICENSE)
