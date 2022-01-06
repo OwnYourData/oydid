@@ -1,0 +1,1052 @@
+<!doctype html><html lang="en">
+ <head>
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+  <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+  <title>OYD DID Method</title>
+  <meta content="w3c/CG-DRAFT" name="w3c-status">
+  <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
+  <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
+  <meta content="Bikeshed version cace53f8c, updated Tue Dec 7 12:12:54 2021 -0800" name="generator">
+  <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
+  <meta content="1421abb9809dc9af5f10fa68c67ca780daa8c34d" name="document-revision">
+<style>/* style-autolinks */
+
+.css.css, .property.property, .descriptor.descriptor {
+    color: var(--a-normal-text);
+    font-size: inherit;
+    font-family: inherit;
+}
+.css::before, .property::before, .descriptor::before {
+    content: "‘";
+}
+.css::after, .property::after, .descriptor::after {
+    content: "’";
+}
+.property, .descriptor {
+    /* Don't wrap property and descriptor names */
+    white-space: nowrap;
+}
+.type { /* CSS value <type> */
+    font-style: italic;
+}
+pre .property::before, pre .property::after {
+    content: "";
+}
+[data-link-type="property"]::before,
+[data-link-type="propdesc"]::before,
+[data-link-type="descriptor"]::before,
+[data-link-type="value"]::before,
+[data-link-type="function"]::before,
+[data-link-type="at-rule"]::before,
+[data-link-type="selector"]::before,
+[data-link-type="maybe"]::before {
+    content: "‘";
+}
+[data-link-type="property"]::after,
+[data-link-type="propdesc"]::after,
+[data-link-type="descriptor"]::after,
+[data-link-type="value"]::after,
+[data-link-type="function"]::after,
+[data-link-type="at-rule"]::after,
+[data-link-type="selector"]::after,
+[data-link-type="maybe"]::after {
+    content: "’";
+}
+
+[data-link-type].production::before,
+[data-link-type].production::after,
+.prod [data-link-type]::before,
+.prod [data-link-type]::after {
+    content: "";
+}
+
+[data-link-type=element],
+[data-link-type=element-attr] {
+    font-family: Menlo, Consolas, "DejaVu Sans Mono", monospace;
+    font-size: .9em;
+}
+[data-link-type=element]::before { content: "<" }
+[data-link-type=element]::after  { content: ">" }
+
+[data-link-type=biblio] {
+    white-space: pre;
+}</style>
+<style>/* style-colors */
+
+/* Any --*-text not paired with a --*-bg is assumed to have a transparent bg */
+:root {
+    color-scheme: light dark;
+
+    --text: black;
+    --bg: white;
+
+    --unofficial-watermark: url(https://www.w3.org/StyleSheets/TR/2016/logos/UD-watermark);
+
+    --logo-bg: #1a5e9a;
+    --logo-active-bg: #c00;
+    --logo-text: white;
+
+    --tocnav-normal-text: #707070;
+    --tocnav-normal-bg: var(--bg);
+    --tocnav-hover-text: var(--tocnav-normal-text);
+    --tocnav-hover-bg: #f8f8f8;
+    --tocnav-active-text: #c00;
+    --tocnav-active-bg: var(--tocnav-normal-bg);
+
+    --tocsidebar-text: var(--text);
+    --tocsidebar-bg: #f7f8f9;
+    --tocsidebar-shadow: rgba(0,0,0,.1);
+    --tocsidebar-heading-text: hsla(203,20%,40%,.7);
+
+    --toclink-text: var(--text);
+    --toclink-underline: #3980b5;
+    --toclink-visited-text: var(--toclink-text);
+    --toclink-visited-underline: #054572;
+
+    --heading-text: #005a9c;
+
+    --hr-text: var(--text);
+
+    --algo-border: #def;
+
+    --del-text: red;
+    --del-bg: transparent;
+    --ins-text: #080;
+    --ins-bg: transparent;
+
+    --a-normal-text: #034575;
+    --a-normal-underline: #bbb;
+    --a-visited-text: var(--a-normal-text);
+    --a-visited-underline: #707070;
+    --a-hover-bg: rgba(75%, 75%, 75%, .25);
+    --a-active-text: #c00;
+    --a-active-underline: #c00;
+
+    --blockquote-border: silver;
+    --blockquote-bg: transparent;
+    --blockquote-text: currentcolor;
+
+    --issue-border: #e05252;
+    --issue-bg: #fbe9e9;
+    --issue-text: var(--text);
+    --issueheading-text: #831616;
+
+    --example-border: #e0cb52;
+    --example-bg: #fcfaee;
+    --example-text: var(--text);
+    --exampleheading-text: #574b0f;
+
+    --note-border: #52e052;
+    --note-bg: #e9fbe9;
+    --note-text: var(--text);
+    --noteheading-text: hsl(120, 70%, 30%);
+    --notesummary-underline: silver;
+
+    --assertion-border: #aaa;
+    --assertion-bg: #eee;
+    --assertion-text: black;
+
+    --advisement-border: orange;
+    --advisement-bg: #fec;
+    --advisement-text: var(--text);
+    --advisementheading-text: #b35f00;
+
+    --warning-border: red;
+    --warning-bg: hsla(40,100%,50%,0.95);
+    --warning-text: var(--text);
+
+    --amendment-border: #330099;
+    --amendment-bg: #F5F0FF;
+    --amendment-text: var(--text);
+    --amendmentheading-text: #220066;
+
+    --def-border: #8ccbf2;
+    --def-bg: #def;
+    --def-text: var(--text);
+    --defrow-border: #bbd7e9;
+
+    --datacell-border: silver;
+
+    --indexinfo-text: #707070;
+
+    --indextable-hover-text: black;
+    --indextable-hover-bg: #f7f8f9;
+
+    --outdatedspec-bg: rgba(0, 0, 0, .5);
+    --outdatedspec-text: black;
+    --outdated-bg: maroon;
+    --outdated-text: white;
+    --outdated-shadow: red;
+
+    --editedrec-bg: darkorange;
+}</style>
+<style>/* style-counters */
+
+body {
+    counter-reset: example figure issue;
+}
+.issue {
+    counter-increment: issue;
+}
+.issue:not(.no-marker)::before {
+    content: "Issue " counter(issue);
+}
+
+.example {
+    counter-increment: example;
+}
+.example:not(.no-marker)::before {
+    content: "Example " counter(example);
+}
+.invalid.example:not(.no-marker)::before,
+.illegal.example:not(.no-marker)::before {
+    content: "Invalid Example" counter(example);
+}
+
+figcaption {
+    counter-increment: figure;
+}
+figcaption:not(.no-marker)::before {
+    content: "Figure " counter(figure) " ";
+}</style>
+<style>/* style-issues */
+
+a[href].issue-return {
+    float: right;
+    float: inline-end;
+    color: var(--issueheading-text);
+    font-weight: bold;
+    text-decoration: none;
+}
+</style>
+<style>/* style-md-lists */
+
+/* This is a weird hack for me not yet following the commonmark spec
+   regarding paragraph and lists. */
+[data-md] > :first-child {
+    margin-top: 0;
+}
+[data-md] > :last-child {
+    margin-bottom: 0;
+}</style>
+<style>/* style-selflinks */
+
+:root {
+    --selflink-text: white;
+    --selflink-bg: gray;
+    --selflink-hover-text: black;
+}
+.heading, .issue, .note, .example, li, dt {
+    position: relative;
+}
+a.self-link {
+    position: absolute;
+    top: 0;
+    left: calc(-1 * (3.5rem - 26px));
+    width: calc(3.5rem - 26px);
+    height: 2em;
+    text-align: center;
+    border: none;
+    transition: opacity .2s;
+    opacity: .5;
+}
+a.self-link:hover {
+    opacity: 1;
+}
+.heading > a.self-link {
+    font-size: 83%;
+}
+li > a.self-link {
+    left: calc(-1 * (3.5rem - 26px) - 2em);
+}
+dfn > a.self-link {
+    top: auto;
+    left: auto;
+    opacity: 0;
+    width: 1.5em;
+    height: 1.5em;
+    background: var(--selflink-bg);
+    color: var(--selflink-text);
+    font-style: normal;
+    transition: opacity .2s, background-color .2s, color .2s;
+}
+dfn:hover > a.self-link {
+    opacity: 1;
+}
+dfn > a.self-link:hover {
+    color: var(--selflink-hover-text);
+}
+
+a.self-link::before            { content: "¶"; }
+.heading > a.self-link::before { content: "§"; }
+dfn > a.self-link::before      { content: "#"; }
+</style>
+<style>/* style-syntax-highlighting */
+
+code.highlight { padding: .1em; border-radius: .3em; }
+pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em 0; overflow: auto; border-radius: 0; }
+
+.highlight:not(.idl) { background: rgba(0, 0, 0, .03); }
+c-[a] { color: #990055 } /* Keyword.Declaration */
+c-[b] { color: #990055 } /* Keyword.Type */
+c-[c] { color: #708090 } /* Comment */
+c-[d] { color: #708090 } /* Comment.Multiline */
+c-[e] { color: #0077aa } /* Name.Attribute */
+c-[f] { color: #669900 } /* Name.Tag */
+c-[g] { color: #222222 } /* Name.Variable */
+c-[k] { color: #990055 } /* Keyword */
+c-[l] { color: #000000 } /* Literal */
+c-[m] { color: #000000 } /* Literal.Number */
+c-[n] { color: #0077aa } /* Name */
+c-[o] { color: #999999 } /* Operator */
+c-[p] { color: #999999 } /* Punctuation */
+c-[s] { color: #a67f59 } /* Literal.String */
+c-[t] { color: #a67f59 } /* Literal.String.Single */
+c-[u] { color: #a67f59 } /* Literal.String.Double */
+c-[cp] { color: #708090 } /* Comment.Preproc */
+c-[c1] { color: #708090 } /* Comment.Single */
+c-[cs] { color: #708090 } /* Comment.Special */
+c-[kc] { color: #990055 } /* Keyword.Constant */
+c-[kn] { color: #990055 } /* Keyword.Namespace */
+c-[kp] { color: #990055 } /* Keyword.Pseudo */
+c-[kr] { color: #990055 } /* Keyword.Reserved */
+c-[ld] { color: #000000 } /* Literal.Date */
+c-[nc] { color: #0077aa } /* Name.Class */
+c-[no] { color: #0077aa } /* Name.Constant */
+c-[nd] { color: #0077aa } /* Name.Decorator */
+c-[ni] { color: #0077aa } /* Name.Entity */
+c-[ne] { color: #0077aa } /* Name.Exception */
+c-[nf] { color: #0077aa } /* Name.Function */
+c-[nl] { color: #0077aa } /* Name.Label */
+c-[nn] { color: #0077aa } /* Name.Namespace */
+c-[py] { color: #0077aa } /* Name.Property */
+c-[ow] { color: #999999 } /* Operator.Word */
+c-[mb] { color: #000000 } /* Literal.Number.Bin */
+c-[mf] { color: #000000 } /* Literal.Number.Float */
+c-[mh] { color: #000000 } /* Literal.Number.Hex */
+c-[mi] { color: #000000 } /* Literal.Number.Integer */
+c-[mo] { color: #000000 } /* Literal.Number.Oct */
+c-[sb] { color: #a67f59 } /* Literal.String.Backtick */
+c-[sc] { color: #a67f59 } /* Literal.String.Char */
+c-[sd] { color: #a67f59 } /* Literal.String.Doc */
+c-[se] { color: #a67f59 } /* Literal.String.Escape */
+c-[sh] { color: #a67f59 } /* Literal.String.Heredoc */
+c-[si] { color: #a67f59 } /* Literal.String.Interpol */
+c-[sx] { color: #a67f59 } /* Literal.String.Other */
+c-[sr] { color: #a67f59 } /* Literal.String.Regex */
+c-[ss] { color: #a67f59 } /* Literal.String.Symbol */
+c-[vc] { color: #0077aa } /* Name.Variable.Class */
+c-[vg] { color: #0077aa } /* Name.Variable.Global */
+c-[vi] { color: #0077aa } /* Name.Variable.Instance */
+c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
+</style>
+<style>/* style-darkmode */
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text: #ddd;
+        --bg: black;
+
+        --unofficial-watermark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cg fill='%23100808' transform='translate(200 200) rotate(-45) translate(-200 -200)' stroke='%23100808' stroke-width='3'%3E%3Ctext x='50%25' y='220' style='font: bold 70px sans-serif; text-anchor: middle; letter-spacing: 6px;'%3EUNOFFICIAL%3C/text%3E%3Ctext x='50%25' y='305' style='font: bold 70px sans-serif; text-anchor: middle; letter-spacing: 6px;'%3EDRAFT%3C/text%3E%3C/g%3E%3C/svg%3E");
+
+        --logo-bg: #1a5e9a;
+        --logo-active-bg: #c00;
+        --logo-text: white;
+
+        --tocnav-normal-text: #999;
+        --tocnav-normal-bg: var(--bg);
+        --tocnav-hover-text: var(--tocnav-normal-text);
+        --tocnav-hover-bg: #080808;
+        --tocnav-active-text: #f44;
+        --tocnav-active-bg: var(--tocnav-normal-bg);
+
+        --tocsidebar-text: var(--text);
+        --tocsidebar-bg: #080808;
+        --tocsidebar-shadow: rgba(255,255,255,.1);
+        --tocsidebar-heading-text: hsla(203,20%,40%,.7);
+
+        --toclink-text: var(--text);
+        --toclink-underline: #6af;
+        --toclink-visited-text: var(--toclink-text);
+        --toclink-visited-underline: #054572;
+
+        --heading-text: #8af;
+
+        --hr-text: var(--text);
+
+        --algo-border: #456;
+
+        --del-text: #f44;
+        --del-bg: transparent;
+        --ins-text: #4a4;
+        --ins-bg: transparent;
+
+        --a-normal-text: #6af;
+        --a-normal-underline: #555;
+        --a-visited-text: var(--a-normal-text);
+        --a-visited-underline: var(--a-normal-underline);
+        --a-hover-bg: rgba(25%, 25%, 25%, .2);
+        --a-active-text: #f44;
+        --a-active-underline: var(--a-active-text);
+
+        --borderedblock-bg: rgba(255, 255, 255, .05);
+
+        --blockquote-border: silver;
+        --blockquote-bg: var(--borderedblock-bg);
+        --blockquote-text: currentcolor;
+
+        --issue-border: #e05252;
+        --issue-bg: var(--borderedblock-bg);
+        --issue-text: var(--text);
+        --issueheading-text: hsl(0deg, 70%, 70%);
+
+        --example-border: hsl(50deg, 90%, 60%);
+        --example-bg: var(--borderedblock-bg);
+        --example-text: var(--text);
+        --exampleheading-text: hsl(50deg, 70%, 70%);
+
+        --note-border: hsl(120deg, 100%, 35%);
+        --note-bg: var(--borderedblock-bg);
+        --note-text: var(--text);
+        --noteheading-text: hsl(120, 70%, 70%);
+        --notesummary-underline: silver;
+
+        --assertion-border: #444;
+        --assertion-bg: var(--borderedblock-bg);
+        --assertion-text: var(--text);
+
+        --advisement-border: orange;
+        --advisement-bg: #222218;
+        --advisement-text: var(--text);
+        --advisementheading-text: #f84;
+
+        --warning-border: red;
+        --warning-bg: hsla(40,100%,20%,0.95);
+        --warning-text: var(--text);
+
+        --amendment-border: #330099;
+        --amendment-bg: #080010;
+        --amendment-text: var(--text);
+        --amendmentheading-text: #cc00ff;
+
+        --def-border: #8ccbf2;
+        --def-bg: #080818;
+        --def-text: var(--text);
+        --defrow-border: #136;
+
+        --datacell-border: silver;
+
+        --indexinfo-text: #aaa;
+
+        --indextable-hover-text: var(--text);
+        --indextable-hover-bg: #181818;
+
+        --outdatedspec-bg: rgba(255, 255, 255, .5);
+        --outdatedspec-text: black;
+        --outdated-bg: maroon;
+        --outdated-text: white;
+        --outdated-shadow: red;
+
+        --editedrec-bg: darkorange;
+    }
+    /* In case a transparent-bg image doesn't expect to be on a dark bg,
+       which is quite common in practice... */
+    img { background: white; }
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --selflink-text: black;
+        --selflink-bg: silver;
+        --selflink-hover-text: white;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .highlight:not(.idl) { background: rgba(255, 255, 255, .05); }
+
+    c-[a] { color: #d33682 } /* Keyword.Declaration */
+    c-[b] { color: #d33682 } /* Keyword.Type */
+    c-[c] { color: #2aa198 } /* Comment */
+    c-[d] { color: #2aa198 } /* Comment.Multiline */
+    c-[e] { color: #268bd2 } /* Name.Attribute */
+    c-[f] { color: #b58900 } /* Name.Tag */
+    c-[g] { color: #cb4b16 } /* Name.Variable */
+    c-[k] { color: #d33682 } /* Keyword */
+    c-[l] { color: #657b83 } /* Literal */
+    c-[m] { color: #657b83 } /* Literal.Number */
+    c-[n] { color: #268bd2 } /* Name */
+    c-[o] { color: #657b83 } /* Operator */
+    c-[p] { color: #657b83 } /* Punctuation */
+    c-[s] { color: #6c71c4 } /* Literal.String */
+    c-[t] { color: #6c71c4 } /* Literal.String.Single */
+    c-[u] { color: #6c71c4 } /* Literal.String.Double */
+    c-[ch] { color: #2aa198 } /* Comment.Hashbang */
+    c-[cp] { color: #2aa198 } /* Comment.Preproc */
+    c-[cpf] { color: #2aa198 } /* Comment.PreprocFile */
+    c-[c1] { color: #2aa198 } /* Comment.Single */
+    c-[cs] { color: #2aa198 } /* Comment.Special */
+    c-[kc] { color: #d33682 } /* Keyword.Constant */
+    c-[kn] { color: #d33682 } /* Keyword.Namespace */
+    c-[kp] { color: #d33682 } /* Keyword.Pseudo */
+    c-[kr] { color: #d33682 } /* Keyword.Reserved */
+    c-[ld] { color: #657b83 } /* Literal.Date */
+    c-[nc] { color: #268bd2 } /* Name.Class */
+    c-[no] { color: #268bd2 } /* Name.Constant */
+    c-[nd] { color: #268bd2 } /* Name.Decorator */
+    c-[ni] { color: #268bd2 } /* Name.Entity */
+    c-[ne] { color: #268bd2 } /* Name.Exception */
+    c-[nf] { color: #268bd2 } /* Name.Function */
+    c-[nl] { color: #268bd2 } /* Name.Label */
+    c-[nn] { color: #268bd2 } /* Name.Namespace */
+    c-[py] { color: #268bd2 } /* Name.Property */
+    c-[ow] { color: #657b83 } /* Operator.Word */
+    c-[mb] { color: #657b83 } /* Literal.Number.Bin */
+    c-[mf] { color: #657b83 } /* Literal.Number.Float */
+    c-[mh] { color: #657b83 } /* Literal.Number.Hex */
+    c-[mi] { color: #657b83 } /* Literal.Number.Integer */
+    c-[mo] { color: #657b83 } /* Literal.Number.Oct */
+    c-[sa] { color: #6c71c4 } /* Literal.String.Affix */
+    c-[sb] { color: #6c71c4 } /* Literal.String.Backtick */
+    c-[sc] { color: #6c71c4 } /* Literal.String.Char */
+    c-[dl] { color: #6c71c4 } /* Literal.String.Delimiter */
+    c-[sd] { color: #6c71c4 } /* Literal.String.Doc */
+    c-[se] { color: #6c71c4 } /* Literal.String.Escape */
+    c-[sh] { color: #6c71c4 } /* Literal.String.Heredoc */
+    c-[si] { color: #6c71c4 } /* Literal.String.Interpol */
+    c-[sx] { color: #6c71c4 } /* Literal.String.Other */
+    c-[sr] { color: #6c71c4 } /* Literal.String.Regex */
+    c-[ss] { color: #6c71c4 } /* Literal.String.Symbol */
+    c-[fm] { color: #268bd2 } /* Name.Function.Magic */
+    c-[vc] { color: #cb4b16 } /* Name.Variable.Class */
+    c-[vg] { color: #cb4b16 } /* Name.Variable.Global */
+    c-[vi] { color: #cb4b16 } /* Name.Variable.Instance */
+    c-[vm] { color: #cb4b16 } /* Name.Variable.Magic */
+    c-[il] { color: #657b83 } /* Literal.Number.Integer.Long */
+}
+</style>
+ <body class="h-entry">
+  <div class="head">
+   <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
+   <h1 class="p-name no-ref" id="title">OYD DID Method</h1>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2022-01-03">3 January 2022</time></p>
+   <details open>
+    <summary>More details about this document</summary>
+    <div data-fill-with="spec-metadata">
+     <dl>
+      <dt>This version:
+      <dd><a class="u-url" href="https://ownyourdata.github.io/oydid/">https://ownyourdata.github.io/oydid/</a>
+      <dt>Issue Tracking:
+      <dd><a href="https://github.com/OwnYourData/oydid/issues/">GitHub</a>
+      <dt class="editor">Editors:
+      <dd class="editor p-author h-card vcard"><a class="p-name fn u-url url" href="https://www.linkedin.com/in/fabianek/">Christoph Fabianek</a> (<a class="p-org org" href="https://OwnYourData.eu">OwnYourData</a>) <a class="u-email email" href="mailto:christoph@ownyourdata.eu">christoph@ownyourdata.eu</a>
+      <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:wolfgang.kampichler@gmail.com">Wolfgang Kampichler</a> (<a class="p-org org" href="https://OwnYourData.eu">OwnYourData</a>)
+     </dl>
+    </div>
+   </details>
+   <div data-fill-with="warning"></div>
+   <p class="copyright" data-fill-with="copyright"><a href="https://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a> © 2022 <a href="https://www.w3.org/"><abbr title="World Wide Web Consortium">W3C</abbr></a><sup>®</sup> (<a href="https://www.csail.mit.edu/"><abbr title="Massachusetts Institute of Technology">MIT</abbr></a>, <a href="https://www.ercim.eu/"><abbr title="European Research Consortium for Informatics and Mathematics">ERCIM</abbr></a>, <a href="https://www.keio.ac.jp/">Keio</a>, <a href="https://ev.buaa.edu.cn/">Beihang</a>). W3C <a href="https://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>, <a href="https://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and <a href="https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document" rel="license">permissive document license</a> rules apply. </p>
+   <hr title="Separator for header">
+  </div>
+  <div class="p-summary" data-fill-with="abstract">
+   <h2 class="no-num no-toc no-ref heading settled" id="abstract"><span class="content">Abstract</span></h2>
+   <p>Draft recommendations for use of a self-sustained environment to manage decentralized identifiers</p>
+  </div>
+  <h2 class="no-num no-toc no-ref heading settled" id="sotd"><span class="content">Status of this document</span></h2>
+  <div data-fill-with="status">
+   <p></p>
+  </div>
+  <div data-fill-with="at-risk"></div>
+  <nav data-fill-with="table-of-contents" id="toc">
+   <h2 class="no-num no-toc no-ref" id="contents">Table of Contents</h2>
+   <ol class="toc" role="directory">
+    <li><a href="#intro"><span class="secno">1</span> <span class="content">Introduction</span></a>
+    <li><a href="#format"><span class="secno">2</span> <span class="content">The <code>did:oyd</code> Format</span></a>
+    <li>
+     <a href="#operations"><span class="secno">3</span> <span class="content">DID Operations</span></a>
+     <ol class="toc">
+      <li><a href="#create"><span class="secno">3.1</span> <span class="content">Create (Register)</span></a>
+      <li><a href="#read"><span class="secno">3.2</span> <span class="content">Read (Resolve)</span></a>
+      <li><a href="#update"><span class="secno">3.3</span> <span class="content">Update</span></a>
+      <li><a href="#deactivate"><span class="secno">3.4</span> <span class="content">Deactivate</span></a>
+     </ol>
+    <li>
+     <a href="#log"><span class="secno">4</span> <span class="content">DID Log</span></a>
+     <ol class="toc">
+      <li><a href="#log_ops"><span class="secno">4.1</span> <span class="content">Log Operations</span></a>
+      <li>
+       <a href="#verification"><span class="secno">4.2</span> <span class="content">Verification Steps</span></a>
+       <ol class="toc">
+        <li><a href="#calculate_hash"><span class="secno">4.2.1</span> <span class="content">Hash value calculation</span></a>
+        <li><a href="#retrieve_log"><span class="secno">4.2.2</span> <span class="content">Log record retrieval</span></a>
+        <li><a href="#verify_signature"><span class="secno">4.2.3</span> <span class="content">Signature verification</span></a>
+       </ol>
+     </ol>
+    <li>
+     <a href="#test"><span class="secno">5</span> <span class="content">Test Vectors</span></a>
+     <ol class="toc">
+      <li><a href="#samples"><span class="secno">5.1</span> <span class="content">Samples</span></a>
+      <li><a href="#cli"><span class="secno">5.2</span> <span class="content">Command line tool</span></a>
+     </ol>
+    <li>
+     <a href="#privacy"><span class="secno">6</span> <span class="content">Security and Privacy Considerations</span></a>
+     <ol class="toc">
+      <li><a href="#centralized_storage"><span class="secno">6.1</span> <span class="content">Centralized Storage</span></a>
+      <li><a href="#key_rotatioin"><span class="secno">6.2</span> <span class="content">Key Rotation</span></a>
+      <li><a href="#key_rotation"><span class="secno">6.3</span> <span class="content">Scaling</span></a>
+      <li><a href="#updating_clones"><span class="secno">6.4</span> <span class="content">Updating Clones</span></a>
+      <li><a href="#long_term_usage"><span class="secno">6.5</span> <span class="content">Long-term Usage</span></a>
+      <li><a href="#correlation"><span class="secno">6.6</span> <span class="content">Correlation</span></a>
+      <li><a href="#cryptographic_agility"><span class="secno">6.7</span> <span class="content">Cryptographic Agility</span></a>
+     </ol>
+    <li><a href="#ethics"><span class="secno">7</span> <span class="content">Ethical Aspects</span></a>
+    <li><a href="#implementation"><span class="secno">8</span> <span class="content">Reference Implementation</span></a>
+    <li>
+     <a href="#w3c-conformance"><span class="secno"></span> <span class="content">Conformance</span></a>
+     <ol class="toc">
+      <li><a href="#w3c-conventions"><span class="secno"></span> <span class="content">Document conventions</span></a>
+      <li><a href="#w3c-conformant-algorithms"><span class="secno"></span> <span class="content">Conformant Algorithms</span></a>
+     </ol>
+    <li>
+     <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
+     <ol class="toc">
+      <li><a href="#normative"><span class="secno"></span> <span class="content">Normative References</span></a>
+      <li><a href="#informative"><span class="secno"></span> <span class="content">Informative References</span></a>
+     </ol>
+   </ol>
+  </nav>
+  <main>
+   <p>This specification is not a W3C Standard nor is it on the W3C Standards Track. Learn more about <a href="https://www.w3.org/community/">W3C Community and Business Groups</a>. <a href="https://github.com/OwnYourData/oydid/issues">GitHub Issues</a> are preferred for discussion of this specification.</p>
+   <h3 class="heading settled" id="history"><span class="content">History</span></h3>
+   <ul>
+    <li data-md>
+     <p>Version 0.3: 19 October 2021 (initial public release, <a href="https://github.com/OwnYourData/oydid/blob/main/docs/did-spec_v03.md">link</a>)</p>
+    <li data-md>
+     <p>Version 0.4: 7 January 2022 (current version)</p>
+   </ul>
+   <h2 class="heading settled" data-level="1" id="intro"><span class="secno">1. </span><span class="content">Introduction</span><a class="self-link" href="#intro"></a></h2>
+   <p>Decentralized Identifiers (DIDs) <a data-link-type="biblio" href="#biblio-did-core">[DID-CORE]</a> are a new type of identifier for verifiable, decentralized digital identity. These new identifiers are designed to enable the controller of a DID to prove control over it and to be implemented independently of any centralized registry, identity provider, or certificate authority. These sorts of identifiers often utilize a heavy-weight registry, such as ones utilizing Decentralized Ledger Technologies (DLT), to create, read, update, and deactivate DIDs.</p>
+   <p>While DLT-based DID Methods have great decentralization characteristics, and some of the more centralized DID Methods provide strong system control guarantees, the general approaches tend to be expensive to set up and operate. OYDID takes the approach to not maintain DID and DID Document on a public ledger but on one or more local storages (that might be publicly available). Through cryptographically linking the DID Identifier to the DID Document, and furthermore linking the DID Document to a chained provenance trail the same security and validation properties as a traditional DID can be maintained while avoiding highly redundant storage and also works in settings without general public access.</p>
+   <p>The rest of this document outlines the syntax for the <code>did:oyd</code> method, the operations it supports, and some security and privacy considerations as well as ehtical aspects that implementers might want to be aware of when using this DID method.</p>
+   <h2 class="heading settled" data-level="2" id="format"><span class="secno">2. </span><span class="content">The <code>did:oyd</code> Format</span><a class="self-link" href="#format"></a></h2>
+   <p>The format for the <code>did:oyd</code> method conforms to the DID core specification <a data-link-type="biblio" href="#biblio-did-core">[DID-CORE]</a> as outlined by W3C. It consists of the <code>did:oyd</code> prefix, followed by a Multibase <a data-link-type="biblio" href="#biblio-multibase">[MULTIBASE]</a> (default: <code>base58-btc</code>) encoded value that is a Multihash <a data-link-type="biblio" href="#biblio-multihash">[MULTIHASH]</a> (default: <code>sha2-256</code>) value of composed of information from the payload, keys, and log.</p>
+   <p>The detailed calculation of the DID identifier from the internal document and log information via ABNF is described here:</p>
+<pre class="include-code highlight"><c- c1>; !syntax("abnf")</c->
+<c- nc>did-oyd-format</c->                     <c- o>=</c-> <c- l>"did:oyd:"</c-> <c- nc>identifier</c->
+<c- nc>identifier</c->                         <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>did-information-hash</c-> <c- p>)</c->
+<c- nc>did-information-hash</c->               <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>did-canoncial-information</c-> <c- p>)</c->
+<c- nc>did-canonical-information</c->          <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonicla</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>did-information</c->>
+<c- nc>did-information</c->                    <c- o>=</c-> <c- l>"{doc:"</c-> <c- nc>payload</c-> <c- l>",key:"</c-> <c- nc>key-value</c-> <c- l>",log:"</c-> <c- nc>log-value</c-> <c- l>"}"</c->
+<c- nc>payload</c->                            <c- o>=</c-> &lt;<c- nc>json-grammar-rules</c->>
+<c- nc>key-value</c->                          <c- o>=</c-> <c- nc>public-doc-key-encoded</c-> <c- l>":"</c-> <c- nc>public-revocation-key-encoded</c->
+<c- nc>log-value</c->                          <c- o>=</c-> <c- nc>termination-hash-encoded</c->
+<c- nc>public-doc-key-encoded</c->             <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>public-doc-key-codec</c-> <c- p>)</c->
+<c- nc>public-doc-key-codec</c->               <c- o>=</c-> <c- nc>MULTICODEC</c-> <c- p>(</c-> <c- nc>codec-identifier</c-> <c- nc>public-doc-key</c-> <c- p>)</c->
+<c- nc>public-doc-key</c->                     <c- o>=</c-> &lt;<c- nc>public</c-> <c- nc>key</c-> <c- nc>from</c-> <c- nc>key</c-> <c- nc>pair</c-> <c- nc>used</c-> <c- nc>for</c-> <c- nc>verifying</c-> <c- nc>payload</c->>
+<c- nc>public-revocation-key-encoded</c->      <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>public-revocation-key-codec</c-> <c- p>)</c->
+<c- nc>public-revocation-key-codec</c->        <c- o>=</c-> <c- nc>MULTICODEC</c-> <c- p>(</c-> <c- nc>codec-identifier</c-> <c- nc>public-revocation-key</c-> <c- p>)</c->
+<c- nc>public-revocation-key</c->              <c- o>=</c-> &lt;<c- nc>public</c-> <c- nc>key</c-> <c- nc>from</c-> <c- nc>key</c-> <c- nc>pair</c-> <c- nc>used</c-> <c- nc>for</c-> <c- nc>verifying</c-> <c- nc>revocations</c->>
+<c- nc>termination-hash-encoded</c->           <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>termination-log-entry-hash</c-> <c- p>)</c->
+<c- nc>termination-log-entry-hash</c->         <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>termination-canonical-log-entry</c-> <c- p>)</c->
+<c- nc>termination-canonical-log-entry</c->    <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonicla</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>termination-log-entry</c->>
+<c- nc>termination-log-entry</c->              <c- o>=</c-> <c- l>"{op:"</c-> <c- k>DIGIT</c-> <c- l>",ts:"</c-> <c- k>DIGIT</c-> <c- l>",doc:"</c-> <c- nc>revoke-encoded</c-> <c- l>",sig:"</c-> <c- nc>sig-revoke-encoded</c-> <c- l>",previous: []}"</c->
+<c- nc>revoke-encoded</c->                     <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>revoke-hash</c-> <c- p>)</c->
+<c- nc>revoke-hash</c->                        <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>sub-revocation-canonical-log-entry</c-> <c- p>)</c->
+<c- nc>sub-revocation-canonical-log-entry</c-> <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonicla</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>sub-revocation-log-entry</c->>
+<c- nc>sub-revocation-log-entry</c->           <c- o>=</c-> <c- l>"{op:"</c-> <c- k>DIGIT</c-> <c- l>", ts:"</c-> <c- k>DIGIT</c-> <c- l>", doc:"</c-> <c- nc>sub-doc-encoded</c-> <c- l>", sig:"</c-> <c- nc>sig-sub-doc-encoded</c-> <c- l>"}"</c->
+<c- nc>sig-revoke-encoded</c->                 <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sig-revoke</c-> <c- p>)</c->
+<c- nc>sig-revoke</c->                         <c- o>=</c-> &lt;<c- nc>signed</c-> <c- nc>revoke-encoded</c-> <c- nc>with</c-> <c- nc>private</c-> <c- nc>key</c-> <c- nc>corresponding</c-> <c- nc>to</c-> <c- nc>public-revocation-key</c-> <c- nc>in</c-> <c- nc>payload</c->>
+<c- nc>sub-doc-encoded</c->                    <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sub-doc-hash</c-> <c- p>)</c->
+<c- nc>sub-doc-hash</c->                       <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>sub-doc-canonical</c-> <c- p>)</c->
+<c- nc>sub-doc-canonical</c->                  <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonicla</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>sub-doc</c->>
+<c- nc>sub-doc</c->                            <c- o>=</c-> <c- l>"{doc:"</c-> <c- nc>payload</c-> <c- l>",key:"</c-> <c- nc>key-value</c-> <c- l>"}"</c->
+<c- nc>sig-sub-doc-encoded</c->                <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sig-sub-doc</c-> <c- p>)</c->
+<c- nc>sig-sub-doc</c->                        <c- o>=</c-> &lt;<c- nc>sign</c-> <c- nc>sub-doc-encoded</c-> <c- nc>with</c-> <c- nc>private</c-> <c- nc>key</c-> <c- nc>corresponding</c-> <c- nc>to</c-> <c- nc>public-doc-key</c-> <c- nc>in</c-> <c- nc>payload</c->>
+<c- nc>base-identifier</c->                    <c- o>=</c-> <c- nc>DEFAULT</c-> <c- nc>base58btc</c->
+<c- nc>hash-identifier</c->                    <c- o>=</c-> <c- nc>DEFAULT</c-> <c- nc>sha2-256</c->
+<c- nc>codec-identifier</c->                   <c- o>=</c-> <c- nc>DEFAULT</c-> <c- nc>ed25519-pub</c-></pre>
+   <h2 class="heading settled" data-level="3" id="operations"><span class="secno">3. </span><span class="content">DID Operations</span><a class="self-link" href="#operations"></a></h2>
+   <p>The following section outlines the DID operations for the <code>did:oyd</code> method.</p>
+   <h3 class="heading settled" data-level="3.1" id="create"><span class="secno">3.1. </span><span class="content">Create (Register)</span><a class="self-link" href="#create"></a></h3>
+   <p>Creating a <code>did:oyd</code> identifier requires</p>
+   <ul>
+    <li data-md>
+     <p>a payload (e.g., service endpoints) as JSON document and</p>
+    <li data-md>
+     <p>two cryptographic key pairs (default: ED25519)</p>
+   </ul>
+   <p>in the format described in Section <a href="#format">§ 2 The did:oyd Format</a>.</p>
+   <p>The DID document and associated log entries are stored in a registry accessible by relevant stakeholders. An example is given below (<em><a href="#example_did_artefacts">EXAMPLE 1</a></em>) listing a payload, internal and W3C conform DID document, log entries, private keys, and private revocation document.</p>
+   <div class="example" id="example_did_artefacts">
+    <a class="self-link" href="#example_did_artefacts"></a> An example DID with all associated information and representations: 
+    <ul>
+     <li data-md>
+      <p>DID</p>
+     <li data-md>
+      <p>Payload</p>
+     <li data-md>
+      <p>Internal DID document</p>
+     <li data-md>
+      <p>W3C conform DID document</p>
+     <li data-md>
+      <p>Log entries</p>
+     <li data-md>
+      <p>Private doc key</p>
+     <li data-md>
+      <p>Private revocation key</p>
+     <li data-md>
+      <p>Private revocation document</p>
+    </ul>
+    <p><strong>DID:</strong> <code>did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz</code></p>
+    <p><strong>Payload:</strong></p>
+<pre>{
+  "foo": "bar"
+}
+</pre>
+    <p><strong>Internal DID document:</strong></p>
+<pre>{
+  "doc": {
+    "foo": "bar"
+  },
+  "key": "z6MusWcRn7TWW3XAa96vrST5Fx8n3xndSEVEfMCQBDAMrQpP:z6Mv1rQ3ZTsLwfV8neZ1zKp17NHeb1Xv3KK5EB4D8t5mxJ3V",
+  "log": "zQmSkagv16yPWiLAsUXRX5RKmejXuHTMTNodZewXpFCFYvj"
+}
+</pre>
+    <p><strong>W3C conform DID document:</strong></p>
+<pre>{
+  "@context": "https://www.w3.org/ns/did/v1",
+  "id": "did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz",
+  "verificationMethod": [
+    {
+      "id": "did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz",
+      "type": "Ed25519VerificationKey2020",
+      "controller": "did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz",
+      "publicKeyBase58": "z6MusWcRn7TWW3XAa96vrST5Fx8n3xndSEVEfMCQBDAMrQpP"
+    }
+  ],
+  "keyAgreement": [
+    {
+      "id": "did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz",
+      "type": "Ed25519VerificationKey2020",
+      "controller": "did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz",
+      "publicKeyBase58": "z6Mv1rQ3ZTsLwfV8neZ1zKp17NHeb1Xv3KK5EB4D8t5mxJ3V"
+    }
+  ],
+  "service": [
+    {
+      "foo": "bar"
+    }
+  ]
+}
+</pre>
+    <p><strong>Log entries:</strong></p>
+<pre>[
+  {
+    "ts": 1641122585,
+    "op": 2,
+    "doc": "zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz",
+    "sig": "z2BQRPP8e26kFRXoQxBB2ERFZgFVu1Eov7VdTjt9diSipRxWnx8rm4knHMsdERteE7Ry66GkVmp9Ghnp9d5cigA26",
+    "previous": []
+  },
+  {
+    "ts": 1641122585,
+    "op": 0,
+    "doc": "zQmeugQwCyHSdSQPbPBYmMV4qhitnJ6m4ZHTvH4GJZN3SRh",
+    "sig": "zYo8FztfFvRpctfifYjgL4uswEMWagRELDqBpwMvMjLBR5dfsL4WzZc3hmG4HVKp6dhmVy4dGbfGot5kYLV2LgD9",
+    "previous": []
+  }
+]
+</pre>
+    <p><strong>Private doc key:</strong> <code>z1S5YqYg92n7q9g581jNsiMs7mwLzPtZ6tzBZTGNCwxxj2Hf</code></p>
+    <p><strong>Private revocation key:</strong> <code>z1S5WvZDDNAGQEnjSET1NA7MuMdVGZ12ZW2SqED5dxcLbLt8</code></p>
+    <p><strong>Private revocation document:</strong></p>
+<pre>{
+  "ts": 1641122585,
+  "op": 1,
+  "doc": "zQmQ8pDd2gkWAu5tNpm9JtMBpPZ9eYSwKycobTVVszjdoMc",
+  "sig": "z5ZbPS243WSimHJzVigJ9Bb3AKn6DtHTXHaAc13X7uUVFpbhgmCSp8v9vZXScj9zJP4sdouip6KckSM3P26Nw3p2"
+}
+</pre>
+   </div>
+   <h3 class="heading settled" data-level="3.2" id="read"><span class="secno">3.2. </span><span class="content">Read (Resolve)</span><a class="self-link" href="#read"></a></h3>
+   <p>Reading a <code>did:oyd</code> is a matter of searching for a DID document that either can be directly linked (through hashing and encoding) to the provided identifier or through traversing through the log to unambiguously link the provided identifier to the latest version of the DID document. Cryptographic proof for the link between DID Identifier and DID Document, ownership, and completeness is performed in the following steps (here the example for a newly created DID without any updates so far):</p>
+   <ol>
+    <li data-md>
+     <p>the identifier is the encoded hash value of the internal DID document (the hashing algorithm is encoded in the identifier using MULTIHASH, default: <code>SHA2-256</code>, the encoding algorithm is also encoded in the identifier using MULTIBASE, default: <code>base58-btc</code>)</p>
+    <li data-md>
+     <p>the DID document includes public keys (encoded with MULTIBASE, default: <code>base58-btc</code> and specified with MULTICODECS, default: <code>ed25519-pub</code>) and the hash value of a DID log entry (the hashing algorithm is encoded in the identifier using MULTIHASH, default: <code>SHA2-256</code>, the encoding algorithm is also encoded in the identifier using MULTIBASE, default: <code>base58-btc</code>)</p>
+    <li data-md>
+     <p>the log entry (create, op=2) for the DID document provides a signature ("sig" - encoded with MULTIBASE, default: <code>base58-btc</code>) of the identifier ("doc") to prove possession of the private key, i.e., use the public payload key in the DID document to verify this signature</p>
+    <li data-md>
+     <p>the other log entry (terminate, op=0) provides revocation info; in case a log entry with the stated hash in doc exists the DID resolving process must continue</p>
+   </ol>
+   <p>An example is given below (<em><a href="#example_did_resolving">EXAMPLE 2</a></em>) depicting the log entries to be evaluated for linking an old DID identifier (DID v1) to the content of DID v2.</p>
+   <div class="example" id="example_did_resolving">
+    <a class="self-link" href="#example_did_resolving"></a> Visualization and process of linked log entries to resolve a DID identifier 
+    <p align="center"> <img src="res/DIDv2dag.png" width="350"><br> <em>Figure 1: Visualization of log entries</em> </p>
+   </div>
+   <p>Process:</p>
+   <ol>
+    <li data-md>
+     <p>User wants to resolves DID v1 and queries an OYDID registry with identifier</p>
+    <li data-md>
+     <p>OYDID registry responds with (outdated) DID document for DID v1 and log entries "create" and "terminate" (shown on the very left in the picture above)</p>
+    <li data-md>
+     <p>Resolver (automatically) queries the OYDID registry for a revocation log entry with the hash stored in the terminate entry</p>
+    <li data-md>
+     <p>OYDID repository returns revoke entry</p>
+    <li data-md>
+     <p>Resolver (automatically) queries the OYDID registry for log entries that hold the hash value of the revoke entry</p>
+    <li data-md>
+     <p>OYDID repository must retrieve exactly one update entry (and associated terminate entry) plus associated DID document (DID v2) as linked by the update entry</p>
+    <li data-md>
+     <p>Resolver validates linked hash entries and queries again OYDID registry for a revocation log entry from the second terminate entry (shown on the very right in the picture above)</p>
+    <li data-md>
+     <p>OYDID repository finds no information of such a revocation entry and therefore the resolver can return DID v2 as the latest document</p>
+   </ol>
+   <p class="note" role="note"><span>Note:</span> it is in the interest of the owner to publish revocation entries and make those easily accessible to ensure that even outdated DID identifier resolve to the latest DID document</p>
+   <p class="note" role="note"><span>Note:</span> see section <a href="#verification">§ 4.2 Verification Steps</a> for a detailed description of using the OYDID command line tool to output step-wise verification information for independent proof.</p>
+   <h3 class="heading settled" data-level="3.3" id="update"><span class="secno">3.3. </span><span class="content">Update</span><a class="self-link" href="#update"></a></h3>
+   <p>Updating in <code>did:oyd</code> is providing a new DID document and/or new keys for key rotation while also publishing the revocation document and signing with original keys to prove ownership. An example is given below (<em><a href="#example_did_update">EXAMPLE 3</a></em>) of all log entries for an updated DID.</p>
+   <div class="example" id="example_did_update">
+    <a class="self-link" href="#example_did_update"></a> Log information of an update DID. 
+<pre>[{
+    "ts": 1633300869,
+    "op": 2,
+    "doc": "zQmdxfGRfFEnLoJ9RTiyzG9TPBhK7q6zsqrGFVzuxVPv4dq",
+    "sig": "ziY1pSb9irVMykHotX1UDsNXP8V6iF4REVqfk2trQP9rtooAKcMkXHgjz8VTC3FEDTjKk6D2Z3ywLer1i9NKaLo4",
+    "previous": []
+}, {
+    "ts": 1633300869,
+    "op": 0,
+    "doc": "zQmVnLPgFYYNf4GEzzD3gLbSR4xhpdk7dU4BWQR4pJr7R4Z",
+    "sig": "z2gJqK2bGP5VfZdCVijBeuUtzxiNaZm4NNMH6zm4EVG2LD4rqZg62c5craaQwEPEjxSbgjH4kE79DPwddghiNjirk",
+    "previous": []
+}, {
+    "ts": 1633300869,
+    "op": 1,
+    "doc": "zQmVYqZoGSncYGybUnZi514niKgju68B6AVp7KJAdVifsYU",
+    "sig": "z461mfYfCvLvkeeN9vdd1yNoqFBpKAwFHD1xLRQUb4evBwEXCJLZXT9qcfQo54VTrr3eow3mJHZ3aGa7inuP29ZXg",
+    "previous": ["zQmVDzKVeyj4k8RYWHtKdML6MXUZX8Lu4LiiS46SfhQkZfG", 
+                 "zQmSjHywvbeHV1JzsLwexzXS9246vzHkyBUkwSbXDH5f1gg"]
+}, {
+    "ts": 1633300910,
+    "op": 3,
+    "doc": "zQmNUV1MJ5xKkFm6Lc9EKqAauGzbKP7amvbyxsx79mKwqPB",
+    "sig": "z2UMg3AhegwzuMgrJ1bTRDyu9W9Kp8G7ERZi2Kin3JG8UhwJqf1yivNEYY5JvB9aPDfH8GEEw9Mbvscqhk1LJH8cp",
+    "previous": ["zQmetSQY5UZd91ubdWyQTh2gqVuKwkUVtjamh33p7spaYVR"]
+}, {
+    "ts": 1633300910,
+    "op": 0,
+    "doc": "zQmQTdAmqxuQQB2yBj4qZoS4ooNUnL7PzwUydEepDqjJHd4",
+    "sig": "z5Bh8VwnUUQzFruVJosySBDfJJy5CRADbpYHjNH2qFjcCx71J6QJxttVhfnh7ZgfZpir9ghsNk24g3vRrDkvhR3jZ",
+    "previous": []
+}]
+</pre>
+   </div>
+   <h3 class="heading settled" data-level="3.4" id="deactivate"><span class="secno">3.4. </span><span class="content">Deactivate</span><a class="self-link" href="#deactivate"></a></h3>
+   <p>Deactivating an OYDID is simply done by publishing the private revocation entry without providing any update record. The figure below depicts the log representing a deactivated DID.</p>
+   <p align="center"> <img src="res/DIDdeactivated.png" width="400"><br> <em>Figure 3: Visualization of log graph for a deactivated DID</em> </p>
+   <h2 class="heading settled" data-level="4" id="log"><span class="secno">4. </span><span class="content">DID Log</span><a class="self-link" href="#log"></a></h2>
+   <p>The log is a directed acyclic graph (DAG) and represents the life cycle of a DID. Each element in this graph holds the following attributes:</p>
+<pre class="highlight"><c- p>{</c->
+    <c- f>"ts"</c-><c- p>:</c-> i<c- kc>nt</c-><c- p>,</c->
+    <c- f>"op"</c-><c- p>:</c-> i<c- kc>nt</c-><c- p>,</c->
+    <c- f>"doc"</c-><c- p>:</c-> s<c- kc>tr</c->i<c- kc>n</c->g (hash)<c- p>,</c->
+    <c- f>"sig"</c-><c- p>:</c-> s<c- kc>tr</c->i<c- kc>n</c->g (sig<c- kc>nature</c-> o<c- kc>f</c-> hash)<c- p>,</c->
+    <c- f>"previous"</c-><c- p>:</c-> <c- p>[</c-> array o<c- kc>f</c-> s<c- kc>tr</c->i<c- kc>n</c->gs (hashes) <c- p>]</c->
+<c- p>}</c->
+</pre>
+   <h3 class="heading settled" data-level="4.1" id="log_ops"><span class="secno">4.1. </span><span class="content">Log Operations</span><a class="self-link" href="#log_ops"></a></h3>
+   <p>The following list describes all available log operations (<code>op</code>) and specific use of attributes:</p>
+   <ul>
+    <li data-md>
+     <p><strong>Terminate</strong> (<code>op=0</code>): confirms last entry until revoke entry is published<br> <em>doc</em>: hash of revoke entry<br> <em>sig</em>: doc signed by private document key<br> <em>previous</em>: can reference Clone or Delegate log entries for confirmation</p>
+    <li data-md>
+     <p><strong>Revoke</strong> (<code>op=1</code>): invalidates a Terminate log entry; only published for new information<br> <em>doc</em>: hash of doc and key in DID Document<br> <em>sig</em>: doc signed by private revocation key<br> <em>previous</em>: can reference "Create" or "Update" and always "Terminate"</p>
+    <li data-md>
+     <p><strong>Create</strong> (<code>op=2</code>): start new DID<br> <em>doc</em>: hash of DID Document<br> <em>sig</em>: doc signed by private document key<br> <em>previous</em>: has only a reference when created using clone pointing to this clone entry</p>
+    <li data-md>
+     <p><strong>Update</strong> (<code>op=3</code>): update DID<br> <em>doc</em>: hash of DID Document<br> <em>sig</em>: doc signed by private document key from previous version DID version<br> <em>previous</em>: reference previous revoke log entry</p>
+    <li data-md>
+     <p><strong>Clone</strong> (<code>op=4</code>): create linked DID with same "doc" but new keys and logs<br> <em>doc</em>: hash of new DID Document (same payload but different keys and logs)<br> <em>sig</em>: doc signed by the new private document key<br> <em>previous</em>: reference Create or Update log entry</p>
+   </ul>
+   <h3 class="heading settled" data-level="4.2" id="verification"><span class="secno">4.2. </span><span class="content">Verification Steps</span><a class="self-link" href="#verification"></a></h3>
+   <p>Processing the log provides unambiguous evidence for authenticity, correctness, and timeliness of resolving a DID to the DID document. This section describes all operations to perform independent verification when resolving a DID.</p>
+   <p class="note" role="note"><span>Note:</span> Use the <code>--show-verification</code> flag in the [<code>oydid</code> command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification.</p>
+   <h4 class="heading settled" data-level="4.2.1" id="calculate_hash"><span class="secno">4.2.1. </span><span class="content">Hash value calculation</span><a class="self-link" href="#calculate_hash"></a></h4>
+   <p>Perform the following steps to verify that a hash value conforms to a message:</p>
+   <ol>
+    <li data-md>
+     <p>identify encoding algorithm in multibase string (first character)<br> you can use the information here: <a href="https://github.com/multiformats/multibase">https://github.com/multiformats/multibase</a><br> example: if the string starts with "z" it is base58btc-encoding</p>
+    <li data-md>
+     <p>identify hashing algorithm in multibase string (second &amp; third character)<br> you can use the information here: <a href="https://github.com/multiformats/multicodec#multicodec-table">https://github.com/multiformats/multicodec#multicodec-table</a><br> example: if the string starts with "zQm" it is the sha2-256 hash algorithm</p>
+    <li data-md>
+     <p>if the message is a JSON is must be transformed to its canonical form based on this standard (currently still in draft): <a href="https://datatracker.ietf.org/doc/html/rfc8785">https://datatracker.ietf.org/doc/html/rfc8785</a></p>
+    <li data-md>
+     <p>calculate hash value from message (check if pre-processing step #3 applies!) using the algorithm from step #2</p>
+    <li data-md>
+     <p>encode hash value using encoding algorithm from step #1</p>
+   </ol>
+   <p>✅ This verification step passes iif presented hash value and message match.</p>
+   <h4 class="heading settled" data-level="4.2.2" id="retrieve_log"><span class="secno">4.2.2. </span><span class="content">Log record retrieval</span><a class="self-link" href="#retrieve_log"></a></h4>
+   <p>Retrieve log record from a repository based on hash value...</p>
+   <h4 class="heading settled" data-level="4.2.3" id="verify_signature"><span class="secno">4.2.3. </span><span class="content">Signature verification</span><a class="self-link" href="#verify_signature"></a></h4>
+   <p>Verifiy signature in a log record...</p>
+   <h2 class="heading settled" data-level="5" id="test"><span class="secno">5. </span><span class="content">Test Vectors</span><a class="self-link" href="#test"></a></h2>
+   <h3 class="heading settled" data-level="5.1" id="samples"><span class="secno">5.1. </span><span class="content">Samples</span><a class="self-link" href="#samples"></a></h3>
+   <p>This section provides samples of typical OYDID DIDs.</p>
+   <div class="example" id="sample_new">
+    <a class="self-link" href="#sample_new"></a> A DID created with a simple payload: 
+    <p><code>did:oyd:zQmZPsXSt3QbKZvjPEMdZZ6q8MtfFhPSeQmKx2g8khZq6YG</code></p>
+   </div>
+   <div class="example" id="sample_update">
+    <a class="self-link" href="#sample_update"></a> A DID created and updated can be resolved using the following two identifier: 
+    <p><code>did:oyd:zQmZjUKm2n28LHkEufYNHicRbt31aAG8g6fwuTp35Nxmzzy</code></p>
+    <p><code>did:oyd:zQmbePD4HavGGvmEQfGaAS5h9ms2BNZVewXVx3T7w9ypPgA</code></p>
+   </div>
+   <div class="example" id="sample_external">
+    <a class="self-link" href="#sample_external"></a> A DID created and updated can be resolved using the following two identifier: 
+    <p><code>did:oyd:zQmNPqMwUWBuUSQnwFBacLtGFzdfFCDYS7msZntERecPj6r@https://did2.data-container.net</code></p>
+    <p class="note" role="note"><span>Note:</span> a W3C conform representation is the percent-encoded <code>@</code><br><code>did:oyd:zQmNPqMwUWBuUSQnwFBacLtGFzdfFCDYS7msZntERecPj6r%40https://did2.data-container.net</code></p>
+   </div>
+   <h3 class="heading settled" data-level="5.2" id="cli"><span class="secno">5.2. </span><span class="content">Command line tool</span><a class="self-link" href="#cli"></a></h3>
+   <p><em>Prerequisite:</em> install the <code>oydid</code> command from https://github.com/OwnYourData/did-cmd/ or
+use the following Docker command to run the OYDID command line tool without installation (based on [public Docker image <code>oydeu\oydid</code>](https://hub.docker.com/r/oydeu/oydid)):</p>
+<pre class="language-bash highlight">docker run -it --rm oydeu/oydid
+</pre>
+   <p><em>EXAMPLE 4: Various DIDs and useful commands</em></p>
+   <ul>
+    <li data-md>
+     <p><code>did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj</code> (new DID)</p>
+     <p>→ show information with:</p>
+<pre class="language-bash highlight">    oydid read zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj
+</pre>
+    <li data-md>
+     <p><code>did:oyd:zQmNUV1MJ5xKkFm6Lc9EKqAauGzbKP7amvbyxsx79mKwqPB</code> (updated DID)</p>
+     <p>→ show DID document using old DID</p>
+<pre class="language-bash highlight">    oydid read zQmdxfGRfFEnLoJ9RTiyzG9TPBhK7q6zsqrGFVzuxVPv4dq
+</pre>
+    <li data-md>
+     <p><code>did:oyd:zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1</code> (deactivated DID)</p>
+     <p>→ DID cannot be resolved</p>
+<pre class="language-bash highlight">    oydid read zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1
+</pre>
+     <strong>Result:</strong> <code>Error: cannot resolve DID</code> 
+     <p>→ Logs can be shown with the command</p>
+<pre class="language-bash highlight">    oydid logs zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1
+</pre>
+   </ul>
+   <p class="note" role="note"><span>Note:</span> read in the <a href="https://github.com/OwnYourData/did-cmd/blob/main/docs/OYDIDintro.pdf">OYDID White Paper</a> Appendix A for a step-by-step tutorial</p>
+   <h2 class="heading settled" data-level="6" id="privacy"><span class="secno">6. </span><span class="content">Security and Privacy Considerations</span><a class="self-link" href="#privacy"></a></h2>
+   <p>There are a number of security and privacy considerations that implementers will want to take into consideration upon working with this specification.</p>
+   <h3 class="heading settled" data-level="6.1" id="centralized_storage"><span class="secno">6.1. </span><span class="content">Centralized Storage</span><a class="self-link" href="#centralized_storage"></a></h3>
+   <ul>
+    <li data-md>
+     <p>maintainer of OYDID repository cannot change content due to hash values</p>
+    <li data-md>
+     <p>the problem of a repository being unavailable can be mitigated by cloning DID to a local repository</p>
+    <li data-md>
+     <p>the problem of a storage provider hindering publication of updates can be also mitigated by cloning DID to other repositories and publishing updates using initial private keys there</p>
+   </ul>
+   <h3 class="heading settled" data-level="6.2" id="key_rotatioin"><span class="secno">6.2. </span><span class="content">Key Rotation</span><a class="self-link" href="#key_rotatioin"></a></h3>
+   <p>Key Rotation is supported through using different key(s) when publishing an update.</p>
+   <h3 class="heading settled" data-level="6.3" id="key_rotation"><span class="secno">6.3. </span><span class="content">Scaling</span><a class="self-link" href="#key_rotation"></a></h3>
+   <p>To scale access for frequently requested DID it is recommended to clone a DID to multiple locations.</p>
+   <h3 class="heading settled" data-level="6.4" id="updating_clones"><span class="secno">6.4. </span><span class="content">Updating Clones</span><a class="self-link" href="#updating_clones"></a></h3>
+   <ul>
+    <li data-md>
+     <p>it is in the interest of the DID author to provide consistent information</p>
+    <li data-md>
+     <p>recommended approach</p>
+     <ul>
+      <li data-md>
+       <p>create new DID (but do not publish revocation log record for old DID yet)</p>
+      <li data-md>
+       <p>clone new DID to all relevant hosts</p>
+      <li data-md>
+       <p>only then publish revocation log</p>
+     </ul>
+   </ul>
+   <h3 class="heading settled" data-level="6.5" id="long_term_usage"><span class="secno">6.5. </span><span class="content">Long-term Usage</span><a class="self-link" href="#long_term_usage"></a></h3>
+   <ul>
+    <li data-md>
+     <p>Multiformat used to ensure digest agility</p>
+    <li data-md>
+     <p>it is in the nature of centralized systems that they are offline and DID maintainerd need to ensure that a minimum number of clones are always online (based on how valuable the DID is)</p>
+   </ul>
+   <h3 class="heading settled" data-level="6.6" id="correlation"><span class="secno">6.6. </span><span class="content">Correlation</span><a class="self-link" href="#correlation"></a></h3>
+   <p>The source for generating OYDID identifiers are hashing algorithms which have as intrinsic property as much entropy as possible and therefore offer no direct means of correlation.</p>
+   <h3 class="heading settled" data-level="6.7" id="cryptographic_agility"><span class="secno">6.7. </span><span class="content">Cryptographic Agility</span><a class="self-link" href="#cryptographic_agility"></a></h3>
+   <p>As described in the <a href="#operations">§ 3 DID Operations</a> section, currently only ed25519 public keys are supported. This can be easily extended by using other multicodec encoded keys. The multicodec table already has support for BLS keys for example, so adding support for it would be trivial. Once good post quantum cryptography becomes more widely available extending OYDID to support that will also be fairly straight forward.</p>
+   <h2 class="heading settled" data-level="7" id="ethics"><span class="secno">7. </span><span class="content">Ethical Aspects</span><a class="self-link" href="#ethics"></a></h2>
+   <p>DIDs provide a standardization to share specific information (public keys, service endpoints) publicly. However, storing this information on a distributed ledger requires resources (storage and processing capacities) that may seem unjustified for certain use cases where the immediate benefit is not obvious. As a result, in some cases the DID concept is already excluded in the design phase, which hinders adoption and further growth of using DIDs and Verifiable Credentials. Another challenge for DIDs can be privacy-preserving data exchanges and the simple fact of resolving a DID at a public ledger might allow it to infer certain information.</p>
+   <p>Therefore, OYDID takes the approach to not maintain DID and DID Document on a public ledger but on one or more local storages (that usually are publicly available). Through cryptographically linking the DID identifier to the DID Document, and furthermore linking the DID Document to a chained provenance trail (log), the same security and validation properties as a traditional DID are  maintained while avoiding highly redundant storage and general public access.</p>
+   <p>OYDIDs are therefore excellently suited for local settings with a limited number of stakeholders interested in resolving those DIDs. Example use cases are:</p>
+   <ul>
+    <li data-md>
+     <p>test runs that require to create repeatedly a large number of new DIDs</p>
+    <li data-md>
+     <p>settings in secured or remote areas without access to the internet</p>
+    <li data-md>
+     <p>(transient) storage solutions (e.g., Semantic Containers) that can generate large quantities of DIDs as a way to access specific information (e.g., consent receipts, provenance artefacts, delegation to read certain database queries)</p>
+   </ul>
+   <h2 class="heading settled" data-level="8" id="implementation"><span class="secno">8. </span><span class="content">Reference Implementation</span><a class="self-link" href="#implementation"></a></h2>
+   <p>Work in progress as part of a research project funded by the “IKT der Zukunft” program from the Federal Ministry for Transport, Innovation and Technology in Austria – <a href="https://projekte.ffg.at/projekt/4125456">FFG Projekt 887052</a>.</p>
+  </main>
+  <div data-fill-with="conformance">
+   <h2 class="no-ref no-num heading settled" id="w3c-conformance"><span class="content">Conformance</span><a class="self-link" href="#w3c-conformance"></a></h2>
+   <h3 class="no-ref no-num heading settled" id="w3c-conventions"><span class="content">Document conventions</span><a class="self-link" href="#w3c-conventions"></a></h3>
+   <p>Conformance requirements are expressed
+    with a combination of descriptive assertions
+    and RFC 2119 terminology.
+    The key words “MUST”, “MUST NOT”, “REQUIRED”, “SHALL”, “SHALL NOT”, “SHOULD”, “SHOULD NOT”, “RECOMMENDED”, “MAY”, and “OPTIONAL”
+    in the normative parts of this document
+    are to be interpreted as described in RFC 2119.
+    However, for readability,
+    these words do not appear in all uppercase letters in this specification. </p>
+   <p>All of the text of this specification is normative
+    except sections explicitly marked as non-normative, examples, and notes. <a data-link-type="biblio" href="#biblio-rfc2119">[RFC2119]</a> </p>
+   <p>Examples in this specification are introduced with the words “for example”
+    or are set apart from the normative text
+    with <code>class="example"</code>,
+    like this: </p>
+   <div class="example" id="w3c-example">
+    <a class="self-link" href="#w3c-example"></a> 
+    <p>This is an example of an informative example. </p>
+   </div>
+   <p>Informative notes begin with the word “Note”
+    and are set apart from the normative text
+    with <code>class="note"</code>,
+    like this: </p>
+   <p class="note" role="note">Note, this is an informative note. </p>
+   <h3 class="no-ref no-num heading settled" id="w3c-conformant-algorithms"><span class="content">Conformant Algorithms</span><a class="self-link" href="#w3c-conformant-algorithms"></a></h3>
+   <p>Requirements phrased in the imperative as part of algorithms
+    (such as "strip any leading space characters"
+    or "return false and abort these steps")
+    are to be interpreted with the meaning of the key word
+    ("must", "should", "may", etc)
+    used in introducing the algorithm. </p>
+   <p>Conformance requirements phrased as algorithms or specific steps
+    can be implemented in any manner,
+    so long as the end result is equivalent.
+    In particular, the algorithms defined in this specification
+    are intended to be easy to understand
+    and are not intended to be performant.
+    Implementers are encouraged to optimize. </p>
+  </div>
+<script src="https://www.w3.org/scripts/TR/2021/fixup.js"></script>
+  <h2 class="no-num no-ref heading settled" id="references"><span class="content">References</span><a class="self-link" href="#references"></a></h2>
+  <h3 class="no-num no-ref heading settled" id="normative"><span class="content">Normative References</span><a class="self-link" href="#normative"></a></h3>
+  <dl>
+   <dt id="biblio-rfc2119">[RFC2119]
+   <dd>S. Bradner. <a href="https://datatracker.ietf.org/doc/html/rfc2119"><cite>Key words for use in RFCs to Indicate Requirement Levels</cite></a>. March 1997. Best Current Practice. URL: <a href="https://datatracker.ietf.org/doc/html/rfc2119">https://datatracker.ietf.org/doc/html/rfc2119</a>
+  </dl>
+  <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
+  <dl>
+   <dt id="biblio-did-core">[DID-CORE]
+   <dd>Manu Sporny; et al. <a href="https://www.w3.org/TR/did-core/"><cite>Decentralized Identifiers (DIDs) v1.0</cite></a>. W3C Proposed Recommendation. URL: <a href="https://www.w3.org/TR/did-core/">https://www.w3.org/TR/did-core/</a>
+   <dt id="biblio-multibase">[MULTIBASE]
+   <dd><a href="https://tools.ietf.org/html/draft-multiformats-multibase"><cite>IETF Multibase Data Format specification</cite></a>. URL: <a href="https://tools.ietf.org/html/draft-multiformats-multibase">https://tools.ietf.org/html/draft-multiformats-multibase</a>
+   <dt id="biblio-multihash">[MULTIHASH]
+   <dd><a href="https://github.com/multiformats/multihash"><cite>Multihash - protocol for differentiating outputs from various well-established cryptographic hash functions</cite></a>. URL: <a href="https://github.com/multiformats/multihash">https://github.com/multiformats/multihash</a>
+  </dl>
