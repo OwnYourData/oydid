@@ -257,6 +257,7 @@ Log information of an update DID.
 ```
 </div>
 
+
 ## Deactivate ## {#deactivate}
 
 Deactivating an OYDID is simply done by publishing the private revocation entry without providing any update record. The figure below depicts the log representing a deactivated DID.
@@ -265,7 +266,6 @@ Deactivating an OYDID is simply done by publishing the private revocation entry 
   <img src="docs/res/DIDdeactivated.png" width="400"><br>
   <em>Figure 3: Visualization of log graph for a deactivated DID</em>
 </p>
-
 
 
 DID Log {#log}
@@ -282,6 +282,7 @@ The log is a directed acyclic graph (DAG) and represents the life cycle of a DID
     "previous": [ array of strings (hashes) ]
 }
 </xmp>
+
 
 ## Log Operations ## {#log_ops}
 
