@@ -1,8 +1,0 @@
-docker run -d --name resolver -p 3003:3000 oydeu/oydid-resolver
-docker logs -f resolver
-
-# legacy DID
-curl http://localhost:3003/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj
-
-# new DID
-curl http://localhost:3003/1.0/identifiers/did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
