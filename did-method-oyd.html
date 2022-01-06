@@ -8,7 +8,7 @@
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
   <meta content="Bikeshed version cace53f8c, updated Tue Dec 7 12:12:54 2021 -0800" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="1421abb9809dc9af5f10fa68c67ca780daa8c34d" name="document-revision">
+  <meta content="425a168933c8ebf98a0b859479f018b7885268ef" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -528,7 +528,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">OYD DID Method</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2022-01-03">3 January 2022</time></p>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2022-01-04">4 January 2022</time></p>
    <details open>
     <summary>More details about this document</summary>
     <div data-fill-with="spec-metadata">
@@ -577,8 +577,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
        <a href="#verification"><span class="secno">4.2</span> <span class="content">Verification Steps</span></a>
        <ol class="toc">
         <li><a href="#calculate_hash"><span class="secno">4.2.1</span> <span class="content">Hash value calculation</span></a>
-        <li><a href="#retrieve_log"><span class="secno">4.2.2</span> <span class="content">Log record retrieval</span></a>
-        <li><a href="#verify_signature"><span class="secno">4.2.3</span> <span class="content">Signature verification</span></a>
+        <li><a href="#verify_signature"><span class="secno">4.2.2</span> <span class="content">Signature verification</span></a>
+        <li><a href="#retrieve_log"><span class="secno">4.2.3</span> <span class="content">Log record retrieval</span></a>
        </ol>
      </ol>
     <li>
@@ -782,7 +782,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <p>An example is given below (<em><a href="#example_did_resolving">EXAMPLE 2</a></em>) depicting the log entries to be evaluated for linking an old DID identifier (DID v1) to the content of DID v2.</p>
    <div class="example" id="example_did_resolving">
     <a class="self-link" href="#example_did_resolving"></a> Visualization and process of linked log entries to resolve a DID identifier 
-    <p align="center"> <img src="res/DIDv2dag.png" width="350"><br> <em>Figure 1: Visualization of log entries</em> </p>
+    <p align="center"> <img src="docs/res/DIDv2dag.png" width="350"><br> <em>Figure 1: Visualization of log entries</em> </p>
    </div>
    <p>Process:</p>
    <ol>
@@ -845,7 +845,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    </div>
    <h3 class="heading settled" data-level="3.4" id="deactivate"><span class="secno">3.4. </span><span class="content">Deactivate</span><a class="self-link" href="#deactivate"></a></h3>
    <p>Deactivating an OYDID is simply done by publishing the private revocation entry without providing any update record. The figure below depicts the log representing a deactivated DID.</p>
-   <p align="center"> <img src="res/DIDdeactivated.png" width="400"><br> <em>Figure 3: Visualization of log graph for a deactivated DID</em> </p>
+   <p align="center"> <img src="docs/res/DIDdeactivated.png" width="400"><br> <em>Figure 3: Visualization of log graph for a deactivated DID</em> </p>
    <h2 class="heading settled" data-level="4" id="log"><span class="secno">4. </span><span class="content">DID Log</span><a class="self-link" href="#log"></a></h2>
    <p>The log is a directed acyclic graph (DAG) and represents the life cycle of a DID. Each element in this graph holds the following attributes:</p>
 <pre class="highlight"><c- p>{</c->
@@ -872,7 +872,96 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    </ul>
    <h3 class="heading settled" data-level="4.2" id="verification"><span class="secno">4.2. </span><span class="content">Verification Steps</span><a class="self-link" href="#verification"></a></h3>
    <p>Processing the log provides unambiguous evidence for authenticity, correctness, and timeliness of resolving a DID to the DID document. This section describes all operations to perform independent verification when resolving a DID.</p>
-   <p class="note" role="note"><span>Note:</span> Use the <code>--show-verification</code> flag in the [<code>oydid</code> command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification.</p>
+   <p class="note" role="note"><span>Note:</span> Use the <code>--show-verification</code> flag in the [<code>oydid</code> command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification. <em><a href="#example_verification">EXAMPLE 4</a></em> is the output of such a verification.</p>
+   <div class="example" id="example_verification">
+    <a class="self-link" href="#example_verification"></a> Output of command<br> <code>oydid read --show-verification did:oyd:zQmYhESMRSvN9BkrCf7YcBfxNzigVphyBUbFMfJpEm1fdPF</code> 
+<pre>identifier: zQmYhESMRSvN9BkrCf7YcBfxNzigVphyBUbFMfJpEm1fdPF
+✅ is hash of DID Document:
+{
+  "doc": [
+    "payload"
+  ],
+  "key": "z6Mv8rFnUqnHArmaGJCHTxBCtM7GcNXpi8DWWKN1qEbeWdvP:z6MuztHorNR1h7Ds79sYsxeFF7vSu7eFcLdYsU99qyJPWJyB",
+  "log": "zQmYmirw77JK4SX34zwmjgjE3F8BXnsDoBuPPbgjSQNcnZN"
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+'log' reference in DID Document: zQmYmirw77JK4SX34zwmjgjE3F8BXnsDoBuPPbgjSQNcnZN
+✅ is hash of TERMINATE log record:
+{
+  "ts": 1641208742,
+  "op": 0,
+  "doc": "zQmW3EpDiEmDnk2epFQ2t8hXuygmivW2LJDZyUn3v9G4pj2",
+  "sig": "z4Fq84y8Mg1Z52A5XUXdHES5fzGwBEGVTP6Nx2gz1Zvy7XuA8UH77f7wP7g7Dh2WtbAW2oThg2VmZSN5YySytNiGj",
+  "previous": [
+
+  ]
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+'doc' reference in TERMINATE log record: zQmW3EpDiEmDnk2epFQ2t8hXuygmivW2LJDZyUn3v9G4pj2
+✅ is hash of REVOCATION log record (without 'previous' attribute):
+{
+  "ts": 1641208742,
+  "op": 1,
+  "doc": "zQmSswGSXLgjqBZ9f2RdRkK4AQvJEpxXVCNQNoGYr2grpmZ",
+  "sig": "z2umhsnyM27JyLf3k15JyhPKh7ctKWZLgajrc7wWNJtjwUgrswoGkmVqFAyLbM8GfNDB6xHNLf1mo6rNMtDHSGc8V",
+  "previous": [
+    "zQmbcKwoqHbNBwNduTGFdsFb4MCLFayBNxdC6x5qUTVwKU8",
+    "zQmYmirw77JK4SX34zwmjgjE3F8BXnsDoBuPPbgjSQNcnZN"
+  ]
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+found UPDATE log record:
+{
+  "ts": 1641208760,
+  "op": 3,
+  "doc": "zQmfDsSChwWjAxz8FYXXjJCdUqq9ZiUCtBiXnZVGUTGku72",
+  "sig": "zCQKpYAK1erKjqVwPExRCzBQkxHTbvaKkq9FAo4zD5JXgmzZJz6UVKSYVJvk43vmkaYcZ38eesEG5YUZ2f5pzr8q",
+  "previous": [
+    "zQmW8MKzWJ3dSfRgVqaq2PYQEksnry1BBocaXhxtfRf1jjv"
+  ]
+}
+✅ public key from last DID Document: z6Mv8rFnUqnHArmaGJCHTxBCtM7GcNXpi8DWWKN1qEbeWdvP
+verifies 'doc' reference of new DID Document: zQmfDsSChwWjAxz8FYXXjJCdUqq9ZiUCtBiXnZVGUTGku72
+zCQKpYAK1erKjqVwPExRCzBQkxHTbvaKkq9FAo4zD5JXgmzZJz6UVKSYVJvk43vmkaYcZ38eesEG5YUZ2f5pzr8q
+of next DID Document (Details: https://ownyourdata.github.io/oydid/#verify_signature)
+
+identifier: zQmfDsSChwWjAxz8FYXXjJCdUqq9ZiUCtBiXnZVGUTGku72
+✅ is hash of DID Document:
+{
+  "doc": [
+    "new payload"
+  ],
+  "key": "z6Muztkm7Nrf6uEPCPhe5Cu1vL4NfXJwaCKxWd5tgHbvk6qm:z6Mv1Zdz5SqYx94YmG7UrpPVSXNQSJKCMBanHvLx1SdPUgfH",
+  "log": "zQmaRxpQFsvP9i1ZyZhT5X4V2h7pNqZ4an7vgwpwK3yW7x8"
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+'log' reference in DID Document: zQmaRxpQFsvP9i1ZyZhT5X4V2h7pNqZ4an7vgwpwK3yW7x8
+✅ is hash of TERMINATE log record:
+{
+  "ts": 1641208760,
+  "op": 0,
+  "doc": "zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS2Zo",
+  "sig": "z5HGPMqoi83q5GvGQjr2c2xRvqJJGtpxEjpNtGjCUixGWV8tbeKg7sBGdp1qsZYfKNFhFxfQnG67NRoraVsEMi8DL",
+  "previous": [
+
+  ]
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+Revocation reference in log record: zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS2Zo
+✅ cannot find revocation record searching at
+- https://oydid.ownyourdata.eu
+(Details: https://ownyourdata.github.io/oydid/#retrieve_log)
+
+=== end of verification output ===
+
+{"doc":["new payload"],"key":"z6Muztkm7Nrf6uEPCPhe5Cu1vL4NfXJwaCKxWd5tgHbvk6qm:z6Mv1Zdz5SqYx94YmG7UrpPVSXNQSJKCMBanHvLx1SdPUgfH","log":"zQmaRxpQFsvP9i1ZyZhT5X4V2h7pNqZ4an7vgwpwK3yW7x8"}
+</pre>
+   </div>
    <h4 class="heading settled" data-level="4.2.1" id="calculate_hash"><span class="secno">4.2.1. </span><span class="content">Hash value calculation</span><a class="self-link" href="#calculate_hash"></a></h4>
    <p>Perform the following steps to verify that a hash value conforms to a message:</p>
    <ol>
@@ -881,117 +970,180 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     <li data-md>
      <p>identify hashing algorithm in multibase string (second &amp; third character)<br> you can use the information here: <a href="https://github.com/multiformats/multicodec#multicodec-table">https://github.com/multiformats/multicodec#multicodec-table</a><br> example: if the string starts with "zQm" it is the sha2-256 hash algorithm</p>
     <li data-md>
-     <p>if the message is a JSON is must be transformed to its canonical form based on this standard (currently still in draft): <a href="https://datatracker.ietf.org/doc/html/rfc8785">https://datatracker.ietf.org/doc/html/rfc8785</a></p>
+     <p>if the message is a JSON is must be transformed to its canonical form based on this standard: <a href="https://datatracker.ietf.org/doc/html/rfc8785">https://datatracker.ietf.org/doc/html/rfc8785</a></p>
     <li data-md>
      <p>calculate hash value from message (check if pre-processing step #3 applies!) using the algorithm from step #2</p>
     <li data-md>
      <p>encode hash value using encoding algorithm from step #1</p>
    </ol>
    <p>✅ This verification step passes iif presented hash value and message match.</p>
-   <h4 class="heading settled" data-level="4.2.2" id="retrieve_log"><span class="secno">4.2.2. </span><span class="content">Log record retrieval</span><a class="self-link" href="#retrieve_log"></a></h4>
-   <p>Retrieve log record from a repository based on hash value...</p>
-   <h4 class="heading settled" data-level="4.2.3" id="verify_signature"><span class="secno">4.2.3. </span><span class="content">Signature verification</span><a class="self-link" href="#verify_signature"></a></h4>
-   <p>Verifiy signature in a log record...</p>
+   <h4 class="heading settled" data-level="4.2.2" id="verify_signature"><span class="secno">4.2.2. </span><span class="content">Signature verification</span><a class="self-link" href="#verify_signature"></a></h4>
+   <p>Perform the following steps to verify the signature in a log record:</p>
+   <ol>
+    <li data-md>
+     <p>collect necesary artefacts for verification<br></p>
+     <ul>
+      <li data-md>
+       <p>payload to sign: this is the <code>doc</code> attribute in a log record; make sure to check that this is the correct hash value of the referenced document/record using <a href="#calculate_hash">§ 4.2.1 Hash value calculation</a></p>
+      <li data-md>
+       <p>signature: this is the <code>sig</code> attribute in a log record</p>
+      <li data-md>
+       <p>public key used for verification: this is provided in the corresponding DID Document; for UPDATE log records it must be the <code>public-doc-key</code> of the old DID Document to proof original ownership</p>
+     </ul>
+    <li data-md>
+     <p>identify cryptographic algorithm in multibase encoded string of <code>key</code><br> you can use the information here: <a href="https://github.com/multiformats/multicodec#multicodec-table">https://github.com/multiformats/multicodec#multicodec-table</a><br> example: if the string start with "z6M" it is an Ed25519 public key</p>
+    <li data-md>
+     <p>use the public key to verify the validity of the payload’s signature; adhere to the respective encodings for each attribute</p>
+   </ol>
+   <p>✅ This verification step passes iif payload’s signature is valid.</p>
+   <h4 class="heading settled" data-level="4.2.3" id="retrieve_log"><span class="secno">4.2.3. </span><span class="content">Log record retrieval</span><a class="self-link" href="#retrieve_log"></a></h4>
+   <p>Perform the following steps to retrieve log record:</p>
+   <ol>
+    <li data-md>
+     <p>identify location and type of repository for storing DID Documents and DID Log records:<br></p>
+     <ul>
+      <li data-md>
+       <p>location is indicted with <code>@</code> at the end of an identifier; if no location is specified the default online repository at <code>https://oydid.ownyourdata.eu</code> is used</p>
+      <li data-md>
+       <p>type: online repository with <a href="https://oydid.ownyourdata.eu/api-docs/index.html">Swagger API documentation</a></p>
+      <li data-md>
+       <p>type: file storage usage the local working directory and indicated with <code>@local</code> at the end</p>
+     </ul>
+    <li data-md>
+     <p>based on repository type retrieve log information:<br></p>
+     <ul>
+      <li data-md>
+       <p>online: via <code>http(s):HOST/log/{:id}</code></p>
+      <li data-md>
+       <p>file storage: use the file named <code>{:did_identifer}.log</code></p>
+     </ul>
+     <p>Log records are an array of JSON objects in the format described in <a href="#log">§ 4 DID Log</a></p>
+    <li data-md>
+     <p>calculate the hash value for a record according to <a href="#calculate_hash">§ 4.2.1 Hash value calculation</a> and compare it to the reference</p>
+   </ol>
+   <p>✅ This verification step passes if a reference can be established.</p>
+   <p class="note" role="note"><span>Note:</span> For TERMINATE log records the reference to a REVOKE record indicates if there are updates available. Being unable to find a REVOKE record with a given hash indicates that the DID resolve process successfully completes.</p>
    <h2 class="heading settled" data-level="5" id="test"><span class="secno">5. </span><span class="content">Test Vectors</span><a class="self-link" href="#test"></a></h2>
    <h3 class="heading settled" data-level="5.1" id="samples"><span class="secno">5.1. </span><span class="content">Samples</span><a class="self-link" href="#samples"></a></h3>
    <p>This section provides samples of typical OYDID DIDs.</p>
    <div class="example" id="sample_new">
     <a class="self-link" href="#sample_new"></a> A DID created with a simple payload: 
-    <p><code>did:oyd:zQmZPsXSt3QbKZvjPEMdZZ6q8MtfFhPSeQmKx2g8khZq6YG</code></p>
+    <p><code>did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh</code></p>
    </div>
    <div class="example" id="sample_update">
     <a class="self-link" href="#sample_update"></a> A DID created and updated can be resolved using the following two identifier: 
-    <p><code>did:oyd:zQmZjUKm2n28LHkEufYNHicRbt31aAG8g6fwuTp35Nxmzzy</code></p>
-    <p><code>did:oyd:zQmbePD4HavGGvmEQfGaAS5h9ms2BNZVewXVx3T7w9ypPgA</code></p>
+    <p><code>did:oyd:zQmdXNRiMWEYTiYF58a9BaiUkfB2xWUgL7G7ozyCCNPqjKV</code></p>
+    <p><code>did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR</code></p>
    </div>
    <div class="example" id="sample_external">
-    <a class="self-link" href="#sample_external"></a> A DID created and updated can be resolved using the following two identifier: 
-    <p><code>did:oyd:zQmNPqMwUWBuUSQnwFBacLtGFzdfFCDYS7msZntERecPj6r@https://did2.data-container.net</code></p>
-    <p class="note" role="note"><span>Note:</span> a W3C conform representation is the percent-encoded <code>@</code><br><code>did:oyd:zQmNPqMwUWBuUSQnwFBacLtGFzdfFCDYS7msZntERecPj6r%40https://did2.data-container.net</code></p>
+    <a class="self-link" href="#sample_external"></a> A DID created at a non-default location: 
+    <p><code>did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W@did2.data-container.net</code></p>
+    <p class="note" role="note"><span>Note:</span> a W3C conform representation is the percent-encoded <code>@</code><br><code>did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W%40did2.data-container.net</code></p>
    </div>
    <h3 class="heading settled" data-level="5.2" id="cli"><span class="secno">5.2. </span><span class="content">Command line tool</span><a class="self-link" href="#cli"></a></h3>
-   <p><em>Prerequisite:</em> install the <code>oydid</code> command from https://github.com/OwnYourData/did-cmd/ or
-use the following Docker command to run the OYDID command line tool without installation (based on [public Docker image <code>oydeu\oydid</code>](https://hub.docker.com/r/oydeu/oydid)):</p>
-<pre class="language-bash highlight">docker run -it --rm oydeu/oydid
+   <p><em>Prerequisite:</em> install the <code>oydid</code> command from <a href="https://github.com/OwnYourData/oydid/tree/main/cli">https://github.com/OwnYourData/oydid/tree/main/cli</a> or
+use the following Docker command to run the OYDID command line tool without installation (based on [public Docker image <code>oydeu\oydid-cli</code>](https://hub.docker.com/r/oydeu/oydid-cli)):</p>
+<pre class="language-bash highlight">docker run -it --rm oydeu/oydid-cli
 </pre>
-   <p><em>EXAMPLE 4: Various DIDs and useful commands</em></p>
-   <ul>
-    <li data-md>
-     <p><code>did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj</code> (new DID)</p>
-     <p>→ show information with:</p>
-<pre class="language-bash highlight">    oydid read zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj
+   <div class="example" id="example_cli">
+    <a class="self-link" href="#example_cli"></a> Various DIDs and useful commands. 
+    <ul>
+     <li data-md>
+      <p><code>did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh</code> (new DID)</p>
+      <p>→ show information with:</p>
+<pre class="language-bash highlight">    oydid read did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
 </pre>
-    <li data-md>
-     <p><code>did:oyd:zQmNUV1MJ5xKkFm6Lc9EKqAauGzbKP7amvbyxsx79mKwqPB</code> (updated DID)</p>
-     <p>→ show DID document using old DID</p>
-<pre class="language-bash highlight">    oydid read zQmdxfGRfFEnLoJ9RTiyzG9TPBhK7q6zsqrGFVzuxVPv4dq
+     <li data-md>
+      <p><code>did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR</code> (updated DID)</p>
+      <p>→ show DID document using old DID</p>
+<pre class="language-bash highlight">    oydid read zQmdXNRiMWEYTiYF58a9BaiUkfB2xWUgL7G7ozyCCNPqjKV
 </pre>
-    <li data-md>
-     <p><code>did:oyd:zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1</code> (deactivated DID)</p>
-     <p>→ DID cannot be resolved</p>
-<pre class="language-bash highlight">    oydid read zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1
+      <p class="note" role="note"><span>Note:</span> you can omit <code>did:oyd</code> when using the command line tool</p>
+     <li data-md>
+      <p><code>did:oyd:zQmQMvhHrccgcP2XzE2rM4E8MDx9P8D5FWPdDF1DTPikF4F</code> (deactivated DID)</p>
+      <p>→ DID cannot be resolved</p>
+<pre class="language-bash highlight">    oydid read zQmQMvhHrccgcP2XzE2rM4E8MDx9P8D5FWPdDF1DTPikF4F
 </pre>
-     <strong>Result:</strong> <code>Error: cannot resolve DID</code> 
-     <p>→ Logs can be shown with the command</p>
-<pre class="language-bash highlight">    oydid logs zQmTbKdyF3661TB92683hiqEBzo44eNJU8HNDwt4hAt69K1
+      <strong>Result:</strong> <code>Error: cannot resolve DID</code> 
+      <p>→ Logs can be shown with the command</p>
+<pre class="language-bash highlight">    oydid logs zQmQMvhHrccgcP2XzE2rM4E8MDx9P8D5FWPdDF1DTPikF4F
 </pre>
-   </ul>
-   <p class="note" role="note"><span>Note:</span> read in the <a href="https://github.com/OwnYourData/did-cmd/blob/main/docs/OYDIDintro.pdf">OYDID White Paper</a> Appendix A for a step-by-step tutorial</p>
-   <h2 class="heading settled" data-level="6" id="privacy"><span class="secno">6. </span><span class="content">Security and Privacy Considerations</span><a class="self-link" href="#privacy"></a></h2>
-   <p>There are a number of security and privacy considerations that implementers will want to take into consideration upon working with this specification.</p>
-   <h3 class="heading settled" data-level="6.1" id="centralized_storage"><span class="secno">6.1. </span><span class="content">Centralized Storage</span><a class="self-link" href="#centralized_storage"></a></h3>
-   <ul>
-    <li data-md>
-     <p>maintainer of OYDID repository cannot change content due to hash values</p>
-    <li data-md>
-     <p>the problem of a repository being unavailable can be mitigated by cloning DID to a local repository</p>
-    <li data-md>
-     <p>the problem of a storage provider hindering publication of updates can be also mitigated by cloning DID to other repositories and publishing updates using initial private keys there</p>
-   </ul>
-   <h3 class="heading settled" data-level="6.2" id="key_rotatioin"><span class="secno">6.2. </span><span class="content">Key Rotation</span><a class="self-link" href="#key_rotatioin"></a></h3>
-   <p>Key Rotation is supported through using different key(s) when publishing an update.</p>
-   <h3 class="heading settled" data-level="6.3" id="key_rotation"><span class="secno">6.3. </span><span class="content">Scaling</span><a class="self-link" href="#key_rotation"></a></h3>
-   <p>To scale access for frequently requested DID it is recommended to clone a DID to multiple locations.</p>
-   <h3 class="heading settled" data-level="6.4" id="updating_clones"><span class="secno">6.4. </span><span class="content">Updating Clones</span><a class="self-link" href="#updating_clones"></a></h3>
-   <ul>
-    <li data-md>
-     <p>it is in the interest of the DID author to provide consistent information</p>
-    <li data-md>
-     <p>recommended approach</p>
-     <ul>
-      <li data-md>
-       <p>create new DID (but do not publish revocation log record for old DID yet)</p>
-      <li data-md>
-       <p>clone new DID to all relevant hosts</p>
-      <li data-md>
-       <p>only then publish revocation log</p>
-     </ul>
-   </ul>
-   <h3 class="heading settled" data-level="6.5" id="long_term_usage"><span class="secno">6.5. </span><span class="content">Long-term Usage</span><a class="self-link" href="#long_term_usage"></a></h3>
-   <ul>
-    <li data-md>
-     <p>Multiformat used to ensure digest agility</p>
-    <li data-md>
-     <p>it is in the nature of centralized systems that they are offline and DID maintainerd need to ensure that a minimum number of clones are always online (based on how valuable the DID is)</p>
-   </ul>
-   <h3 class="heading settled" data-level="6.6" id="correlation"><span class="secno">6.6. </span><span class="content">Correlation</span><a class="self-link" href="#correlation"></a></h3>
-   <p>The source for generating OYDID identifiers are hashing algorithms which have as intrinsic property as much entropy as possible and therefore offer no direct means of correlation.</p>
-   <h3 class="heading settled" data-level="6.7" id="cryptographic_agility"><span class="secno">6.7. </span><span class="content">Cryptographic Agility</span><a class="self-link" href="#cryptographic_agility"></a></h3>
-   <p>As described in the <a href="#operations">§ 3 DID Operations</a> section, currently only ed25519 public keys are supported. This can be easily extended by using other multicodec encoded keys. The multicodec table already has support for BLS keys for example, so adding support for it would be trivial. Once good post quantum cryptography becomes more widely available extending OYDID to support that will also be fairly straight forward.</p>
-   <h2 class="heading settled" data-level="7" id="ethics"><span class="secno">7. </span><span class="content">Ethical Aspects</span><a class="self-link" href="#ethics"></a></h2>
-   <p>DIDs provide a standardization to share specific information (public keys, service endpoints) publicly. However, storing this information on a distributed ledger requires resources (storage and processing capacities) that may seem unjustified for certain use cases where the immediate benefit is not obvious. As a result, in some cases the DID concept is already excluded in the design phase, which hinders adoption and further growth of using DIDs and Verifiable Credentials. Another challenge for DIDs can be privacy-preserving data exchanges and the simple fact of resolving a DID at a public ledger might allow it to infer certain information.</p>
-   <p>Therefore, OYDID takes the approach to not maintain DID and DID Document on a public ledger but on one or more local storages (that usually are publicly available). Through cryptographically linking the DID identifier to the DID Document, and furthermore linking the DID Document to a chained provenance trail (log), the same security and validation properties as a traditional DID are  maintained while avoiding highly redundant storage and general public access.</p>
-   <p>OYDIDs are therefore excellently suited for local settings with a limited number of stakeholders interested in resolving those DIDs. Example use cases are:</p>
-   <ul>
-    <li data-md>
-     <p>test runs that require to create repeatedly a large number of new DIDs</p>
-    <li data-md>
-     <p>settings in secured or remote areas without access to the internet</p>
-    <li data-md>
-     <p>(transient) storage solutions (e.g., Semantic Containers) that can generate large quantities of DIDs as a way to access specific information (e.g., consent receipts, provenance artefacts, delegation to read certain database queries)</p>
-   </ul>
-   <h2 class="heading settled" data-level="8" id="implementation"><span class="secno">8. </span><span class="content">Reference Implementation</span><a class="self-link" href="#implementation"></a></h2>
-   <p>Work in progress as part of a research project funded by the “IKT der Zukunft” program from the Federal Ministry for Transport, Innovation and Technology in Austria – <a href="https://projekte.ffg.at/projekt/4125456">FFG Projekt 887052</a>.</p>
+    </ul>
+    <p class="note" role="note"><span>Note:</span> find more examples and usage scenarios in the OYDID Tutorial at <a href="https://github.com/OwnYourData/oydid/tree/main/tutorial">https://github.com/OwnYourData/oydid/tree/main/tutorial</a></p>
+    <h2 class="heading settled" data-level="6" id="privacy"><span class="secno">6. </span><span class="content">Security and Privacy Considerations</span><a class="self-link" href="#privacy"></a></h2>
+    <p>There are a number of security and privacy considerations that implementers will want to take into consideration upon working with this specification.</p>
+    <h3 class="heading settled" data-level="6.1" id="centralized_storage"><span class="secno">6.1. </span><span class="content">Centralized Storage</span><a class="self-link" href="#centralized_storage"></a></h3>
+    <p>Since the <code>did:oyd</code> method does not rely on a distributed ledger (although it would be possible to implement OYDID with DLT as storage medium!) special measures are taken to ensure immutability and availability:</p>
+    <ul>
+     <li data-md>
+      <p>maintainer of an OYDID repository cannot change content due to hash values</p>
+     <li data-md>
+      <p>the problem of a repository being unavailable can be mitigated by cloning DID to another repository</p>
+     <li data-md>
+      <p>the problem of a storage provider hindering publication of updates can be also mitigated by cloning DID to other repositories and publishing updates using the same initial private keys there</p>
+    </ul>
+    <h3 class="heading settled" data-level="6.2" id="key_rotatioin"><span class="secno">6.2. </span><span class="content">Key Rotation</span><a class="self-link" href="#key_rotatioin"></a></h3>
+    <p>Key Rotation is supported and enabled by default. Different keys are used when publishing an update and a warning messag is displayed in case a key is re-used.</p>
+    <h3 class="heading settled" data-level="6.3" id="key_rotation"><span class="secno">6.3. </span><span class="content">Scaling</span><a class="self-link" href="#key_rotation"></a></h3>
+    <p>To scale access for frequently requested DIDs, it is recommended to clone a DID to multiple locations.</p>
+    <h3 class="heading settled" data-level="6.4" id="updating_clones"><span class="secno">6.4. </span><span class="content">Updating Clones</span><a class="self-link" href="#updating_clones"></a></h3>
+    <p>It is in the interest of the DID author to provide consistent and highly available information. The recommended approach when updating DIDs with clones available is therefore:</p>
+    <ul>
+     <li data-md>
+      <p>create new DID (but do not publish revocation log record for old DID yet)</p>
+     <li data-md>
+      <p>clone new DID to all relevant hosts</p>
+     <li data-md>
+      <p>only then publish revocation log</p>
+    </ul>
+    <h3 class="heading settled" data-level="6.5" id="long_term_usage"><span class="secno">6.5. </span><span class="content">Long-term Usage</span><a class="self-link" href="#long_term_usage"></a></h3>
+    <p>For long-term usage the following preventive measures have been taken:</p>
+    <ul>
+     <li data-md>
+      <p>Multiformat used to ensure digest agility</p>
+     <li data-md>
+      <p>it is in the nature of centralized systems that they are offline and DID maintainers need to ensure that a minimum number of clones are always online (based on how valuable the DID is)</p>
+    </ul>
+    <h3 class="heading settled" data-level="6.6" id="correlation"><span class="secno">6.6. </span><span class="content">Correlation</span><a class="self-link" href="#correlation"></a></h3>
+    <p>The source for generating OYDID identifiers are hashing algorithms which have as intrinsic property as much entropy as possible and therefore offer no direct means of correlation.</p>
+    <h3 class="heading settled" data-level="6.7" id="cryptographic_agility"><span class="secno">6.7. </span><span class="content">Cryptographic Agility</span><a class="self-link" href="#cryptographic_agility"></a></h3>
+    <p>As described in the <a href="#operations">§ 3 DID Operations</a> section, currently only ed25519 public keys are supported. This can be easily extended by using other multicodec encoded keys. The multicodec table already has support for BLS keys for example, so adding support for it is a simple extension. Once good post quantum cryptography becomes more widely available extending OYDID to support that will also be fairly straight forward.</p>
+    <h2 class="heading settled" data-level="7" id="ethics"><span class="secno">7. </span><span class="content">Ethical Aspects</span><a class="self-link" href="#ethics"></a></h2>
+    <p>DIDs provide a standardization to share specific information (public keys, service endpoints) publicly. However, storing this information on a distributed ledger requires resources (storage and processing capacities) that may seem unjustified for certain use cases where the immediate benefit is not obvious. As a result, in some cases the DID concept is already excluded in the design phase, which hinders adoption and further growth of using DIDs and Verifiable Credentials. Another challenge for DIDs can be privacy-preserving data exchanges and the simple fact of resolving a DID at a public ledger might allow it to infer certain information.</p>
+    <p>Therefore, OYDID takes the approach to not maintain DID and DID Document on a public ledger but on one or more local storages (that usually are publicly available). Through cryptographically linking the DID identifier to the DID Document, and furthermore linking the DID Document to a chained provenance trail (log), the same security and validation properties as a traditional DID are  maintained while avoiding highly redundant storage and general public access.</p>
+    <p>OYDIDs are therefore excellently suited for local settings with a limited number of stakeholders interested in resolving those DIDs. Example use cases are:</p>
+    <ul>
+     <li data-md>
+      <p>test runs that require to create repeatedly a large number of new DIDs</p>
+     <li data-md>
+      <p>settings in secured or remote areas without access to the internet</p>
+     <li data-md>
+      <p>(transient) storage solutions (e.g., Semantic Containers) that can generate large quantities of DIDs as a way to access specific information (e.g., consent receipts, provenance artefacts, delegation to read certain database queries)</p>
+    </ul>
+    <h2 class="heading settled" data-level="8" id="implementation"><span class="secno">8. </span><span class="content">Reference Implementation</span><a class="self-link" href="#implementation"></a></h2>
+    <p>Work in progress as part of a research project funded by the “IKT der Zukunft” program from the Federal Ministry for Transport, Innovation and Technology in Austria – <a href="https://projekte.ffg.at/projekt/4125456">FFG Projekt 887052</a>.</p>
+    <p>The following implementation artefacts are available (published under the open source MIT License):</p>
+    <ul>
+     <li data-md>
+      <p>Command line tool <code>oydid</code>: <a href="https://github.com/OwnYourData/oydid/tree/main/cli">https://github.com/OwnYourData/oydid/tree/main/cli</a></p>
+      <ul>
+       <li data-md>
+        <p>also available as Docker Image: <a href="https://hub.docker.com/r/oydeu/oydid-cli">https://hub.docker.com/r/oydeu/oydid-cli</a></p>
+       <li data-md>
+        <p>find example usage scenarios in this Tutorial: <a href="https://github.com/OwnYourData/oydid/tree/main/tutorial">https://github.com/OwnYourData/oydid/tree/main/tutorial</a></p>
+      </ul>
+     <li data-md>
+      <p>Repository for hosting DIDs: <a href="https://github.com/OwnYourData/oydid/tree/main/repository">https://github.com/OwnYourData/oydid/tree/main/repository</a></p>
+      <ul>
+       <li data-md>
+        <p>API documentation in Swagger: <a href="https://api-docs.ownyourdata.eu/oydid/">https://api-docs.ownyourdata.eu/oydid/</a></p>
+      </ul>
+     <li data-md>
+      <p><a href="https://github.com/decentralized-identity/universal-resolver/">Universal Resolver</a> driver: <a href="https://github.com/OwnYourData/oydid/tree/main/uniresolver-plugin">https://github.com/OwnYourData/oydid/tree/main/uniresolver-plugin</a></p>
+     <li data-md>
+      <p>JS library for [<code>did-resolver</code>](https://github.com/decentralized-identity/did-resolver): <a href="https://github.com/OwnYourData/oydid/tree/main/js-resolver">https://github.com/OwnYourData/oydid/tree/main/js-resolver</a></p>
+    </ul>
+   </div>
   </main>
   <div data-fill-with="conformance">
    <h2 class="no-ref no-num heading settled" id="w3c-conformance"><span class="content">Conformance</span><a class="self-link" href="#w3c-conformance"></a></h2>
