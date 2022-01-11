@@ -550,7 +550,8 @@ Various DIDs and useful commands.
     ```bash
     oydid logs zQmQMvhHrccgcP2XzE2rM4E8MDx9P8D5FWPdDF1DTPikF4F
     ```
-</div> 
+
+</div>
 
 Note: find more examples and usage scenarios in the OYDID Tutorial at [https://github.com/OwnYourData/oydid/tree/main/tutorial](https://github.com/OwnYourData/oydid/tree/main/tutorial)
 
