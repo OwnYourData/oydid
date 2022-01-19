@@ -8,7 +8,7 @@
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
   <meta content="Bikeshed version 2e3c4c68b, updated Fri Jan 14 14:49:00 2022 -0800" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="c48866f99f9b8020aede96b10697e81c37c93311" name="document-revision">
+  <meta content="2dc14905fea974057c09a35797d14b18ef9c8767" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -588,10 +588,10 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
       <li><a href="#cli"><span class="secno">5.2</span> <span class="content">Command line tool</span></a>
      </ol>
     <li>
-     <a href="#privacy"><span class="secno">6</span> <span class="content">Security and Privacy Considerations</span></a>
+     <a href="#security_privacy"><span class="secno">6</span> <span class="content">Security and Privacy Considerations</span></a>
      <ol class="toc">
       <li>
-       <a href="#security-aspects"><span class="secno">6.1</span> <span class="content">Security Aspects</span></a>
+       <a href="#security"><span class="secno">6.1</span> <span class="content">Security Aspects</span></a>
        <ol class="toc">
         <li><a href="#key_rotatioin"><span class="secno">6.1.1</span> <span class="content">Key Rotation</span></a>
         <li><a href="#key_rotation"><span class="secno">6.1.2</span> <span class="content">Scaling</span></a>
@@ -600,7 +600,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
         <li><a href="#cryptographic_agility"><span class="secno">6.1.5</span> <span class="content">Cryptographic Agility</span></a>
        </ol>
       <li>
-       <a href="#privacy-aspects"><span class="secno">6.2</span> <span class="content">Privacy Aspects</span></a>
+       <a href="#privacy"><span class="secno">6.2</span> <span class="content">Privacy Aspects</span></a>
        <ol class="toc">
         <li><a href="#centralized_storage"><span class="secno">6.2.1</span> <span class="content">Centralized Storage</span></a>
         <li><a href="#correlation"><span class="secno">6.2.2</span> <span class="content">Correlation</span></a>
@@ -1079,9 +1079,9 @@ use the following Docker command to run the OYDID command line tool without inst
     </ul>
    </div>
    <p class="note" role="note"><span>Note:</span> find more examples and usage scenarios in the OYDID Tutorial at <a href="https://github.com/OwnYourData/oydid/tree/main/tutorial">https://github.com/OwnYourData/oydid/tree/main/tutorial</a></p>
-   <h2 class="heading settled" data-level="6" id="privacy"><span class="secno">6. </span><span class="content">Security and Privacy Considerations</span><a class="self-link" href="#privacy"></a></h2>
+   <h2 class="heading settled" data-level="6" id="security_privacy"><span class="secno">6. </span><span class="content">Security and Privacy Considerations</span><a class="self-link" href="#security_privacy"></a></h2>
    <p>There are a number of security and privacy considerations that implementers will want to take into consideration upon working with this specification.</p>
-   <h3 class="heading settled" data-level="6.1" id="security-aspects"><span class="secno">6.1. </span><span class="content">Security Aspects</span><a class="self-link" href="#security-aspects"></a></h3>
+   <h3 class="heading settled" data-level="6.1" id="security"><span class="secno">6.1. </span><span class="content">Security Aspects</span><a class="self-link" href="#security"></a></h3>
    <h4 class="heading settled" data-level="6.1.1" id="key_rotatioin"><span class="secno">6.1.1. </span><span class="content">Key Rotation</span><a class="self-link" href="#key_rotatioin"></a></h4>
    <p>Key Rotation is supported and enabled by default. Different keys are used when publishing an update and a warning message is displayed in case a key is re-used.</p>
    <h4 class="heading settled" data-level="6.1.2" id="key_rotation"><span class="secno">6.1.2. </span><span class="content">Scaling</span><a class="self-link" href="#key_rotation"></a></h4>
@@ -1106,7 +1106,7 @@ use the following Docker command to run the OYDID command line tool without inst
    </ul>
    <h4 class="heading settled" data-level="6.1.5" id="cryptographic_agility"><span class="secno">6.1.5. </span><span class="content">Cryptographic Agility</span><a class="self-link" href="#cryptographic_agility"></a></h4>
    <p>As described in the <a href="#operations">§ 3 DID Operations</a> section, currently only ed25519 public keys are supported. This can be easily extended by using other multicodec encoded keys. The multicodec table already has support for BLS keys for example, so adding support for it is a simple extension. Once good post quantum cryptography becomes more widely available extending OYDID to support that will also be fairly straight forward.</p>
-   <h3 class="heading settled" data-level="6.2" id="privacy-aspects"><span class="secno">6.2. </span><span class="content">Privacy Aspects</span><a class="self-link" href="#privacy-aspects"></a></h3>
+   <h3 class="heading settled" data-level="6.2" id="privacy"><span class="secno">6.2. </span><span class="content">Privacy Aspects</span><a class="self-link" href="#privacy"></a></h3>
    <h4 class="heading settled" data-level="6.2.1" id="centralized_storage"><span class="secno">6.2.1. </span><span class="content">Centralized Storage</span><a class="self-link" href="#centralized_storage"></a></h4>
    <p>Since the <code>did:oyd</code> method does not rely on a distributed ledger (although it would be possible to implement OYDID with DLT as storage medium!) special measures are taken to ensure immutability and availability:</p>
    <ul>
