@@ -561,18 +561,11 @@ Security and Privacy Considerations {#privacy}
 
 There are a number of security and privacy considerations that implementers will want to take into consideration upon working with this specification.
 
-## Centralized Storage ## {#centralized_storage}
+## Security Aspects
 
-Since the `did:oyd` method does not rely on a distributed ledger (although it would be possible to implement OYDID with DLT as storage medium!) special measures are taken to ensure immutability and availability:
+### Key Rotation ### {#key_rotatioin}
 
-* maintainer of an OYDID repository cannot change content due to hash values    
-* the problem of a repository being unavailable can be mitigated by cloning DID to another repository
-* the problem of a storage provider hindering publication of updates can be also mitigated by cloning DID to other repositories and publishing updates using the same initial private keys there
-
-
-## Key Rotation ## {#key_rotatioin}
-
-Key Rotation is supported and enabled by default. Different keys are used when publishing an update and a warning messag is displayed in case a key is re-used.
+Key Rotation is supported and enabled by default. Different keys are used when publishing an update and a warning message is displayed in case a key is re-used.
 
 
 ## Scaling ## {#key_rotation}
@@ -597,14 +590,25 @@ For long-term usage the following preventive measures have been taken:
 * it is in the nature of centralized systems that they are offline and DID maintainers need to ensure that a minimum number of clones are always online (based on how valuable the DID is)
 
 
-## Correlation ## {#correlation}
-
-The source for generating OYDID identifiers are hashing algorithms which have as intrinsic property as much entropy as possible and therefore offer no direct means of correlation.
-
-
 ## Cryptographic Agility ## {#cryptographic_agility}
 
 As described in the [[#operations]] section, currently only ed25519 public keys are supported. This can be easily extended by using other multicodec encoded keys. The multicodec table already has support for BLS keys for example, so adding support for it is a simple extension. Once good post quantum cryptography becomes more widely available extending OYDID to support that will also be fairly straight forward.
+
+
+## Privacy Aspects
+
+## Centralized Storage ## {#centralized_storage}
+
+Since the `did:oyd` method does not rely on a distributed ledger (although it would be possible to implement OYDID with DLT as storage medium!) special measures are taken to ensure immutability and availability:
+
+* maintainer of an OYDID repository cannot change content due to hash values    
+* the problem of a repository being unavailable can be mitigated by cloning DID to another repository
+* the problem of a storage provider hindering publication of updates can be also mitigated by cloning DID to other repositories and publishing updates using the same initial private keys there
+
+
+## Correlation ## {#correlation}
+
+The source for generating OYDID identifiers are hashing algorithms which have as intrinsic property as much entropy as possible and therefore offer no direct means of correlation.
 
 
 Ethical Aspects {#ethics}
