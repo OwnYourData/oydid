@@ -319,6 +319,11 @@ The following list describes all available log operations (`op`) and specific us
 
 Processing the log provides unambiguous evidence for authenticity, correctness, and timeliness of resolving a DID to the DID document. This section describes all operations to perform independent verification when resolving a DID. 
 
+<p align="center">
+  <img src="docs/res/verification.png" width="350"><br>
+  <em>Figure 4: Types of verificaiton</em>
+</p>
+
 Note: Use the `--show-verification` flag in the [`oydid` command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification. <em>[EXAMPLE 4](#example_verification)</em> is the output of such a verification.
 
 <div class=example id=example_verification>
