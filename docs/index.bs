@@ -195,7 +195,7 @@ An example is given below (<em>[EXAMPLE 2](#example_did_resolving)</em>) depicti
 Visualization and process of linked log entries to resolve a DID identifier
 
 <p align="center">
-  <img src="docs/res/DIDv2dag.png" width="350"><br>
+  <img src="res/DIDv2dag.png" width="350"><br>
   <em>Figure 1: Visualization of log entries</em>
 </p>
 </div>
@@ -264,7 +264,7 @@ Log information of an update DID.
 Deactivating an OYDID is simply done by publishing the private revocation entry without providing any update record. The figure below depicts the log representing a deactivated DID.
 
 <p align="center">
-  <img src="docs/res/DIDdeactivated.png" width="400"><br>
+  <img src="res/DIDdeactivated.png" width="400"><br>
   <em>Figure 3: Visualization of log graph for a deactivated DID</em>
 </p>
 
@@ -320,9 +320,15 @@ The following list describes all available log operations (`op`) and specific us
 Processing the log provides unambiguous evidence for authenticity, correctness, and timeliness of resolving a DID to the DID document. This section describes all operations to perform independent verification when resolving a DID. 
 
 <p align="center">
-  <img src="docs/res/verification.png" width="350"><br>
+  <img src="res/verification.png" width="550"><br>
   <em>Figure 4: Types of verificaiton</em>
 </p>
+
+Resolving a DID requires 3 different types of verification steps as depicted in <em>Figure 4</em>:
+
+1. **Hash Verifiction:** within a DID version (e.g., *DID v1* or *DID v2* in the figure above) all associated log entries and the identifier are linked through hash values for a given JSON object    
+2. **Signature Verification:** between 2 DID versions authenticity is proven throuogh signing the new log entry with the private key from the previous version  (the *update* log record in the figure above is signed with the primary key from *DIV v1*)    
+3. **Log Record Retrieval:** hash and signature verification in an untrusted repository guarantee imutability and it is up to the DID owner to ensure that DID documents and log records are publicly available 
 
 Note: Use the `--show-verification` flag in the [`oydid` command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification. <em>[EXAMPLE 4](#example_verification)</em> is the output of such a verification.
 
