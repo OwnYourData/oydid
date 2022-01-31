@@ -321,14 +321,16 @@ Processing the log provides unambiguous evidence for authenticity, correctness, 
 
 <p align="center">
   <img src="res/verification.png" width="550"><br>
-  <em>Figure 4: Types of verificaiton</em>
+  <em>Figure 4: Types of verification</em>
 </p>
 
-Resolving a DID requires 3 different types of verification steps as depicted in <em>Figure 4</em>:
+Resolving a DID requires 3 different types of verifications as depicted in <em>Figure 4</em>:
 
 1. **Hash Verifiction:** within a DID version (e.g., *DID v1* or *DID v2* in the figure above) all associated log entries and the identifier are linked through hash values for a given JSON object    
 2. **Signature Verification:** between 2 DID versions authenticity is proven throuogh signing the new log entry with the private key from the previous version  (the *update* log record in the figure above is signed with the primary key from *DIV v1*)    
 3. **Log Record Retrieval:** hash and signature verification in an untrusted repository guarantee imutability and it is up to the DID owner to ensure that DID documents and log records are publicly available 
+
+The following sub-sections describes those verification methods in detail.
 
 Note: Use the `--show-verification` flag in the [`oydid` command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification. <em>[EXAMPLE 4](#example_verification)</em> is the output of such a verification.
 
