@@ -469,12 +469,12 @@ Perform the following steps to verify the signature in a log record:
 
 ### Log record retrieval ### {#retrieve_log}
 
-Perform the following steps to retrieve log record:
+Perform the following steps to retrieve a log record:
 
-1. identify location and type of repository for storing DID Documents and DID Log records:<br>
+1. identify location and type of a repository for storing DID Documents and DID Log records:<br>
     * location is indicted with `@` at the end of an identifier; if no location is specified the default online repository at `https://oydid.ownyourdata.eu` is used
-    * type: online repository with [Swagger API documentation](https://oydid.ownyourdata.eu/api-docs/index.html)    
-    * type: file storage usage the local working directory and indicated with `@local` at the end
+    * type "online repository" (indicated by an URL) with [Swagger API documentation](https://oydid.ownyourdata.eu/api-docs/index.html)    
+    * type "file storage" (indicatred by the identifier `local`) uses the local working directory
 
 2. based on repository type retrieve log information:<br>
     * online: via `http(s):HOST/log/{:id}`    
