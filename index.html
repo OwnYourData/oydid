@@ -8,7 +8,7 @@
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
   <meta content="Bikeshed version 2e3c4c68b, updated Fri Jan 14 14:49:00 2022 -0800" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="91047ee72f5a04f3aca585aa480e24d17832ee5b" name="document-revision">
+  <meta content="fc175d42114ea08fb6abbfadfb1008d1bf727866" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -1016,17 +1016,17 @@ Revocation reference in log record: zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS
    </ol>
    <p>✅ This verification step passes iif payload’s signature is valid.</p>
    <h4 class="heading settled" data-level="4.2.3" id="retrieve_log"><span class="secno">4.2.3. </span><span class="content">Log record retrieval</span><a class="self-link" href="#retrieve_log"></a></h4>
-   <p>Perform the following steps to retrieve log record:</p>
+   <p>Perform the following steps to retrieve a log record:</p>
    <ol>
     <li data-md>
-     <p>identify location and type of repository for storing DID Documents and DID Log records:<br></p>
+     <p>identify location and type of a repository for storing DID Documents and DID Log records:<br></p>
      <ul>
       <li data-md>
        <p>location is indicted with <code>@</code> at the end of an identifier; if no location is specified the default online repository at <code>https://oydid.ownyourdata.eu</code> is used</p>
       <li data-md>
-       <p>type: online repository with <a href="https://oydid.ownyourdata.eu/api-docs/index.html">Swagger API documentation</a></p>
+       <p>type "online repository" (indicated by an URL) with <a href="https://oydid.ownyourdata.eu/api-docs/index.html">Swagger API documentation</a></p>
       <li data-md>
-       <p>type: file storage usage the local working directory and indicated with <code>@local</code> at the end</p>
+       <p>type "file storage" (indicatred by the identifier <code>local</code>) uses the local working directory</p>
      </ul>
     <li data-md>
      <p>based on repository type retrieve log information:<br></p>
