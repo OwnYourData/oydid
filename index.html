@@ -8,7 +8,7 @@
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
   <meta content="Bikeshed version 2e3c4c68b, updated Fri Jan 14 14:49:00 2022 -0800" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="5ae3111e4123dde630abae211581353fd367185d" name="document-revision">
+  <meta content="91047ee72f5a04f3aca585aa480e24d17832ee5b" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -880,8 +880,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    </ul>
    <h3 class="heading settled" data-level="4.2" id="verification"><span class="secno">4.2. </span><span class="content">Verification Steps</span><a class="self-link" href="#verification"></a></h3>
    <p>Processing the log provides unambiguous evidence for authenticity, correctness, and timeliness of resolving a DID to the DID document. This section describes all operations to perform independent verification when resolving a DID.</p>
-   <p align="center"> <img src="res/verification.png" width="550"><br> <em>Figure 4: Types of verificaiton</em> </p>
-   <p>Resolving a DID requires 3 different types of verification steps as depicted in <em>Figure 4</em>:</p>
+   <p align="center"> <img src="res/verification.png" width="550"><br> <em>Figure 4: Types of verification</em> </p>
+   <p>Resolving a DID requires 3 different types of verifications as depicted in <em>Figure 4</em>:</p>
    <ol>
     <li data-md>
      <p><strong>Hash Verifiction:</strong> within a DID version (e.g., <em>DID v1</em> or <em>DID v2</em> in the figure above) all associated log entries and the identifier are linked through hash values for a given JSON object</p>
@@ -890,6 +890,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     <li data-md>
      <p><strong>Log Record Retrieval:</strong> hash and signature verification in an untrusted repository guarantee imutability and it is up to the DID owner to ensure that DID documents and log records are publicly available</p>
    </ol>
+   <p>The following sub-sections describes those verification methods in detail.</p>
    <p class="note" role="note"><span>Note:</span> Use the <code>--show-verification</code> flag in the [<code>oydid</code> command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification. <em><a href="#example_verification">EXAMPLE 4</a></em> is the output of such a verification.</p>
    <div class="example" id="example_verification">
     <a class="self-link" href="#example_verification"></a> Output of command<br> <code>oydid read --show-verification did:oyd:zQmYhESMRSvN9BkrCf7YcBfxNzigVphyBUbFMfJpEm1fdPF</code> 
