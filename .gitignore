@@ -74,5 +74,6 @@ docs/index.html
 docs/cmd.txt
 samples/
 repository/tmp/
+ruby-gem/tmp/
 uniresolver-plugin/tmp/
 ~$*

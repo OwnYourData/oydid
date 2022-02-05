@@ -1,0 +1,11 @@
+source "https://rubygems.org"
+gemspec
+
+group :development, :test do
+  gem 'benchmark-ips'
+  gem 'rake'
+end
+
+group :debug do
+  gem "byebug", platforms: :mri
+end
