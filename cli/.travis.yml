@@ -1,0 +1,18 @@
+language: ruby
+script: "bundle exec rspec spec"
+env:
+  - CI=true
+rvm:
+  - 2.4
+  - 2.5
+  - 2.6
+  - 2.7
+  - jruby
+  - rbx-3
+cache: bundler
+sudo: false
+matrix:
+  allow_failures:
+    - rvm: jruby
+    - rvm: rbx-3
+dist: trusty

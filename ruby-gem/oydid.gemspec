@@ -25,7 +25,8 @@ Gem::Specification.new do |gem|
 
     gem.required_ruby_version = '>= 2.5.7'
     gem.requirements          = []
-    gem.add_dependency 'multibases', '~> 0.3.2'
+    gem.add_dependency             'multibases', '~> 0.3.2'
+    gem.add_development_dependency 'rspec',      '~> 3.10'
 
     gem.post_install_message  = nil
 end

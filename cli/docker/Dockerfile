@@ -4,7 +4,7 @@ MAINTAINER "Christoph Fabianek" christoph@ownyourdata.eu
 RUN addgroup -S user && \
     adduser -S user -G user && \
     apk add --no-cache libsodium-dev git make gcc musl-dev jq && \
-    gem install securerandom httparty ed25519 multibases multihashes multicodecs optparse rbnacl dag uri && \
+    gem install securerandom httparty ed25519 multibases multihashes multicodecs optparse rbnacl dag uri oydid && \
     gem install json-canonicalization -v 0.2.1 && \
     apk del make gcc musl-dev && \
     wget https://raw.githubusercontent.com/OwnYourData/oydid/main/cli/oydid.rb -O /usr/local/bin/oydid && \
