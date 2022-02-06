@@ -19,11 +19,6 @@ LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
 VERSION = "0.4.6"
 
-# functions for encoded messages ----------------
-def oyd_decode(message)
-    Multibases.unpack(message).decode.to_s('ASCII-8BIT')
-end
-
 # functions for hashing -------------------------
 
 def oyd_hash(message)

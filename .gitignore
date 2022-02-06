@@ -75,5 +75,7 @@ docs/cmd.txt
 samples/
 repository/tmp/
 ruby-gem/tmp/
+ruby-gem/pkg/
+ruby-gem/coverage/
 uniresolver-plugin/tmp/
 ~$*

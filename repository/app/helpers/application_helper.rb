@@ -1,19 +1,9 @@
 module ApplicationHelper
 
-    # functions for encoded messages ----------------
-
-    def oyd_encode(message)
-        Multibases.pack("base58btc", message).to_s
-    end
-
-    def oyd_decode(message)
-        Multibases.unpack(message).decode.to_s('ASCII-8BIT')
-    end
-
     # functions for hashing -------------------------
 
     def oyd_hash(message)
-        oyd_encode(Multihashes.encode(Digest::SHA256.digest(message), "sha2-256").unpack('C*'))
+        Oydid.encode(Multihashes.encode(Digest::SHA256.digest(message), "sha2-256").unpack('C*'))
     end
 
     def oyd_canonical(message)
@@ -47,16 +37,16 @@ module ApplicationHelper
             return nil
         end
         length = raw_key.bytesize
-        return oyd_encode([omc, length, raw_key].pack("SCa#{length}"))
+        return Oydid.encode([omc, length, raw_key].pack("SCa#{length}"))
     end
 
     def oyd_public_key(private_key)
-        code, length, digest = oyd_decode(private_key).unpack('SCa*')
+        code, length, digest = Oydid.decode(private_key).unpack('SCa*')
         case Multicodecs[code].name
         when 'ed25519-priv'
             public_key = Ed25519::SigningKey.new(digest).verify_key
             length = public_key.to_bytes.bytesize
-            return oyd_encode([Multicodecs['ed25519-pub'].code, length, public_key].pack("CCa#{length}"))
+            return Oydid.encode([Multicodecs['ed25519-pub'].code, length, public_key].pack("CCa#{length}"))
         else
             puts "Error: unsupported key codec"
             return nil
@@ -64,10 +54,10 @@ module ApplicationHelper
     end
 
     def oyd_sign(message, private_key)
-        code, length, digest = oyd_decode(private_key).unpack('SCa*')
+        code, length, digest = Oydid.decode(private_key).unpack('SCa*')
         case Multicodecs[code].name
         when 'ed25519-priv'
-            return oyd_encode(Ed25519::SigningKey.new(digest).sign(message))
+            return Oydid.encode(Ed25519::SigningKey.new(digest).sign(message))
         else
             puts "Error: unsupported key codec"
             return nil
@@ -75,14 +65,14 @@ module ApplicationHelper
     end
 
     def oyd_verify(message, signature, public_key)
-        code, length, digest = oyd_decode(public_key).unpack('CCa*')
+        code, length, digest = Oydid.decode(public_key).unpack('CCa*')
         begin
             case Multicodecs[code].name
             when 'ed25519-pub'
                 verify_key = Ed25519::VerifyKey.new(digest)
                 signature_verification = false
                 begin
-                    verify_key.verify(oyd_decode(signature), message)
+                    verify_key.verify(Oydid.decode(signature), message)
                     signature_verification = true
                 rescue Ed25519::VerifyError
                     signature_verification = false
@@ -105,7 +95,7 @@ module ApplicationHelper
         rescue
             return nil
         end
-        code, length, digest = oyd_decode(key_encoded).unpack('SCa*')
+        code, length, digest = Oydid.decode(key_encoded).unpack('SCa*')
         begin
             case Multicodecs[code].name
             when 'ed25519-priv'
@@ -115,7 +105,7 @@ module ApplicationHelper
                 return nil
             end
             length = private_key.bytesize
-            return oyd_encode([code, length, private_key].pack("SCa#{length}"))
+            return Oydid.encode([code, length, private_key].pack("SCa#{length}"))
         rescue
             puts "Error: invalid key"
             return nil
@@ -196,8 +186,8 @@ module ApplicationHelper
         # check if signature in log is correct
         publicKeys = doc["key"]
         pubKey_string = publicKeys.split(":")[0] rescue ""
-        pubKey = Ed25519::VerifyKey.new(oyd_decode(pubKey_string))
-        signature = oyd_decode(log["sig"])
+        pubKey = Ed25519::VerifyKey.new(Oydid.decode(pubKey_string))
+        signature = Oydid.decode(log["sig"])
         begin
             pubKey.verify(signature, log["doc"])
             return true
@@ -215,9 +205,9 @@ module ApplicationHelper
             return nil
         end
         if key_type == "sign"
-            return Ed25519::SigningKey.new(oyd_decode(key_encoded))
+            return Ed25519::SigningKey.new(Oydid.decode(key_encoded))
         else
-            return Ed25519::VerifyKey.new(oyd_decode(key_encoded))
+            return Ed25519::VerifyKey.new(Oydid.decode(key_encoded))
         end
     end
 
