@@ -21,8 +21,6 @@ jobs:
       matrix:
         ruby:
           - 2.6
-          - ruby-head
-          - jruby
     steps:
       - name: Clone repository
         uses: actions/checkout@v2
