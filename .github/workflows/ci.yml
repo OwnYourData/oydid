@@ -29,7 +29,6 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
       - name: Install dependencies
-        working-directory: ruby-gem
         run: bundle install --jobs 4 --retry 3
       - name: Run tests
         working-directory: ruby-gem
@@ -40,3 +39,4 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: "./ruby-gem/coverage/lcov.info"
+          base-path: "/ruby-gem/"
