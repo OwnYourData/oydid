@@ -30,7 +30,6 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v2
       - name: Set up Ruby
-        working-directory: ruby-gem
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
