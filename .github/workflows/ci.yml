@@ -30,18 +30,18 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v2
       - name: Set up Ruby
-        working-directory: cli
+        working-directory: ruby-gem
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
       - name: Install dependencies
-        working-directory: cli
+        working-directory: ruby-gem
         run: bundle install --jobs 4 --retry 3
       - name: Run tests
-        working-directory: cli
+        working-directory: ruby-gem
         run: ruby --version; bundle exec rspec spec || $ALLOW_FAILURES
       - name: Coveralls GitHub Action
-        working-directory: cli
+        working-directory: ruby-gem
         uses: coverallsapp/github-action@v1.1.2
         if: "matrix.ruby == '3.0'"
         with:
