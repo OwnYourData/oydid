@@ -1,7 +1,5 @@
 # OYDID Command Line Tool
 
-[![Gem Version](https://badge.fury.io/rb/oydid.png)](http://badge.fury.io/rb/oydid)
-
 OYDID (Own Your Digital IDentifier) provides a self-sustained environment for managing digital identifiers (DIDs). The oyd:did method links the identifier cryptographically to the DID Document and through also cryptographically linked provenance information in a public log it ensures resolving to the latest valid version of the DID Document.
 
 ## Installation
