@@ -18,7 +18,7 @@ begin
     SimpleCov::Formatter::LcovFormatter
   ])
   SimpleCov.start do
-    add_filter "/spec/"
+    add_filter "/ruby-gem/spec/"
   end
 rescue LoadError
 end
