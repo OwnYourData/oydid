@@ -1,5 +1,7 @@
 language: ruby
-script: "bundle exec rspec spec"
+script: 
+  - "cd ruby-gem"
+  - "bundle exec rspec spec"
 env:
   - CI=true
 rvm:
