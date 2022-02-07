@@ -1,4 +1,4 @@
-$:.unshift(File.join("../../lib", __FILE__))
+$:.unshift(File.join("../lib", __FILE__))
 
 require "bundler/setup"
 require 'rspec'
