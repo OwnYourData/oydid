@@ -40,7 +40,6 @@ jobs:
         working-directory: ruby-gem
         run: ruby --version; bundle exec rspec spec || $ALLOW_FAILURES
       - name: Coveralls GitHub Action
-        working-directory: ruby-gem
         uses: coverallsapp/github-action@v1.1.2
         if: "matrix.ruby == '3.0'"
         with:
