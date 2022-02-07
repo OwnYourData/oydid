@@ -40,4 +40,4 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: "./ruby-gem/coverage/lcov.info"
-          base-path: "/ruby-gem/"
+          base-path: "./ruby-gem"
