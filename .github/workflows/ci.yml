@@ -38,7 +38,7 @@ jobs:
         run: ruby --version; bundle exec rspec spec || $ALLOW_FAILURES
       - name: Coveralls GitHub Action
         uses: coverallsapp/github-action@v1.1.2
-        path-to-lcov: "./ruby-gem/coverage/lcov.info"
         if: "matrix.ruby == '2.6'"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: "./ruby-gem/coverage/lcov.info"
