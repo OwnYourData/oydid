@@ -1,0 +1,5 @@
+docker run -d --name=registrar -p 3000:3000 oydeu/oydid-registrar
+
+docker rm -f registrar
+
+curl http://localhost:3000/1.0/create
