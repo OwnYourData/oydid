@@ -21,5 +21,5 @@ if [[ ":$PATH:" != *":$HOME/bin:"* ]]; then
   echo "consider adding ~/bin to your PATH"
   echo "the following libraries and gems need to be installed:"
   echo "$ apt-get install ruby-dev libsodium-dev"
-  echo "$ gem install securerandom httparty ed25519 multibases multihashes optparse rbnacl dag uri"
+  echo "$ gem install oydid securerandom httparty ed25519 multibases multihashes optparse rbnacl dag uri"
 fi

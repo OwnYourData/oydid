@@ -43,8 +43,8 @@ fi
 $OYDIDCMD read did:oyd:zQmPfjgZhNsHf9ZyM9VnNu6F8sT4xQnHNXKEwbDK1uXyVfy@local > tmp.doc
 if ! cmp -s tmp.doc c1/did_local.doc ; then
 	echo "reading local failed"
-	rm zQmPfjgZhN*
-	rm tmp.doc
+	# rm zQmPfjgZhN*
+	# rm tmp.doc
 	exit 1
 fi
 rm tmp.doc
@@ -137,7 +137,7 @@ rm tmp.doc
 # test revoking DID
 $OYDIDCMD revoke did:oyd:zQmeMnYBBYvddAdgH6Ape2L4FzRty3y69grDZcQd5kR2tQH --doc-pwd pwd1 --rev-pwd pwd2
 retval=`$OYDIDCMD read did:oyd:zQmeMnYBBYvddAdgH6Ape2L4FzRty3y69grDZcQd5kR2tQH`
-if [ "$retval" != "Error: cannot resolve DID" ]; then
+if [ "$retval" != "Error: cannot resolve DID (on reading DID)" ]; then
 	echo "revoking DID failed"
 	rm tmp.doc
 	exit 1
@@ -223,7 +223,6 @@ if ! cmp -s tmp.doc c1/uni2_new.doc ; then
 	rm tmp.doc
 	exit 1
 fi
-echo "testing Uniresolver successful"
 rm tmp.doc
 
 curl -s https://dev.uniresolver.io/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj | jq ".didDocument" > tmp.doc

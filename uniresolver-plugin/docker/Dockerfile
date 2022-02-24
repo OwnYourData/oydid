@@ -14,7 +14,7 @@ COPY Gemfile $WORKDIR
 
 RUN bundle install
 
-ENV LANG=C.UTF-9
+ENV LANG=C.UTF-8
 ENV RAILS_LOG_TO_STDOUT="TRUE"
 ENV RAILS_ENV=production
 
