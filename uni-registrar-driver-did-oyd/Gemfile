@@ -5,8 +5,9 @@ ruby '2.5.9'
 gem 'rails', '~> 5.2.5'
 gem 'puma', '>= 3.12.2'
 gem 'rack-cors', ">= 1.0.4", require: 'rack/cors'
+gem 'responders'
 gem 'bootsnap'
-gem 'oydid'
+gem 'oydid', path: "../ruby-gem"
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

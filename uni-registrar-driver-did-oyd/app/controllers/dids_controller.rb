@@ -1,6 +1,5 @@
 class DidsController < ApplicationController
     include ApplicationHelper
-    include ApplicationHelperLegacy
     include ActionController::MimeResponds
 
     # respond only to JSON requests
@@ -8,48 +7,98 @@ class DidsController < ApplicationController
     respond_to :html, only: []
     respond_to :xml, only: []
 
+    # input
+    # {
+    #     "jobId": null,
+    #     "options": {
+    #         "ledger": "test",
+    #         "keytype": "ed25519"
+    #     },
+    #     "secret": {},
+    #     "didDocument": {}
+    # }
     def create
+        jobId = params[:jobId] rescue nil
+        if jobId.nil?
+            jobId = SecureRandom.uuid
+        end
+        didDocument = params[:didDocument]
+        internal_didDocument = [0]
         options = {}
-        did = params[:did]
-        result = resolve_did(did, options)
-        if result.nil? || result["error"] != 0
-            result = resolve_did_legacy(did, options)
-        end
-        if result.nil?
-            render json: {"error": "not found"},
-                   status: 404
-            return
-        end
-        if result["error"] != 0
-            render json: {"error": result["message"].to_s},
-                   status: result["error"]
-            return
-        end
+        status = Oydid.create(internal_didDocument, nil, "create", options)
 
         retVal = {
-            "didResolutionMetadata":{},
-            "didDocument": w3c_did(result, {}),
-            "didDocumentMetadata": {
-                "did": result["did"].to_s,
-                "registry": get_location(result["did"].to_s),
-                "log_hash": result["doc"]["log"].to_s,
-                "log": result["log"],
-                "document_log_id": result["doc_log_id"].to_i,
-                "termination_log_id": result["termination_log_id"].to_i
-            }
+            "jobId": jobId,
+            "didState": {
+                "identifier": status[:did],
+                "state": "finished",
+                "secret": {},
+                "didDocument": status[:didoc_w3c]
+            },
+            "didRegistrationMetadata": {},
+            "didDocumentMetadata": {}
         }
-
-        render plain: retVal.to_json,
-               mime_type: Mime::Type.lookup("application/ld+json"),
-               content_type: 'application/ld+json',
+        render json: retVal.to_json,
                status: 200
     end
 
+    # input
+    # {
+    #     "jobId": null,
+    #     "identifier": "did:sov:WRfXPg8dantKVubE3HX8pw",
+    #     "options": {
+    #         "ledger": "test",
+    #         "keytype": "ed25519"
+    #     },
+    #     "secret": {},
+    #     "didDocument": {}
+    # }
     def update
+        jobId = params[:jobId]
 
+        retVal = {
+            "jobId": jobId,
+            "didState": {
+                "identifier": "did:example:0000000000123456",
+                "state": "finished",
+                "secret": {
+                    "keys": [{
+                        "id": "did:example:0000000000123456#key-1",
+                        "type": "Ed25519VerificationKey2018",
+                        "privateKeyJwk": {}
+                    }]
+                },
+                "didDocument": {}
+            },
+            "didRegistrationMetadata": {},
+            "didDocumentMetadata": {}
+        }
+        render json: retVal.to_json,
+               status: 200
     end
 
+    # input
+    # {
+    #     "jobId": null,
+    #     "identifier": "did:sov:WRfXPg8dantKVubE3HX8pw",
+    #     "options": {
+    #         "ledger": "test",
+    #         "keytype": "ed25519"
+    #     },
+    #     "secret": {}
+    # }
     def deactivate
+        jobId = params[:jobId]
 
+        retVal = {
+            "jobId": jobId,
+            "didState": {
+                "state": "finished"
+            },
+            "didRegistrationMetadata": {},
+            "didDocumentMetadata": {}
+        }
+        render json: retVal.to_json,
+               status: 200
     end
 end
