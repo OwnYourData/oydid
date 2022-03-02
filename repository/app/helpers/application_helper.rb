@@ -1,249 +1,314 @@
 module ApplicationHelper
-
-    # functions for hashing -------------------------
-
-    def oyd_hash(message)
-        Oydid.encode(Multihashes.encode(Digest::SHA256.digest(message), "sha2-256").unpack('C*'))
-    end
-
-    def oyd_canonical(message)
-        if message.is_a? String
-            message = JSON.parse(message) rescue message
-        else
-            message = JSON.parse(message.to_json) rescue message
-        end
-        message.to_json_c14n
-    end
-
-    # functions for key management ------------------
-
-    def oyd_generate_private_key(input, method)
-        begin
-            omc = Multicodecs[method].code
-        rescue
-            puts "Error: unknown key codec"
+    def resolve_did(did, options)
+        if did.to_s == ""
             return nil
+        end
+        if did.include?(LOCATION_PREFIX)
+            tmp = did.split(LOCATION_PREFIX)
+            did = tmp[0]
+            # did_location = tmp[1]
         end
         
-        case Multicodecs[method].name 
-        when 'ed25519-priv'
-            if input != ""
-                raw_key = Ed25519::SigningKey.new(RbNaCl::Hash.sha256(input)).to_bytes
-            else
-                raw_key = Ed25519::SigningKey.generate.to_bytes
-            end
-        else
-            puts "Error: unsupported key codec"
-            return nil
+        # setup
+        currentDID = {
+            "did": did,
+            "doc": "",
+            "log": [],
+            "doc_log_id": nil,
+            "termination_log_id": nil,
+            "last_id": nil,
+            "last_sign_id": nil,
+            "error": 0,
+            "message": "",
+            "verification": ""
+        }.transform_keys(&:to_s)
+        did_hash = did.delete_prefix("did:oyd:")
+
+        # get did location
+        did_location = ""
+        if !options[:doc_location].nil?
+            did_location = options[:doc_location]
         end
-        length = raw_key.bytesize
-        return Oydid.encode([omc, length, raw_key].pack("SCa#{length}"))
-    end
 
-    def oyd_public_key(private_key)
-        code, length, digest = Oydid.decode(private_key).unpack('SCa*')
-        case Multicodecs[code].name
-        when 'ed25519-priv'
-            public_key = Ed25519::SigningKey.new(digest).verify_key
-            length = public_key.to_bytes.bytesize
-            return Oydid.encode([Multicodecs['ed25519-pub'].code, length, public_key].pack("CCa#{length}"))
-        else
-            puts "Error: unsupported key codec"
-            return nil
+        # retrieve DID document
+        did_document = local_retrieve_document(did_hash)
+        if did_document.nil?
+            currentDID["error"] = 404
+            currentDID["message"] = "did not found"
+            return currentDID
         end
-    end
+        currentDID["doc"] = did_document
 
-    def oyd_sign(message, private_key)
-        code, length, digest = Oydid.decode(private_key).unpack('SCa*')
-        case Multicodecs[code].name
-        when 'ed25519-priv'
-            return Oydid.encode(Ed25519::SigningKey.new(digest).sign(message))
-        else
-            puts "Error: unsupported key codec"
-            return nil
+        # retrieve log
+        did_hash = did_hash.split("@").first
+        log_array = local_retrieve_log(did_hash)
+        currentDID["log"] = log_array
+
+        # traverse log to get current DID state
+        dag, create_index, terminate_index, msg = Oydid.dag_did(log_array, options)
+        if dag.nil?
+            currentDID["error"] = 1
+            currentDID["message"] = msg
+            return currentDID
         end
-    end
 
-    def oyd_verify(message, signature, public_key)
-        code, length, digest = Oydid.decode(public_key).unpack('CCa*')
-        begin
-            case Multicodecs[code].name
-            when 'ed25519-pub'
-                verify_key = Ed25519::VerifyKey.new(digest)
-                signature_verification = false
-                begin
-                    verify_key.verify(Oydid.decode(signature), message)
-                    signature_verification = true
-                rescue Ed25519::VerifyError
-                    signature_verification = false
-                end
-            else
-                puts "Error: unsupported key codec"
-                return nil
-            end
-        rescue
-            puts "Error: unknown codec"
-            return nil
-        end
-    end
-
-    def read_private_key(filename)
-        begin
-            f = File.open(filename)
-            key_encoded = f.read
-            f.close
-        rescue
-            return nil
-        end
-        code, length, digest = Oydid.decode(key_encoded).unpack('SCa*')
-        begin
-            case Multicodecs[code].name
-            when 'ed25519-priv'
-                private_key = Ed25519::SigningKey.new(digest).to_bytes
-            else
-                puts "Error: unsupported key codec"
-                return nil
-            end
-            length = private_key.bytesize
-            return Oydid.encode([code, length, private_key].pack("SCa#{length}"))
-        rescue
-            puts "Error: invalid key"
-            return nil
-        end
-    end
-
-    # other functions ---------------------------
-
-    def dag_did(logs)
-        dag = DAG.new
-        dag_log = []
-        log_hash = []
-        i = 0
-        dag_log << dag.add_vertex(id: i)
-        logs.each do |el|
-            log = JSON.parse(el.first)
-            i += 1
-            dag_log << dag.add_vertex(id: i)
-            log_hash << el.last
-            if log["previous"] == []
-                dag.add_edge from: dag_log[0], to: dag_log[i]
-            else
-                log["previous"].each do |p|
-                    position = log_hash.find_index(p)
-                    if !position.nil?
-                        dag.add_edge from: dag_log[position+1], to: dag_log[i]
-                    end
-                end
-            end
-        end unless logs.nil?
-        return dag
-    end
-
-    def dag_update(vertex, logs, currentDID)
-        vertex.successors.each do |v|
-            current_log = logs[v[:id].to_i - 1]
-            if currentDID["last_id"].nil?
-                currentDID["last_id"] = current_log.first["id"].to_i
-            else
-                if currentDID["last_id"].to_i < current_log.first["id"].to_i
-                    currentDID["last_id"] = current_log.first["id"].to_i
-                end
-            end
-            case current_log.first["op"]
-            when 2,3 # CREATE, UPDATE
-                doc_did = current_log.first["doc"]
-                doc_location = get_location(doc_did)
-                did_hash = doc_did.delete_prefix("did:oyd:")
-                did10 = did_hash[0,10]
-                doc = retrieve_document(doc_did, did10 + ".doc", doc_location, {})
-                # check if sig matches did doc 
-                if match_log_did?(current_log.first, doc)
-                    currentDID["doc_log_id"] = v[:id].to_i
-                    currentDID["did"] = doc_did
-                    currentDID["doc"] = doc
-                    if currentDID["last_sign_id"].nil?
-                        currentDID["last_sign_id"] = current_log.first["id"].to_i
-                    else
-                        if currentDID["last_sign_id"].to_i < current_log.first["id"].to_i
-                            currentDID["last_sign_id"] = current_log.first["id"].to_i
-                        end
-                    end
-                end
-            when 0
-                # TODO: check if termination document exists
-                currentDID["termination_log_id"] = v[:id].to_i
-            end
-
-            if v.successors.count > 0
-                currentDID = dag_update(v, logs, currentDID)
-            end
-        end
+        ordered_log_array = Oydid.dag2array(dag, log_array, create_index, [], options)
+        ordered_log_array << log_array[terminate_index]
+        currentDID["log"] = ordered_log_array
+        currentDID = dag_update(currentDID, options)
         return currentDID
     end
 
-    def match_log_did?(log, doc)
-        # check if signature matches current document
-        # check if signature in log is correct
-        publicKeys = doc["key"]
-        pubKey_string = publicKeys.split(":")[0] rescue ""
-        pubKey = Ed25519::VerifyKey.new(Oydid.decode(pubKey_string))
-        signature = Oydid.decode(log["sig"])
-        begin
-            pubKey.verify(signature, log["doc"])
-            return true
-        rescue Ed25519::VerifyError
-            return false
-        end
+    def dag_update(currentDID, options)
+        i = 0
+        initial_did = currentDID["did"].to_s
+        initial_did = initial_did.delete_prefix("did:oyd:")
+        initial_did = initial_did.split("@").first
+        current_public_doc_key = ""
+        verification_output = false
+        currentDID["log"].each do |el|
+            case el["op"]
+            when 2,3 # CREATE, UPDATE
+                doc_did = el["doc"]
+                doc_location = Oydid.get_location(doc_did)
+                did_hash = doc_did.delete_prefix("did:oyd:")
+                did_hash = did_hash.split("@").first
+                did10 = did_hash[0,10]
+                doc = local_retrieve_document(did_hash)
+                if doc.nil?
+                    currentDID["error"] = 2
+                    msg = "cannot retrieve " + doc_did.to_s
+                    currentDID["message"] = msg
+                    return currentDID
+                end
+                if el["op"] == 2 # CREATE
+                    if !Oydid.match_log_did?(el, doc)
+                        currentDID["error"] = 1
+                        currentDID["message"] = "Signatures in log don't match"
+                        return currentDID
+                    end
+                end
+                currentDID["did"] = doc_did
+                currentDID["doc"] = doc
+                if did_hash == initial_did
+                    verification_output = true
+                end
+                if verification_output
+                    currentDID["verification"] += "identifier: " + did_hash.to_s + "\n"
+                    currentDID["verification"] += "✅ is hash of DID Document:" + "\n"
+                    currentDID["verification"] += JSON.pretty_generate(doc) + "\n"
+                    currentDID["verification"] += "(Details: https://ownyourdata.github.io/oydid/#calculate_hash)" + "\n\n"
+                end
+                current_public_doc_key = currentDID["doc"]["key"].split(":").first rescue ""
+            when 0 # TERMINATE
+                currentDID["termination_log_id"] = i
+
+                doc_did = currentDID["did"]
+                doc_location = Oydid.get_location(doc_did)
+                did_hash = doc_did.delete_prefix("did:oyd:")
+                did_hash = did_hash.split("@").first
+                did10 = did_hash[0,10]
+                doc = local_retrieve_document(did_hash)
+                term = doc["log"]
+                log_location = term.split("@")[1] rescue ""
+                if log_location.to_s == ""
+                    log_location = DEFAULT_LOCATION
+                end
+                term = term.split("@").first
+                if Oydid.hash(Oydid.canonical(el)) != term
+                    currentDID["error"] = 1
+                    currentDID["message"] = "Log reference and record don't match"
+                    if verification_output
+                        currentDID["verification"] += "'log' reference in DID Document: " + term.to_s + "\n"
+                        currentDID["verification"] += "⛔ does not match TERMINATE log record:" + "\n"
+                        currentDID["verification"] += JSON.pretty_generate(el) + "\n"
+                        currentDID["verification"] += "(Details: https://ownyourdata.github.io/oydid/#calculate_hash)" + "\n\n"
+                    end
+                    return currentDID
+                end
+                if verification_output
+                    currentDID["verification"] += "'log' reference in DID Document: " + term.to_s + "\n"
+                    currentDID["verification"] += "✅ is hash of TERMINATE log record:" + "\n"
+                    currentDID["verification"] += JSON.pretty_generate(el) + "\n"
+                    currentDID["verification"] += "(Details: https://ownyourdata.github.io/oydid/#calculate_hash)" + "\n\n"
+                end
+
+                # check if there is a revocation entry
+                revocation_record = {}
+                revoc_term = el["doc"]
+                revoc_term = revoc_term.split("@").first
+                revoc_term_found = false
+                log_array = local_retrieve_log(did_hash)
+                log_array.each do |log_el|
+                    log_el_structure = log_el.dup
+                    if log_el["op"].to_i == 1 # TERMINATE
+                        log_el_structure.delete("previous")
+                    end
+                    if Oydid.hash(Oydid.canonical(log_el_structure)) == revoc_term
+                        revoc_term_found = true
+                        revocation_record = log_el.dup
+                        if verification_output
+                            currentDID["verification"] += "'doc' reference in TERMINATE log record: " + revoc_term.to_s + "\n"
+                            currentDID["verification"] += "✅ is hash of REVOCATION log record (without 'previous' attribute):" + "\n"
+                            currentDID["verification"] += JSON.pretty_generate(log_el) + "\n"
+                            currentDID["verification"] += "(Details: https://ownyourdata.github.io/oydid/#calculate_hash)" + "\n\n"
+                        end
+                        break
+                    end
+                end unless log_array.nil?
+
+                if revoc_term_found
+                    update_term_found = false
+                    log_array.each do |log_el|
+                        if log_el["op"] == 3
+                            if log_el["previous"].include?(Oydid.hash(Oydid.canonical(revocation_record)))
+                                update_term_found = true
+                                message = log_el["doc"].to_s
+
+                                signature = log_el["sig"]
+                                public_key = current_public_doc_key.to_s
+                                signature_verification = Oydid.verify(message, signature, public_key).first
+                                if signature_verification
+                                    if verification_output
+                                        currentDID["verification"] += "found UPDATE log record:" + "\n"
+                                        currentDID["verification"] += JSON.pretty_generate(log_el) + "\n"
+                                        currentDID["verification"] += "✅ public key from last DID Document: " + current_public_doc_key.to_s + "\n"
+                                        currentDID["verification"] += "verifies 'doc' reference of new DID Document: " + log_el["doc"].to_s + "\n"
+                                        currentDID["verification"] += log_el["sig"].to_s + "\n"
+                                        currentDID["verification"] += "of next DID Document (Details: https://ownyourdata.github.io/oydid/#verify_signature)" + "\n"
+
+                                        next_doc_did = log_el["doc"].to_s
+                                        next_doc_location = Oydid.get_location(next_doc_did)
+                                        next_did_hash = next_doc_did.delete_prefix("did:oyd:")
+                                        next_did_hash = next_did_hash.split("@").first
+                                        next_did10 = next_did_hash[0,10]
+                                        next_doc = local_retrieve_document(next_did_hash)
+                                        if next_doc.nil?
+                                            currentDID["error"] = 2
+                                            currentDID["message"] = "cannot retrieve " + next_doc_did.to_s
+                                            return currentDID
+                                        end
+                                        if public_key == next_doc["key"].split(":").first
+                                            currentDID["verification"] += "⚠️  no key rotation in updated DID Document" + "\n"
+                                        end
+                                        currentDID["verification"] += "\n"
+                                    end
+                                else
+                                    currentDID["error"] = 1
+                                    currentDID["message"] = "Signature does not match"
+                                    if verification_output
+                                        new_doc_did = log_el["doc"].to_s
+                                        new_doc_location = Oydid.get_location(new_doc_did)
+                                        new_did_hash = new_doc_did.delete_prefix("did:oyd:")
+                                        new_did_hash = new_did_hash.split("@").first
+                                        new_did10 = new_did_hash[0,10]
+                                        new_doc = local_retrieve_document(new_did_hash)
+                                        currentDID["verification"] += "found UPDATE log record:" + "\n"
+                                        currentDID["verification"] += JSON.pretty_generate(log_el) + "\n"
+                                        currentDID["verification"] += "⛔ public key from last DID Document: " + current_public_doc_key.to_s + "\n"
+                                        currentDID["verification"] += "does not verify 'doc' reference of new DID Document: " + log_el["doc"].to_s + "\n"
+                                        currentDID["verification"] += log_el["sig"].to_s + "\n"
+                                        currentDID["verification"] += "next DID Document (Details: https://ownyourdata.github.io/oydid/#verify_signature)" + "\n"
+                                        currentDID["verification"] += JSON.pretty_generate(new_doc) + "\n\n"
+                                    end
+                                    return currentDID
+                                end
+                                break
+                            end
+                        end
+                    end
+
+                else
+                    if verification_output
+                        currentDID["verification"] += "Revocation reference in log record: " + revoc_term.to_s + "\n"
+                        currentDID["verification"] += "✅ cannot find revocation record searching at" + "\n"
+                        currentDID["verification"] += "- " + log_location + "\n"
+                        if !options.transform_keys(&:to_s)["log_location"].nil?
+                            currentDID["verification"] += "- " + options.transform_keys(&:to_s)["log_location"].to_s + "\n"
+                        end
+                        currentDID["verification"] += "(Details: https://ownyourdata.github.io/oydid/#retrieve_log)" + "\n\n"
+                    end
+                    break
+                end
+            when 1 # revocation log entry
+                # do nothing
+            else
+                currentDID["error"] = 2
+                currentDID["message"] = "FATAL ERROR: op code '" + el["op"].to_s + "' not implemented"
+                return currentDID
+
+            end
+            i += 1
+        end unless currentDID["log"].nil?
+
+        return currentDID
     end
 
-    def get_key(filename, key_type)
-        begin
-            f = File.open(filename)
-            key_encoded = f.read
-            f.close
-        rescue
-            return nil
-        end
-        if key_type == "sign"
-            return Ed25519::SigningKey.new(Oydid.decode(key_encoded))
-        else
-            return Ed25519::VerifyKey.new(Oydid.decode(key_encoded))
-        end
-    end
-
-    def get_location(id)
-        if id.include?(LOCATION_PREFIX)
-            id_split = id.split(LOCATION_PREFIX)
-            return id_split[1]
-        else
-            return nil
-        end
-    end
-
-    def retrieve_document(doc_hash, doc_file, doc_location, options)
+    def local_retrieve_document(doc_hash)
+        doc = nil
         @did = Did.find_by_did(doc_hash)
-        if !@did.nil?
+        if @did.nil?
+            return nil
+        else
             doc = JSON.parse(@did.doc) rescue nil
             return doc
         end
-        case doc_location
-        when /^http/
-            return nil
-        when "local"
-            doc = {}
-            begin
-                f = File.open(doc_file)
-                doc = JSON.parse(f.read) rescue {}
-                f.close
-            rescue
+    end
 
+    def local_retrieve_log(didHash)
+        logs = Log.where(did: didHash).pluck(:item).map { |i| JSON.parse(i) } rescue []
+
+        # identify if TERMINATE entry has already revocation record
+        logs = add_next(logs)
+        # add all log entries that came before (use previous)
+        logs = add_previous(logs, [didHash])
+
+        return logs
+    end
+
+    def add_next(logs)
+        new_entries = []
+        logs.each do |log|
+            if log["op"] == 0 # TERMINATE
+                @log = Log.find_by_oyd_hash(remove_location(log["doc"]))
+                if !@log.nil?
+                    tmp = Log.where(did: @log.did).pluck(:item).map { |i| JSON.parse(i) } rescue []
+                    tmp.delete(log)
+                    new_entries << tmp
+                    new_entries << add_next(tmp)
+                end
             end
-            if doc == {}
-                return nil
-            end
-        else
-            return nil
         end
-        return doc
+        [new_entries, logs].compact.flatten.uniq
+    end
+
+    def add_previous(logs, done)
+        new_dids = []
+        new_entries = []
+        logs.each do |log|
+            if log["previous"] != []
+                log["previous"].each do |entry|
+                    @log = Log.find_by_oyd_hash(entry)
+                    if !@log.nil?
+                        if !done.include?(@log.did)
+                            new_dids << @log.did
+                        end
+                    end
+                end
+            end
+        end
+        if new_dids.count > 0
+            new_dids = new_dids.uniq
+            new_entries = Log.where(did: new_dids).pluck(:item).map { |i| JSON.parse(i) } rescue []
+            more_entries = add_previous(new_entries, [new_dids, done].flatten.uniq)
+        end
+        [new_entries, more_entries, logs].compact.flatten.uniq
+    end
+
+    def remove_location(id)
+        location = id.split(LOCATION_PREFIX)[1] rescue ""
+        id = id.split(LOCATION_PREFIX)[0] rescue id
+        id.delete_prefix("did:oyd:")
+
     end
 end

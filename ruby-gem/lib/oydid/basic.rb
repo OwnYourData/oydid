@@ -170,4 +170,39 @@ class Oydid
         end
     end
 
+    def self.retrieve_document_raw(doc_hash, doc_file, doc_location, options)
+        if doc_location == ""
+            doc_location = DEFAULT_LOCATION
+        end
+        if !(doc_location == "" || doc_location == "local")
+            if !doc_location.start_with?("http")
+                doc_location = "https://" + doc_location
+            end
+        end
+
+        case doc_location
+        when /^http/
+            retVal = HTTParty.get(doc_location + "/doc_raw/" + doc_hash)
+            if retVal.code != 200
+                msg = retVal.parsed_response("error").to_s rescue "invalid response from " + doc_location.to_s + "/doc/" + doc_hash.to_s
+                return [nil, msg]
+            end
+            if options.transform_keys(&:to_s)["trace"]
+                if options[:silent].nil? || !options[:silent]
+                    puts "GET " + doc_hash + " from " + doc_location
+                end
+            end
+            return [retVal.parsed_response, ""]
+        when "", "local"
+            doc = JSON.parse(read_private_storage(doc_file)) rescue {}
+            log = JSON.parse(read_private_storage(doc_file.sub(".doc", ".log"))) rescue {}
+            if doc == {}
+                return [nil, "cannot read file"]
+            else
+                obj = {"doc" => doc, "log" => log}
+                return [obj, ""]
+            end
+        end
+    end
+
 end

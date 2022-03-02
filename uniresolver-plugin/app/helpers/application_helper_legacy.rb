@@ -240,7 +240,7 @@ module ApplicationHelperLegacy
                     puts '{"error": "' + retVal.parsed_response['error'].to_s + '", "source": "registry"}' rescue
                         puts '{"error": "invalid response from ' + doc_location.to_s + "/doc/" + doc_hash.to_s + '"}'
                 end
-                exit(1)
+                return nil
             end
             if options[:trace]
                 if options[:silent].nil? || !options[:silent]

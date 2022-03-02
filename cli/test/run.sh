@@ -190,21 +190,21 @@ if ! cmp -s tmp.doc c1/uni2_new.doc ; then
 fi
 rm tmp.doc
 
-curl -s -k https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj | jq ".didDocument" > tmp.doc
-if ! cmp -s tmp.doc c1/uni1.doc ; then
-	echo "resolving legacy DID with public OYDID resolver failed"
-	rm tmp.doc
-	exit 1
-fi
-rm tmp.doc
+# curl -s -k https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj | jq ".didDocument" > tmp.doc
+# if ! cmp -s tmp.doc c1/uni1.doc ; then
+# 	echo "resolving legacy DID with public OYDID resolver failed"
+# 	rm tmp.doc
+# 	exit 1
+# fi
+# rm tmp.doc
 
-curl -s -k https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmbbgEXLq96rHSRfydhsSQ9HCs6p7Cf4R98Qn7NdXig1Vk%40https%3A%2F%2Fdid2.data-container.net | jq ".didDocument" > tmp.doc
-if ! cmp -s tmp.doc c1/uni2.doc ; then
-	echo "resolving legacy DID at non-default location with OYDID resolver failed"
-	rm tmp.doc
-	exit 1
-fi
-rm tmp.doc
+# curl -s -k https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmbbgEXLq96rHSRfydhsSQ9HCs6p7Cf4R98Qn7NdXig1Vk%40https%3A%2F%2Fdid2.data-container.net | jq ".didDocument" > tmp.doc
+# if ! cmp -s tmp.doc c1/uni2.doc ; then
+# 	echo "resolving legacy DID at non-default location with OYDID resolver failed"
+# 	rm tmp.doc
+# 	exit 1
+# fi
+# rm tmp.doc
 
 echo "testing public OYDID resolver successful"
 
@@ -225,22 +225,22 @@ if ! cmp -s tmp.doc c1/uni2_new.doc ; then
 fi
 rm tmp.doc
 
-curl -s https://dev.uniresolver.io/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj | jq ".didDocument" > tmp.doc
-if ! cmp -s tmp.doc c1/uni1.doc ; then
-	echo "resolving legacy DID with uniresolver failed"
-	rm tmp.doc
-	exit 1
-fi
-rm tmp.doc
+# curl -s https://dev.uniresolver.io/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj | jq ".didDocument" > tmp.doc
+# if ! cmp -s tmp.doc c1/uni1.doc ; then
+# 	echo "resolving legacy DID with uniresolver failed"
+# 	rm tmp.doc
+# 	exit 1
+# fi
+# rm tmp.doc
 
-curl -s https://dev.uniresolver.io/1.0/identifiers/did:oyd:zQmbbgEXLq96rHSRfydhsSQ9HCs6p7Cf4R98Qn7NdXig1Vk%40https%3A%2F%2Fdid2.data-container.net | jq ".didDocument" > tmp.doc
-if ! cmp -s tmp.doc c1/uni2.doc ; then
-	echo "resolving legacy DID at non-default location with uniresolver failed"
-	rm tmp.doc
-	exit 1
-fi
-echo "testing Uniresolver successful"
-rm tmp.doc
+# curl -s https://dev.uniresolver.io/1.0/identifiers/did:oyd:zQmbbgEXLq96rHSRfydhsSQ9HCs6p7Cf4R98Qn7NdXig1Vk%40https%3A%2F%2Fdid2.data-container.net | jq ".didDocument" > tmp.doc
+# if ! cmp -s tmp.doc c1/uni2.doc ; then
+# 	echo "resolving legacy DID at non-default location with uniresolver failed"
+# 	rm tmp.doc
+# 	exit 1
+# fi
+# echo "testing Uniresolver successful"
+# rm tmp.doc
 rm zQm*
 
 

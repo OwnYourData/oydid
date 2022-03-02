@@ -160,7 +160,7 @@ describe "OYDID handling" do
 
   # main functionds
   Dir.glob(File.expand_path("../input/main/*_read.doc", __FILE__)).each do |input|
-    it "process DAG for #{input.split('/').last}" do
+    it "execute read for #{input.split('/').last}" do
       expected = JSON.parse(File.read(input.sub('input', 'output')))
       data = JSON.parse(File.read(input))
       expect(Oydid.read(data["did"], data["options"])).to eq expected

@@ -17,7 +17,11 @@ RUN bundle install
 COPY . .
 
 RUN gem update bundler && \
-	bundle update
+	gem install bundler:1.17.3 && \
+	gem update --system 3.2.3 && \
+	bundle install && \
+	bundle update && \
+	gem cleanup
 
 CMD ["./script/run.sh"]
 
