@@ -1,6 +1,5 @@
 class DidsController < ApplicationController
     include ApplicationHelper
-    include ResolveHelper
     include ActionController::MimeResponds
 
     # respond only to JSON requests
@@ -23,39 +22,37 @@ class DidsController < ApplicationController
         did = params[:did]
         result = resolve_did(did, options)
         if result["error"] != 0
-            render json: {"error": result["message"].to_s},
-                   status: result["error"]
+            puts "Error: " + result["message"].to_s
+            render json: {"error": result["message"].to_s}.to_json,
+                   status: 500
         else
             render json: result["doc"],
                    status: 200
         end
     end
 
-    def w3c_did(did_info)
-        pubDocKey = did_info["doc"]["key"].split(":")[0] rescue ""
-        pubRevKey = did_info["doc"]["key"].split(":")[1] rescue ""
-
-        wd = {}
-        wd["@context"] = "https://www.w3.org/ns/did/v1"
-        wd["id"] = "did:oyd:" + did_info["did"]
-        wd["verificationMethod"] = [{
-            "id": "did:oyd:" + did_info["did"],
-            "type": "Ed25519VerificationKey2018",
-            "controller": "did:oyd:" + did_info["did"],
-            "publicKeyBase58": pubDocKey
-        }]
-        wd["keyAgreement"] = [{
-            "id": "did:oyd:" + did_info["did"],
-            "type": "X25519KeyAgreementKey2019",
-            "controller": "did:oyd:" + did_info["did"],
-            "publicKeyBase58": pubRevKey
-        }]
-        if did_info["doc"]["doc"].is_a?(Array)
-            wd["service"] = did_info["doc"]["doc"]
-        else
-            wd["service"] = [did_info["doc"]["doc"]]
+    def raw
+        options = {}
+        if ENV["DID_LOCATION"].to_s != ""
+            options[:location] = ENV["DID_LOCATION"].to_s
+            if options[:doc_location].nil?
+                options[:doc_location] = options[:location]
+            end
+            if options[:log_location].nil?
+                options[:log_location] = options[:location]
+            end
         end
-        wd
+
+        did = remove_location(params[:did])
+        result = local_retrieve_document(did)
+        if result.nil?
+            render json: {"error": "cannot find " + did.to_s}.to_json,
+                   status: 404
+        else
+            log_result = local_retrieve_log(did)
+            render json: {"doc": result, "log": log_result}.to_json,
+                   status: 200
+        end
     end
 
     def resolve
@@ -63,10 +60,11 @@ class DidsController < ApplicationController
         did = params[:did]
         result = resolve_did(did, options)
         if result["error"] != 0
-            render json: {"error": result["message"].to_s},
+            render json: {"error": result["message"].to_s}.to_json,
                    status: result["error"]
         else
-            render plain: w3c_did(result).to_json,
+            w3c_did = Oydid.w3c(result, options)
+            render plain: w3c_did.to_json,
                    mime_type: Mime::Type.lookup("application/ld+json"),
                    content_type: 'application/ld+json',
                    status: 200
@@ -126,7 +124,7 @@ class DidsController < ApplicationController
                    status: 412
             return
         end
-        if didHash != oyd_hash(oyd_canonical(didDocument))
+        if didHash != Oydid.hash(Oydid.canonical(didDocument))
             render json: {"error": "DID does not match did-document"},
                    status: 400
             return
@@ -145,7 +143,7 @@ class DidsController < ApplicationController
         log_entry_hash = ""
         logs.each do |item|
             if item["op"] == 0 # TERMINATE
-                log_entry_hash = oyd_hash(oyd_canonical(item))
+                log_entry_hash = Oydid.hash(Oydid.canonical(item))
             end
         end
         if log_entry_hash != ""
@@ -161,9 +159,9 @@ class DidsController < ApplicationController
         Did.new(did: didHash, doc: didDocument.to_json).save
         logs.each do |item|
             if item["op"] == 1 # REVOKE
-                Log.new(did: didHash, item: item.to_json, oyd_hash: oyd_hash(oyd_canonical(item.except("previous"))), ts: Time.now.to_i).save
+                Log.new(did: didHash, item: item.to_json, oyd_hash: Oydid.hash(Oydid.canonical(item.except("previous"))), ts: Time.now.to_i).save
             else
-                Log.new(did: didHash, item: item.to_json, oyd_hash: oyd_hash(oyd_canonical(item)), ts: Time.now.to_i).save
+                Log.new(did: didHash, item: item.to_json, oyd_hash: Oydid.hash(Oydid.canonical(item)), ts: Time.now.to_i).save
             end
         end
 
@@ -183,13 +181,15 @@ class DidsController < ApplicationController
         public_rev_key = keys.split(":")[1]
         private_doc_key = params[:dockey]
         private_rev_key = params[:revkey]
-        if public_doc_key == oyd_public_key(private_doc_key) &&
-           public_rev_key == oyd_public_key(private_rev_key)
+        if public_doc_key == Oydid.public_key(private_doc_key).first &&
+           public_rev_key == Oydid.public_key(private_rev_key).first
                 Log.where(did: params[:did].to_s).destroy_all
                 Did.where(did: params[:did].to_s).destroy_all
                 render plain: "",
                        status: 200
         else
+            puts "Doc key: " + public_doc_key.to_s + " <=> " + Oydid.public_key(private_doc_key).first.to_s
+            puts "Rev key: " + public_rev_key.to_s + " <=> " + Oydid.public_key(private_rev_key).first.to_s
             render json: {"error": "invalid keys"},
                    status: 403
         end

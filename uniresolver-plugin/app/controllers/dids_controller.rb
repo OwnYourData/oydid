@@ -11,7 +11,7 @@ class DidsController < ApplicationController
     def resolve
         options = {}
         did = params[:did]
-        result = resolve_did(did, options)
+        result = Oydid.read(did, options).first rescue nil
         if result.nil? || result["error"] != 0
             result = resolve_did_legacy(did, options)
         end

@@ -100,6 +100,7 @@ def delete(did, options)
         end
         exit 1
     end
+    return [did, ""]
 end
 
 # Semantic Container OYDID functions -------------------------------
@@ -129,7 +130,7 @@ def sc_init(options)
             if options[:json].nil? || !options[:json]
                 puts "Error: " + msg.to_s
             else
-                puts '{"error": "' + msg + '""}'
+                puts '{"error": "' + msg + '"}'
             end
         end
         return [nil, ""]
@@ -283,7 +284,7 @@ def sc_create(content, did, options)
             if options[:json].nil? || !options[:json]
                 puts "Error: " + msg.to_s
             else
-                puts '{"error": "' + msg + '""}'
+                puts '{"error": "' + msg + '"}'
             end
         end
         return [nil, ""]
@@ -318,7 +319,7 @@ end
 # user info -------------------------------
 
 def print_version()
-    puts VERSION
+    puts VERSION.to_s + " (oydid gem: v" + Gem.loaded_specs["oydid"].version.to_s + ")"
 end
 
 def print_help()
@@ -469,7 +470,7 @@ when "create"
                 if options[:json].nil? || !options[:json]
                     puts "Error: " + msg.to_s
                 else
-                    puts '{"error": "' + msg + '""}'
+                    puts '{"error": "' + msg + '"}'
                 end
             end
         end
@@ -488,6 +489,11 @@ when "read"
     if result.nil?
         if options[:silent].nil? || !options[:silent]
             if options[:json].nil? || !options[:json]
+                if  options[:show_verification]
+                    puts result["verification"]
+                    puts "=== end of verification output ==="
+                    puts ""
+                end
                 puts "Error: cannot resolve DID (on reading DID)"
             else
                 puts '{"error": "cannot resolve DID (on reading DID)"}'
@@ -498,6 +504,11 @@ when "read"
     if result["error"] != 0
         if options[:silent].nil? || !options[:silent]
             if options[:json].nil? || !options[:json]
+                if  options[:show_verification]
+                    puts result["verification"]
+                    puts "=== end of verification output ==="
+                    puts ""
+                end
                 puts "Error: " + result["message"].to_s
             else
                 puts '{"error": "' + result["message"].to_s + '"}'
@@ -530,7 +541,7 @@ when "clone"
                 if options[:json].nil? || !options[:json]
                     puts "Error: " + msg.to_s
                 else
-                    puts '{"error": "' + msg + '""}'
+                    puts '{"error": "' + msg + '"}'
                 end
             end
         end
@@ -626,7 +637,7 @@ when "update"
                 if options[:json].nil? || !options[:json]
                     puts "Error: " + msg.to_s
                 else
-                    puts '{"error": "' + msg + '""}'
+                    puts '{"error": "' + msg + '"}'
                 end
             end
         end
@@ -641,9 +652,50 @@ when "update"
         end
     end
 when "revoke"
-    result, msg = Oydid.revoke(input_did, options)
+    did, msg = Oydid.revoke(input_did, options)
+    if did.nil?
+        if msg.to_s != ""
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "Error: " + msg.to_s
+                else
+                    puts '{"error": "' + msg + '"}'
+                end
+            end
+        end
+        exit(-1)
+    else
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "revoked " + did
+            else
+                puts '{"did": "did:oyd:"' + did.to_s + '", "operation": "revoke"}'
+            end
+        end
+    end
+
 when "delete"
-    result, msg = delete(input_did, options)
+    did, msg = delete(input_did, options)
+    if did.nil?
+        if msg.to_s != ""
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "Error: " + msg.to_s
+                else
+                    puts '{"error": "' + msg + '"}'
+                end
+            end
+        end
+        exit(-1)
+    else
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "deleted " + did
+            else
+                puts '{"did": "did:oyd:"' + did.to_s + '", "operation": "delete"}'
+            end
+        end
+    end
 when "sc_init"
     sc_init(options)
 when "sc_token"

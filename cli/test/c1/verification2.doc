@@ -84,7 +84,7 @@ identifier: zQmf6qRANG6XeKKcrbJ1tz2PZem5pndAG5as99dFaPaYvpi
   "doc": "zQmV5Bg2wojagooX4JSHpuSEHehYknM6tjT4VyJ6zqm4wN8",
   "sig": "zT4oCcMGign1J1MKqoxRndyZFoBkZ9T9cPSbkiwFxw1FLbiBNocfD3F2t5o4Mv3jtGfeSxrkfzjAc9Ef4Qztuna3",
   "previous": [
-    "zQmTZ4qB2DddzvhTKQHW683gZo6et738WeEdLRgNmrh1LU8",
+    "zQmbHAMNnuCnWufJ7FLo7XHic9LFBt4iWHhq8f9yQr2KUXi",
     "zQmZLcZKyZ1pNy5bAZYC3wgAHy9TWnFsfJqFQSHb9keQCoV"
   ]
 }
@@ -97,7 +97,7 @@ found UPDATE log record:
   "doc": "zQme7H3X9CheEE9ftWAjDiEsBbomFVmijHsWqP9dn3KsUsd",
   "sig": "z4yFXuAYjwrd69nJxLvmoGqaeTtJTGGNJUweJaahLZ6132oin32oYDkq8MgxVYsPPdFkCBMcXcDCdPvFr6XHehkBm",
   "previous": [
-    "zQmRHVNqgrZPfHtnsQQoTBzAiThjqqeJj1WsUzxJW8yiRpH"
+    "zQmNunrtoiNz39r8XWZ4jYRXCFEhU4rEtfizNmvZqNS5V6h"
   ]
 }
 ✅ public key from last DID Document: z6MuvWooepYBxXLdYggPjxfEZCW3DqDhapLCnYDxnQjkoShA

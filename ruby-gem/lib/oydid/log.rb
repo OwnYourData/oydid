@@ -78,7 +78,7 @@ class Oydid
             if el["op"].to_i == 0
                 terminate_indices << i
             end
-            log_hash << hash(canonical(el))
+            log_hash << Oydid.hash(Oydid.canonical(el))
             dag_log << dag.add_vertex(id: i)
             i += 1
         end unless logs.nil?
@@ -111,9 +111,9 @@ class Oydid
             if el["op"].to_i == 0
                 if dag.vertices[i].successors.length == 0
                     terminate_entries += 1
+                    terminate_index = i
                 end
                 terminate_overall += 1
-                terminate_index = i
             end
             i += 1
         end unless logs.nil?
@@ -160,12 +160,14 @@ class Oydid
         currentDID["log"].each do |el|
             case el["op"]
             when 2,3 # CREATE, UPDATE
+                currentDID["doc_log_id"] = i
+
                 doc_did = el["doc"]
                 doc_location = get_location(doc_did)
                 did_hash = doc_did.delete_prefix("did:oyd:")
                 did_hash = did_hash.split("@").first
                 did10 = did_hash[0,10]
-                doc = retrieve_document(doc_did, did10 + ".doc", doc_location, {})
+                doc = retrieve_document_raw(doc_did, did10 + ".doc", doc_location, {})
                 if doc.first.nil?
                     currentDID["error"] = 2
                     msg = doc.last.to_s
@@ -175,11 +177,9 @@ class Oydid
                     currentDID["message"] = msg
                     return currentDID
                 end
-                doc = doc.first
+                doc = doc.first["doc"]
                 if el["op"] == 2 # CREATE
-                    if match_log_did?(el, doc)
-                        currentDID["doc_log_id"] = i
-                    else
+                    if !match_log_did?(el, doc)
                         currentDID["error"] = 1
                         currentDID["message"] = "Signatures in log don't match"
                         return currentDID
@@ -187,7 +187,6 @@ class Oydid
                 end
                 currentDID["did"] = doc_did
                 currentDID["doc"] = doc
-
                 # since hash is guaranteed during retrieve_document this check is not necessary
                 # if hash(canonical(doc)) != did_hash
                 #     currentDID["error"] = 1
@@ -213,6 +212,7 @@ class Oydid
                     currentDID["verification"] += "(Details: https://ownyourdata.github.io/oydid/#calculate_hash)" + "\n\n"
                 end
                 current_public_doc_key = currentDID["doc"]["key"].split(":").first rescue ""
+
             when 0 # TERMINATE
                 currentDID["termination_log_id"] = i
 
@@ -221,14 +221,14 @@ class Oydid
                 did_hash = doc_did.delete_prefix("did:oyd:")
                 did_hash = did_hash.split("@").first
                 did10 = did_hash[0,10]
-                doc = retrieve_document(doc_did, did10 + ".doc", doc_location, {})
+                doc = retrieve_document_raw(doc_did, did10 + ".doc", doc_location, {})
                 # since it retrieves a DID that previously existed, this test is not necessary
                 # if doc.first.nil?
                 #     currentDID["error"] = 2
                 #     currentDID["message"] = doc.last.to_s
                 #     return currentDID
                 # end
-                doc = doc.first
+                doc = doc.first["doc"]
                 term = doc["log"]
                 log_location = term.split("@")[1] rescue ""
                 if log_location.to_s == ""
@@ -261,7 +261,7 @@ class Oydid
                 log_array, msg = retrieve_log(did_hash, did10 + ".log", log_location, options)
                 log_array.each do |log_el|
                     log_el_structure = log_el.dup
-                    if log_el["op"] == 1 # TERMINATE
+                    if log_el["op"].to_i == 1 # TERMINATE
                         log_el_structure.delete("previous")
                     end
                     if hash(canonical(log_el_structure)) == revoc_term
@@ -303,7 +303,7 @@ class Oydid
                 if revoc_term_found
                     update_term_found = false
                     log_array.each do |log_el|
-                        if log_el["op"] == 3
+                        if log_el["op"].to_i == 3
                             if log_el["previous"].include?(hash(canonical(revocation_record)))
                                 update_term_found = true
                                 message = log_el["doc"].to_s
@@ -325,13 +325,13 @@ class Oydid
                                         next_did_hash = next_doc_did.delete_prefix("did:oyd:")
                                         next_did_hash = next_did_hash.split("@").first
                                         next_did10 = next_did_hash[0,10]
-                                        next_doc = retrieve_document(next_doc_did, next_did10 + ".doc", next_doc_location, {})
+                                        next_doc = retrieve_document_raw(next_doc_did, next_did10 + ".doc", next_doc_location, {})
                                         if next_doc.first.nil?
                                             currentDID["error"] = 2
                                             currentDID["message"] = next_doc.last
                                             return currentDID
                                         end
-                                        next_doc = next_doc.first
+                                        next_doc = next_doc.first["doc"]
                                         if public_key == next_doc["key"].split(":").first
                                             currentDID["verification"] += "⚠️  no key rotation in updated DID Document" + "\n"
                                         end
@@ -346,7 +346,7 @@ class Oydid
                                         new_did_hash = new_doc_did.delete_prefix("did:oyd:")
                                         new_did_hash = new_did_hash.split("@").first
                                         new_did10 = new_did_hash[0,10]
-                                        new_doc = retrieve_document(new_doc_did, new_did10 + ".doc", new_doc_location, {})
+                                        new_doc = retrieve_document(new_doc_did, new_did10 + ".doc", new_doc_location, {}).first
                                         currentDID["verification"] += "found UPDATE log record:" + "\n"
                                         currentDID["verification"] += JSON.pretty_generate(log_el) + "\n"
                                         currentDID["verification"] += "⛔ public key from last DID Document: " + current_public_doc_key.to_s + "\n"

@@ -17,6 +17,7 @@ class Oydid
     LOCATION_PREFIX = "@"
     DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
 
+
     # expected DID format: did:oyd:123
     def self.read(did, options)
         # setup
@@ -103,12 +104,13 @@ class Oydid
                 puts " .. DAG with " + dag.vertices.length.to_s + " vertices and " + dag.edges.length.to_s + " edges, CREATE index: " + create_index.to_s
             end
             ordered_log_array = dag2array(dag, log_array, create_index, [], options)
+            ordered_log_array << log_array[terminate_index]
+            currentDID["log"] = ordered_log_array
             if options[:trace]
                 if options[:silent].nil? || !options[:silent]
                     puts "    vertex " + terminate_index.to_s + " at " + log_array[terminate_index]["ts"].to_s + " op: " + log_array[terminate_index]["op"].to_s + " doc: " + log_array[terminate_index]["doc"].to_s
                 end
             end
-            ordered_log_array << log_array[terminate_index]
             currentDID["log"] = ordered_log_array
             if options[:trace]
                 if options[:silent].nil? || !options[:silent]
@@ -407,24 +409,10 @@ class Oydid
         end
         did_info, msg = read(did, options)
         if did_info.nil?
-            if options[:silent].nil? || !options[:silent]
-                if options[:json].nil? || !options[:json]
-                    puts "Error: cannot resolve DID (on revoking DID)"
-                else
-                    puts '{"error": "cannot resolve DID (on revoking DID)"}'
-                end
-            end
-            exit (-1)
+            return [nil, "cannot resolve DID (on revoking DID)"]
         end
         if did_info["error"] != 0
-            if options[:silent].nil? || !options[:silent]
-                if options[:json].nil? || !options[:json]
-                    puts "Error: " + did_info["message"].to_s
-                else
-                    puts '{"error": "' + did_info["message"].to_s + '"}'
-                end
-            end
-            exit(1)
+            return [nil, did_info["message"].to_s]
         end
 
         did = did_info["did"]
@@ -455,14 +443,7 @@ class Oydid
             privateKey, msg = read_private_key(options[:doc_key].to_s)
         end
         if privateKey.nil?
-            if options[:silent].nil? || !options[:silent]
-                if options[:json].nil? || !options[:json]
-                    puts "Error: private key not found"
-                else
-                    puts '{"error": "private key not found"}'
-                end
-            end
-            exit(1)
+            return [nil, "private key not found"]
         end
         if options[:rev_key].nil? && options[:rev_pwd].nil?
             revocationKey, msg = read_private_key(did10 + "_revocation_key.b58")
@@ -490,14 +471,7 @@ class Oydid
         end
 
         if revocationLog.nil?
-            if options[:silent].nil? || !options[:silent]
-                if options[:json].nil? || !options[:json]
-                    puts "Error: private revocation key not found"
-                else
-                    puts '{"error": "private revocation key not found"}'
-                end
-            end
-            exit(1)
+            return [nil, "private revocation key not found"]
         end
 
         revoc_log = JSON.parse(revocationLog)
@@ -517,16 +491,8 @@ class Oydid
                 headers: { 'Content-Type' => 'application/json' },
                 body: {"log": revoc_log}.to_json )
             if retVal.code != 200
-                if options[:silent].nil? || !options[:silent]
-                    if options[:json].nil? || !options[:json]
-                        puts "Registry Error: " + retVal.parsed_response("error").to_s rescue 
-                            puts "Error: invalid response from " + doc_location.to_s + "/log/" + did.to_s
-                    else
-                        puts '{"error": "' + retVal.parsed_response['error'].to_s + '", "source": "registry"}' rescue
-                            puts '{"error": "invalid response from ' + doc_location.to_s + "/log/" + did.to_s + '"}'
-                    end
-                end
-                exit(1)
+                msg = retVal.parsed_response("error").to_s rescue "invalid response from " + doc_location.to_s + "/log/" + did.to_s
+                return [nil, msg]
             end
         else
             File.write(did10 + ".log", [log_old, revoc_log].flatten.compact.to_json)
@@ -535,15 +501,7 @@ class Oydid
             end
         end
 
-        if options[:silent].nil? || !options[:silent]
-            # write operations to stdout
-            if options[:json].nil? || !options[:json]
-                puts "revoked did:oyd:" + did
-            else
-                puts '{"did": "did:oyd:"' + did.to_s + '", "operation": "revoke"}'
-            end
-        end
-        did
+        return [did, ""]
 
     end
 
