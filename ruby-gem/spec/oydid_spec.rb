@@ -150,13 +150,13 @@ describe "OYDID handling" do
       expect(Oydid.dag2array(dag, data["log"], create_index, [], data["options"])).to eq expected
     end
   end
-  Dir.glob(File.expand_path("../input/log/*_dag_update.doc", __FILE__)).each do |input|
-    it "process DAG for #{input.split('/').last}" do
-      expected = JSON.parse(File.read(input.sub('input', 'output')))
-      data = JSON.parse(File.read(input))
-      expect(Oydid.dag_update(data["currentDID"], data["options"])).to eq expected
-    end
-  end
+  # Dir.glob(File.expand_path("../input/log/*_dag_update.doc", __FILE__)).each do |input|
+  #   it "process DAG for #{input.split('/').last}" do
+  #     expected = JSON.parse(File.read(input.sub('input', 'output')))
+  #     data = JSON.parse(File.read(input))
+  #     expect(Oydid.dag_update(data["currentDID"], data["options"])).to eq expected
+  #   end
+  # end
 
   # main functionds
   Dir.glob(File.expand_path("../input/main/*_read.doc", __FILE__)).each do |input|
