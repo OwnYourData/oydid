@@ -28,10 +28,10 @@ class DidsController < ApplicationController
 
         retVal = {
             "didResolutionMetadata":{},
-            "didDocument": w3c_did(result, {}),
+            "didDocument": Oydid.w3c(result, {}),
             "didDocumentMetadata": {
                 "did": result["did"].to_s,
-                "registry": get_location(result["did"].to_s),
+                "registry": Oydid.get_location(result["did"].to_s),
                 "log_hash": result["doc"]["log"].to_s,
                 "log": result["log"],
                 "document_log_id": result["doc_log_id"].to_i,
