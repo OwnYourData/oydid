@@ -79,3 +79,7 @@ ruby-gem/pkg/
 ruby-gem/coverage/
 uniresolver-plugin/tmp/
 ~$*
+
+#pytest
+.pytest_cache
+__pycache__

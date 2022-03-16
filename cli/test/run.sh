@@ -172,6 +172,24 @@ if ! cmp -s tmp.doc c1/did_clone.doc ; then
 fi
 rm tmp.doc
 
+# test to/fromW3C
+cat c1/oydid.did | $OYDIDCMD toW3C > tmp.doc
+if ! cmp -s tmp.doc c1/w3c.did ; then
+	echo "converting toW3C failed"
+	rm tmp.doc
+	exit 1
+fi
+rm tmp.doc
+
+cat c1/w3c.did | $OYDIDCMD fromW3C > tmp.doc
+if ! cmp -s tmp.doc c1/oydid.did ; then
+	echo "converting fromW3C failed"
+	rm tmp.doc
+	exit 1
+fi
+rm tmp.doc
+echo "converting between OYDID and W3C successful"
+
 
 # test public OYDID resolver
 curl -s -k https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh | jq ".didDocument" > tmp.doc
@@ -239,8 +257,7 @@ rm tmp.doc
 # 	rm tmp.doc
 # 	exit 1
 # fi
-# echo "testing Uniresolver successful"
-# rm tmp.doc
+echo "testing Uniresolver successful"
 rm zQm*
 
 

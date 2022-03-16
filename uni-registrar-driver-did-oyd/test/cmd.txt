@@ -2,4 +2,75 @@ docker run -d --name=registrar -p 3000:3000 oydeu/oydid-registrar
 
 docker rm -f registrar
 
-curl http://localhost:3000/1.0/create
+### CREATE =============
+
+Create variants:
+1) input as document-only - "didDocument": [0]
+   and provide options for
+   . key password
+   . key encoded
+   . location
+2) input as W3C format
+3) input pre-processed, so that no private keys need to be shared
+
+# OK: document only
+echo '{"jobId": null, "options": {}, "secret": {}, "didDocument": [0]}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
+
+# OK: document + set key password in options
+echo '{"jobId": null, "options": {"ts": 1610839949}, "secret": {"doc_pwd":"secret", "rev_pwd":"secret"}, "didDocument": [0]}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
+
+# OK: document + private key
+echo '{"jobId": null, "options": {"ts": 1610839949}, "secret": {"doc_enc":"z1S5U4Pu1ks2mcye8swTxNREmzWTLRffYs2LNxaiypNig5ri", "rev_enc":"z1S5U4Pu1ks2mcye8swTxNREmzWTLRffYs2LNxaiypNig5ri"}, "didDocument": [0]}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
+
+# OK: document + other location
+echo '{"jobId": null, "options": {"location":"did2.data-container.net"}, "secret": {}, "didDocument": [0]}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
+
+# OK: W3C did doc
+echo '{"jobId": null, "options": {}, "secret": {}, "didDocument": {"@context": "https://www.w3.org/ns/did/v1","authentication": [],"service": [0]}}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
+
+# OK: pre-processed
+echo '{"jobId": null, "options": {"log_create":{"ts":1647132010,"op":2,"doc":"zQmQxQ9XXQAo3wpHJPbgSvywgjbuGiM4gzVVWYKVVydWeGb","sig":"z3PDs2ePgPuZPWf8akniX458TsV7tcN2ankNY57sybRbd2BtzK56gmxRkfW1Tb7rHNjePhW9gcYJGWTFtxNedtgwz","previous":[]}, "log_terminate":{"ts":1647132010,"op":0,"doc":"zQmUq19VxnNYGNgzJqi2eVUths2HUQWcLt8bvzdxSL6Ee8G","sig":"z4XwfAwVcsjMggU1m9Fqcg96UmhwKtdcGFQTpeDBocPoSzGqSZ1dYUT6hkxSjeQ6oiMUq4g77zbRZob1wZoLsCEzJ","previous":[]}}, "secret": {}, "didDocument": {"doc":[0],"key":"z6Mv8BiEh19XHVvhiELPJ3HTpNo56eWicP3oaymDiA4ZVgXc:z6MuuncV5NpRUdbAGafisxA4z1Ko742DgSzeAmKU9qFhRX5Q","log":"zQmVYs3r1pgMaTA1dUGdYYzZMiUyZLC187kkZrQTyDS6ZjB"}}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
+
+# check error handling - invalid hash in log_create
+echo '{"jobId": null, "options": {"log_create":{"ts":1647132010,"op":2,"doc":"zQmQxQ9XXQAo3wpHJPbgSvywgjbuGiM4gzVVWYKVVydWegb","sig":"z3PDs2ePgPuZPWf8akniX458TsV7tcN2ankNY57sybRbd2BtzK56gmxRkfW1Tb7rHNjePhW9gcYJGWTFtxNedtgwz","previous":[]}, "log_terminate":{"ts":1647132010,"op":0,"doc":"zQmUq19VxnNYGNgzJqi2eVUths2HUQWcLt8bvzdxSL6Ee8G","sig":"z4XwfAwVcsjMggU1m9Fqcg96UmhwKtdcGFQTpeDBocPoSzGqSZ1dYUT6hkxSjeQ6oiMUq4g77zbRZob1wZoLsCEzJ","previous":[]}}, "secret": {}, "didDocument": {"doc":[0],"key":"z6Mv8BiEh19XHVvhiELPJ3HTpNo56eWicP3oaymDiA4ZVgXc:z6MuuncV5NpRUdbAGafisxA4z1Ko742DgSzeAmKU9qFhRX5Q","log":"zQmVYs3r1pgMaTA1dUGdYYzZMiUyZLC187kkZrQTyDS6ZjB"}}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
+
+# OK: pre-processed - invalid signature in log_crate
+echo '{"jobId": null, "options": {"log_create":{"ts":1647132010,"op":2,"doc":"zQmQxQ9XXQAo3wpHJPbgSvywgjbuGiM4gzVVWYKVVydWeGb","sig":"z3PDs2ePgPuZPWf8akniX458TsV7tcN2ankNY57sybRbd2BtzK56gmxRkfW1Tb7rHNjePhW9gcYJGWTFtxNedtgwZ","previous":[]}, "log_terminate":{"ts":1647132010,"op":0,"doc":"zQmUq19VxnNYGNgzJqi2eVUths2HUQWcLt8bvzdxSL6Ee8G","sig":"z4XwfAwVcsjMggU1m9Fqcg96UmhwKtdcGFQTpeDBocPoSzGqSZ1dYUT6hkxSjeQ6oiMUq4g77zbRZob1wZoLsCEzJ","previous":[]}}, "secret": {}, "didDocument": {"doc":[0],"key":"z6Mv8BiEh19XHVvhiELPJ3HTpNo56eWicP3oaymDiA4ZVgXc:z6MuuncV5NpRUdbAGafisxA4z1Ko742DgSzeAmKU9qFhRX5Q","log":"zQmVYs3r1pgMaTA1dUGdYYzZMiUyZLC187kkZrQTyDS6ZjB"}}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
+
+# OK: pre-processed
+echo '{"jobId": null, "options": {"log_create":{"ts":1647132010,"op":2,"doc":"zQmQxQ9XXQAo3wpHJPbgSvywgjbuGiM4gzVVWYKVVydWeGb","sig":"z3PDs2ePgPuZPWf8akniX458TsV7tcN2ankNY57sybRbd2BtzK56gmxRkfW1Tb7rHNjePhW9gcYJGWTFtxNedtgwz","previous":[]}, "log_terminate":{"ts":1647132010,"op":0,"doc":"zQmUq19VxnNYGNgzJqi2eVUths2HUQWcLt8bvzdxSL6Ee8G","sig":"z4XwfAwVcsjMggU1m9Fqcg96UmhwKtdcGFQTpeDBocPoSzGqSZ1dYUT6hkxSjeQ6oiMUq4g77zbRZob1wZoLsCEzj","previous":[]}}, "secret": {}, "didDocument": {"doc":[0],"key":"z6Mv8BiEh19XHVvhiELPJ3HTpNo56eWicP3oaymDiA4ZVgXc:z6MuuncV5NpRUdbAGafisxA4z1Ko742DgSzeAmKU9qFhRX5Q","log":"zQmVYs3r1pgMaTA1dUGdYYzZMiUyZLC187kkZrQTyDS6ZjB"}}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
+
+# pre-processed - better
+echo '[1]' | ../oydid.rb create --simulate --doc-pwd pwd1 --rev-pwd pwd2 --ts 1610839947 | jq '{jobId: null, options: {log_create: .log_create, log_terminate: .log_terminate}, secret: {}, didDocument: .doc}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
+
+
+### UPDATE =============
+# document only
+echo '{"jobId": null, "identifer":"did:oyd:zQmNacw4oZ2MkYXWfYrjzwejnx2LzcReMMcbHpNqsKgxV78", "options": {}, "secret": {"old_doc_pwd": "pwd1", "old_rev_pwd": "pwd2"}, "didDocument": [3]}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/update
+
+# W3C did doc
+echo '{"jobId": null, "options": {}, "secret": {}, "didDocument": {"@context": "https://www.w3.org/ns/did/v1","authentication": [],"service": [0]}}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
+
+# pre-processed --------
+old=$(echo '[1]' | ../oydid.rb create --simulate --doc-pwd pwd1 --rev-pwd pwd2 --ts 1610839947 | jq '{"did": .did, "log_revoke": .log_revoke}'); echo '[2]' | ../oydid.rb update did:oyd:zQmNacw4oZ2MkYXWfYrjzwejnx2LzcReMMcbHpNqsKgxV78 --simulate --doc-pwd pwd1 --old_doc-pwd pwd1 --rev-pwd pwd2 --old-rev-pwd pwd2 --ts 1610839948 | jq -r --arg OLD "$old" '{jobId: null, identifer:  $OLD | fromjson .did, options: {log_revoke: $OLD | fromjson .log_revoke, log_update: .log_update, log_terminate: .log_terminate, "old-doc-pwd": "pwd1", "old-rev-pwd": "pwd2"}, secret: {}, didDocument: .doc}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/update
+
+# get infos from first DID: identifier & revocation log => store in ENV $old
+old=$(echo '[1]' | ../oydid.rb create --simulate --doc-pwd pwd1 --rev-pwd pwd2 --ts 1610839947 | jq '{"did": .did, "log_revoke": .log_revoke}');
+
+# simulte creating update 
+echo '[2]' | ../oydid.rb update $(echo $old | jq -r '.did') --simulate --doc-pwd pwd1 --old_doc-pwd pwd1 --rev-pwd pwd2 --old-rev-pwd pwd2 --ts 1610839948
+
+# only relevant fields from update simulation
+echo '[2]' | ../oydid.rb update did:oyd:zQmNacw4oZ2MkYXWfYrjzwejnx2LzcReMMcbHpNqsKgxV78 --simulate --doc-pwd pwd1 --old_doc-pwd pwd1 --rev-pwd pwd2 --old-rev-pwd pwd2 --ts 1610839948 | jq -r '{jobId: null, identifer:  null, options: {log_revoke: null, log_update: .log_update, log_terminate: .log_terminate, "old-doc-pwd": "pwd1", "old-rev-pwd": "pwd2"}, secret: {}, didDocument: .doc}'
+
+# stitch both versions together and build structure for registrar
+echo '[2]' | ../oydid.rb update $(echo $old | jq -r '.did') --simulate --doc-pwd pwd1 --old_doc-pwd pwd1 --rev-pwd pwd2 --old-rev-pwd pwd2 --ts 1610839948 | jq -r --arg OLD "$old" '{jobId: null, identifer:  $OLD | fromjson .did, options: {log_revoke: $OLD | fromjson .log_revoke, log_update: .log_update, log_terminate: .log_terminate, "doc_pwd": "pwd1", "rev_pwd": "pwd2", "old_doc_pwd": "pwd1", "old_rev_pwd": "pwd2", "ts": 1610839948}, secret: {}, didDocument: .doc}'  | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/update
+
+# "simplified" statement 
+echo '{"jobId":null,"identifer":"did:oyd:zQmNacw4oZ2MkYXWfYrjzwejnx2LzcReMMcbHpNqsKgxV78","options":{"log_revoke":{"ts":1610839947,"op":1,"doc":"zQmPvTVcy4UmqS39GV92H177LWRYkrYtmueQdKqfxakavuf","sig":"z546j3EsfWqb6sSAvPeP7kkjNYR2Lwb6RDZAwhj1u8zwEAqWhJVvc2jNvDsrkLge4Ch6j4arCCi55RARCS8aBEPZj"},"log_update":{"ts":1610839948,"op":3,"doc":"zQmV3EjDAYse11SFStTgY51FrUiMeV5PR9HWZh7AL25EVAS","sig":"z5U21GPgEzaYHH7BGc1KJaHMvGij8yTaAvVeAgYtexdd2id6bdtcxGZ6FK3ptYe2NehsQKanBjLroKdyWogELzCC9","previous":["zQmVAhKPfoempgSgP6y5httbag1Nfd7KBKC1PVeweQ1jAZa"]},"log_terminate":{"ts":1610839948,"op":0,"doc":"zQmTPeo4WktWyDQhhCFRGBn35BwEP4UBTnJUrrdFew6bKgt","sig":"z35KrPWrgLeuFpDB7PRPCVL1YVwpXSZPuguaVfjwSBkcPz3jW5L2JJ9SL2yvYyNEHwiUqWnKFsccNMnmSsh2PpmGN","previous":[]}, "doc_pwd": "pwd1", "rev_pwd": "pwd2", "old_doc_pwd":"pwd1","old_rev_pwd":"pwd2"},"secret":{},"didDocument":{"doc":[2],"key":"z6MuvWooepYBxXLdYggPjxfEZCW3DqDhapLCnYDxnQjkoShA:z6Mv2CANJwu6QJfowhyqeFp5VoZUL4RyNZDwRcpgNrLVc5dh","log":"zQmZM2ymPLZxey1XgiE1wU8hqcDZkn4yzFH2eVHyPuRvi6s"}}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/update
+
+
+
+
+### DEACTIVATE =========
+echo '{"jobId": null, "identifier":"did:oyd:asdf", "options": {}, "secret": {}}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/deactivate

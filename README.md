@@ -1,4 +1,4 @@
-# Own Your Decentralied IDentifier (OYDID)
+# Own Your Decentralized IDentifier (OYDID)
 
 OYDID provides a self-sustained environment for managing digital identifiers (DIDs). The `did:oyd` method links the identifier cryptographically to the DID Document and through also cryptographically linked provenance information in a public log it ensures resolving to the latest valid version of the DID Document.
 
@@ -14,6 +14,7 @@ OYDID provides a self-sustained environment for managing digital identifiers (DI
     * use the `oydeu/oydid-base` image on Dockerhub: https://hub.docker.com/r/oydeu/oydid-base    
     * API documentation is available here: https://api-docs.ownyourdata.eu/oydid/    
 * Universal Resolver driver: https://github.com/OwnYourData/oydid/tree/main/uniresolver-plugin    
+* Universal Registrar driver : https://github.com/OwnYourData/oydid/tree/main/uni-registrar-driver-did-oyd    
 * JS library for [`did-resolver`](https://github.com/decentralized-identity/did-resolver): https://github.com/OwnYourData/oydid/tree/main/js-resolver     
 
 &nbsp;    

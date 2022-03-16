@@ -131,7 +131,6 @@ class Oydid
 
     def self.create(content, options)
         return write(content, nil, "create", options)
-
     end
 
     def self.update(content, did, options)
@@ -139,8 +138,8 @@ class Oydid
     end
 
     def self.generate_base(content, did, mode, options)
-        # generate did_doc and did_key
-        did_doc = JSON.parse(content.join("")) rescue {}
+        # input validation
+        did_doc = JSON.parse(content.to_json) rescue {}
         if did_doc == {}
             return [nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, "empty or invalid payload"]
         end        
@@ -158,7 +157,11 @@ class Oydid
         if mode == "create" || mode == "clone"
             operation_mode = 2 # CREATE
             if options[:doc_key].nil?
-                privateKey, msg = generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv')
+                if options[:doc_enc].nil?
+                    privateKey, msg = generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv')
+                else
+                    privateKey, msg = decode_private_key(options[:doc_enc].to_s)
+                end
             else
                 privateKey, msg = read_private_key(options[:doc_key].to_s)
                 if privateKey.nil?
@@ -166,7 +169,11 @@ class Oydid
                 end
             end
             if options[:rev_key].nil?
-                revocationKey, msg = generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv')
+                if options[:rev_enc].nil?
+                    revocationKey, msg = generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv')
+                else
+                    revocationKey, msg = decode_private_key(options[:rev_enc].to_s)
+                end
             else
                 revocationKey, msg = read_private_key(options[:rev_key].to_s)
                 if revocationKey.nil?
@@ -198,21 +205,65 @@ class Oydid
             did_old = did.dup
             did10_old = did10.dup
             log_old = did_info["log"]
-            privateKey_old = read_private_storage(did10_old + "_private_key.b58")
-            revocationKey_old = read_private_storage(did10_old + "_revocation_key.b58")
+            if options[:old_doc_key].nil?
+                if options[:old_doc_enc].nil?
+                    if options[:old_doc_pwd].nil?
+                        privateKey_old = read_private_storage(did10_old + "_private_key.b58")
+                    else
+                        privateKey_old, msg = generate_private_key(options[:old_doc_pwd].to_s, 'ed25519-priv')
+                    end
+                else
+                    privateKey_old, msg = decode_private_key(options[:old_doc_enc].to_s)
+                end
+            else
+                privateKey_old, msg = read_private_key(options[:old_doc_key].to_s)
+            end
+            if privateKey_old.nil?
+                return [nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, "invalid or missing old private document key"]
+            end
+            if options[:old_rev_key].nil?
+                if options[:old_rev_enc].nil?
+                    if options[:old_rev_pwd].nil?
+                        revocationKey_old = read_private_storage(did10_old + "_revocation_key.b58")
+                    else
+                        revocationKey_old, msg = generate_private_key(options[:old_rev_pwd].to_s, 'ed25519-priv')
+                    end
+                else
+                    revocationKey_old, msg = decode_private_key(options[:old_rev_enc].to_s)
+                end
+            else
+                revocationKey_old, msg = read_private_key(options[:old_rev_key].to_s)
+            end
+            if revocationKey_old.nil?
+                return [nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, "invalid or missing old private revocation key"]
+            end
 
             # key management
             if options[:doc_key].nil?
-                privateKey, msg = generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv')
+                if options[:doc_enc].nil?
+                    privateKey, msg = generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv')
+                else
+                    privateKey, msg = decode_private_key(options[:doc_enc].to_s)
+                end
             else
                 privateKey, msg = read_private_key(options[:doc_key].to_s)
             end
-            if options[:rev_key].nil? && options[:rev_pwd].nil?
-                revocationKey, msg = generate_private_key("", 'ed25519-priv')
-                revocationLog = read_private_storage(did10 + "_revocation.json")
-            else
+            # if options[:rev_key].nil? && options[:rev_pwd].nil? && options[:rev_enc].nil?
+            #     revocationLog = read_private_storage(did10 + "_revocation.json")
+            #     if revocationLog.nil?
+            #         return [nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, "invalid or missing old revocation log"]
+            #     end
+            # else
                 if options[:rev_key].nil?
-                    revocationKey, msg = generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv')
+                    if options[:rev_enc].nil?
+                        if options[:rev_pwd].nil?
+                            revocationKey, msg = generate_private_key("", 'ed25519-priv')
+                        else
+                            revocationKey, msg = generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv')
+                        end
+                    else
+                        revocationKey, msg = decode_private_key(options[:rev_enc].to_s)
+                    end
                 else
                     revocationKey, msg = read_private_key(options[:rev_key].to_s)
                 end
@@ -231,7 +282,7 @@ class Oydid
                     "op": 1, # REVOKE
                     "doc": subDidHash,
                     "sig": signedSubDidHash }.transform_keys(&:to_s).to_json
-            end
+            # end
             revoc_log = JSON.parse(revocationLog)
             revoc_log["previous"] = [
                 hash(canonical(log_old[did_info["doc_log_id"].to_i])), 
@@ -390,17 +441,34 @@ class Oydid
         success, msg = publish(did, didDocument, logs, options)
 
         if success
-            write_private_storage(privateKey, did10 + "_private_key.b58")
-            write_private_storage(revocationKey, did10 + "_revocation_key.b58")
-            write_private_storage(r1.to_json, did10 + "_revocation.json")
+            w3c_input = {
+                "did" => did,
+                "doc" => didDocument
+            }
+            retVal = {
+                "did" => did,
+                "doc" => didDocument,
+                "doc_w3c" => w3c(w3c_input, options),
+                "log" => logs
+            }
+            if options[:return_secrets]
+                retVal["private_key"] = privateKey
+                retVal["revocation_key"] = revocationKey
+                retVal["revocation_log"] = r1
+            else
+                write_private_storage(privateKey, did10 + "_private_key.b58")
+                write_private_storage(revocationKey, did10 + "_revocation_key.b58")
+                write_private_storage(r1.to_json, did10 + "_revocation.json")
+            end
 
-            return [did, ""]
+            return [retVal, ""]
         else
             return [nil, msg]
         end
     end
 
     def self.revoke(did, options)
+        did_orig = did.dup
         doc_location = options[:doc_location]
         if options[:ts].nil?
             ts = Time.now.to_i
@@ -435,7 +503,11 @@ class Oydid
 
         if options[:doc_key].nil?
             if options[:doc_pwd].nil?
-                privateKey, msg = read_private_key(did10 + "_private_key.b58")
+                if options[:doc_enc].nil?
+                    privateKey, msg = read_private_key(did10 + "_private_key.b58")
+                else
+                    privateKey, msg = decode_private_key(options[:doc_enc].to_s)
+                end
             else
                 privateKey, msg = generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv')
             end
@@ -445,12 +517,16 @@ class Oydid
         if privateKey.nil?
             return [nil, "private key not found"]
         end
-        if options[:rev_key].nil? && options[:rev_pwd].nil?
+        if options[:rev_key].nil? && options[:rev_pwd].nil? && options[:rev_enc].nil?
             revocationKey, msg = read_private_key(did10 + "_revocation_key.b58")
             revocationLog = read_private_storage(did10 + "_revocation.json")
         else
             if options[:rev_pwd].nil?
-                revocationKey, msg = read_private_key(options[:rev_key].to_s)
+                if options[:rev_enc].nil?
+                    revocationKey, msg = read_private_key(options[:rev_key].to_s)
+                else
+                    revocationKey, msg = decode_private_key(options[:rev_enc].to_s)
+                end
             else
                 revocationKey, msg = generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv')
             end
@@ -501,7 +577,7 @@ class Oydid
             end
         end
 
-        return [did, ""]
+        return [did_orig, ""]
 
     end
 
@@ -544,35 +620,78 @@ class Oydid
         options[:previous_clone] = hash(canonical(source_log)) + LOCATION_PREFIX + source_location
         options[:source_location] = source_location
         options[:source_did] = source_did["did"]
-        did, msg = write([source_did["doc"]["doc"].to_json], nil, "clone", options)
-        return [did, msg]
+        retVal, msg = write(source_did["doc"]["doc"], nil, "clone", options)
+        return [retVal, msg]
     end
 
-    def self.w3c(did_info, options)
-        pubDocKey = did_info["doc"]["key"].split(":")[0] rescue ""
-        pubRevKey = did_info["doc"]["key"].split(":")[1] rescue ""
+   def self.w3c(did_info, options)
+        did = did_info["did"]
+        if !did.start_with?("did:oyd:")
+            did = "did:oyd:" + did
+        end
+
+        didDoc = did_info.transform_keys(&:to_s)["doc"]
+        pubDocKey = didDoc["key"].split(":")[0] rescue ""
+        pubRevKey = didDoc["key"].split(":")[1] rescue ""
 
         wd = {}
         wd["@context"] = "https://www.w3.org/ns/did/v1"
-        wd["id"] = "did:oyd:" + did_info["did"]
+        wd["id"] = did
         wd["verificationMethod"] = [{
-            "id": "did:oyd:" + did_info["did"],
+            "id": did,
             "type": "Ed25519VerificationKey2020",
-            "controller": "did:oyd:" + did_info["did"],
+            "controller": did,
             "publicKeyBase58": pubDocKey
         }]
         wd["keyAgreement"] = [{
-            "id": "did:oyd:" + did_info["did"],
+            "id": did,
             "type": "Ed25519VerificationKey2020",
-            "controller": "did:oyd:" + did_info["did"],
+            "controller": did,
             "publicKeyBase58": pubRevKey
         }]
-        if did_info["doc"]["doc"].is_a?(Array)
-            wd["service"] = did_info["doc"]["doc"]
-        else
-            wd["service"] = [did_info["doc"]["doc"]]
+
+        if didDoc["@context"].to_s == "https://www.w3.org/ns/did/v1"
+            didDoc.delete("@context")
         end
+        if didDoc["doc"].to_s != ""
+            didDoc = didDoc["doc"]
+        end
+        newDidDoc = []
+        if didDoc.is_a?(Hash)
+            if didDoc["authentication"].to_s != ""
+                wd["authentication"] = didDoc["authentication"]
+                didDoc.delete("authentication")
+            end
+            if didDoc["service"].to_s != ""
+                if didDoc["service"].is_a?(Array)
+                    newDidDoc = didDoc.dup
+                    newDidDoc.delete("service")
+                    if newDidDoc == {}
+                        newDidDoc = []
+                    else
+                        if !newDidDoc.is_a?(Array)
+                            newDidDoc=[newDidDoc]
+                        end
+                    end
+                    newDidDoc << didDoc["service"]
+                    newDidDoc = newDidDoc.flatten
+                end
+            else
+                newDidDoc = didDoc
+            end
+        else
+            newDidDoc = didDoc
+        end
+        wd["service"] = newDidDoc
         return wd
+    end
+
+    def self.fromW3C(didDocument, options)
+        didDocument = didDocument.transform_keys(&:to_s)
+        if didDocument["@context"].to_s == "https://www.w3.org/ns/did/v1"
+            didDocument.delete("@context")
+        end
+        didDocument
     end
 
 end

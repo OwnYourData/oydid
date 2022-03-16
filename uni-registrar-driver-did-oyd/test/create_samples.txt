@@ -1,0 +1,81 @@
+Input W3C-DID
+{
+  "@context": "https://www.w3.org/ns/did/v1",
+  "authentication": [],
+  "service": []
+}
+
+# if it includes "@context" and value is "https://www.w3.org/ns/did/v1"
+# put the rest into doc, i.e., just remove "@context"
+
+Output OYDID
+{
+    "doc":{
+        "authentication": [],
+        "service": []
+    },
+    "key":"1:2",
+    "log":"3"
+}
+
+# if "doc" includes
+# - "authentication": move to root
+# - "services": move content to root
+# - all others: under "services"
+
+
+Inputs
+d=JSON.parse('{
+    "did":"asdf",
+    "doc":{
+      "@context": "https://www.w3.org/ns/did/v1",
+      "authentication": [],
+      "service": []
+    }
+}')
+
+puts JSON.pretty_generate(w3c(d,o))
+
+
+Inputs
+d=JSON.parse('{
+    "did":"asdf",
+    "doc":{
+      "@context": "https://www.w3.org/ns/did/v1",
+      "authentication": [],
+      "service": [{"pivacy":"https://data-vault.eu/api/data"}]
+    }
+}')
+
+puts JSON.pretty_generate(w3c(d,o))
+
+
+Inputs
+d=JSON.parse('{
+    "did":"asdf",
+    "doc":{
+      "@context": "https://www.w3.org/ns/did/v1",
+      "hello": "world",
+      "authentication": [],
+      "service": [{"pivacy":"https://data-vault.eu/api/data"}]
+    }
+}')
+
+puts JSON.pretty_generate(w3c(d,o))
+
+
+
+Inputs
+d=JSON.parse('{
+    "did":"asdf",
+    "doc":{
+      "doc": {
+        "hello": "world2"
+      },
+      "key": "z6MuyxVDeUB78nLz2MsdQatrpJYYBaBSDH7bY4Gek75QXXju:z6MuzSjzLiT4mxy6uFQEh3tL8cCvNMW1jzoVsmyzytxwDS2x",
+      "log": "zQmXVEnbcezNczaSpPRtcPvGFHVDXq2QPh9GfbMFQHS4TbQ"
+    }
+}')
+
+puts JSON.pretty_generate(w3c(d,o))
+

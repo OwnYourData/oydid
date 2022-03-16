@@ -14,6 +14,7 @@ VERSION = "0.4.7"
 # internal functions -------------------------------
 
 def delete(did, options)
+    did_orig = did.dup
     doc_location = options[:doc_location]
     if doc_location.to_s == ""
         if did.include?(LOCATION_PREFIX)
@@ -100,7 +101,7 @@ def delete(did, options)
         end
         exit 1
     end
-    return [did, ""]
+    return [did_orig, ""]
 end
 
 # Semantic Container OYDID functions -------------------------------
@@ -337,6 +338,9 @@ def print_help()
     puts "  log       - print relevant log for given DID or log entry hash"
     puts "  logs      - print all available log entries for given DID or log hash"
     puts "  dag       - print graph for given DID"
+    puts "  fromW3C   - read W3C-conform DID document and convert to OYDID format"
+    puts "  toW3C     - read OYDID internal document and convert to W3C-conform"
+    puts "              DID document"
     puts "  clone     - clone DID to new location"
     puts "  delegate  - add log entry with additional keys for validating signatures"
     puts "              of document or revocation entries"
@@ -363,6 +367,8 @@ def print_help()
     puts "                                     private key for signing a revocation"
     puts "     --rev-pwd REVOCATION-PASSWORD - password for private key for signing"
     puts "                                     a revocation"
+    puts "     --simulate                    - for create/update/revoke operations:"
+    puts "                                     only show DID, DID document, logs"
     puts "     --show-hash                   - for log operation: additionally show"
     puts "                                     hash value of each entry"
     puts "     --show-verification           - display raw data and steps for"
@@ -392,6 +398,7 @@ opt_parser = OptionParser.new do |opt|
   options[:log_complete] = false
   options[:show_hash] = false
   options[:show_verification] = false
+  options[:simulate] = false
   opt.on("-l","--location LOCATION","default URL to store/query DID data") do |loc|
     options[:location] = loc
   end
@@ -413,17 +420,44 @@ opt_parser = OptionParser.new do |opt|
   opt.on("--json-output") do |j|
     options[:json] = true
   end
-  opt.on("--doc-key DOCUMENT-KEY") do |dk|
+  opt.on("--doc-key DOCUMENT-KEY-FILE") do |dk|
     options[:doc_key] = dk
   end
-  opt.on("--rev-key REVOCATION-KEY") do |rk|
+  opt.on("--old-doc-key DOCUMENT-KEY-FILE") do |dk|
+    options[:old_doc_key] = dk
+  end
+  opt.on("--rev-key REVOCATION-KEY-FILE") do |rk|
     options[:rev_key] = rk
+  end
+  opt.on("--old-rev-key REVOCATION-KEY-FILE") do |rk|
+    options[:old_rev_key] = rk
   end
   opt.on("--doc-pwd DOCUMENT-PASSWORD") do |dp|
     options[:doc_pwd] = dp
   end
+  opt.on("--old-doc-pwd OLD-DOCUMENT-PASSWORD") do |dp|
+    options[:old_doc_pwd] = dp
+  end
   opt.on("--rev-pwd REVOCATION-PASSWORD") do |rp|
     options[:rev_pwd] = rp
+  end
+  opt.on("--old-rev-pwd OLD-REVOCATION-PASSWORD") do |rp|
+    options[:old_rev_pwd] = rp
+  end
+  opt.on("--doc-enc DOCUMENTKEY-ENCODED") do |dp|
+    options[:doc_enc] = dp
+  end
+  opt.on("--old-doc-enc OLD-DOCUMENTKEY-ENCODED") do |dp|
+    options[:old_doc_enc] = dp
+  end
+  opt.on("--rev-enc REVOCATIONKEY-ENCODED") do |rp|
+    options[:rev_enc] = rp
+  end
+  opt.on("--old-rev-enc OLD-REVOCATIONKEY-ENCODED") do |rp|
+    options[:old_rev_enc] = rp
+  end
+  opt.on("--simulate") do |simulate|
+    options[:simulate] = true
   end
   opt.on("-t", "--token TOKEN", "token to access Semantic Container") do |t|
     options[:token] = t
@@ -449,9 +483,20 @@ if input_did.to_s == "" && operation.to_s.start_with?("did:oyd:")
     operation = "read"
 end
 
-if operation == "create" || operation == "sc_create" || operation == "update" 
+if operation == "create" || operation == "sc_create" || operation == "update" || operation == "fromW3C" || operation == "toW3C"
     content = []
     ARGF.each_line { |line| content << line }
+    content = JSON.parse(content.join("")) rescue nil
+    if content.nil?
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: empty or invalid payload"
+            else
+                puts '{"error": "empty or invalid payload"}'
+            end
+        end
+        exit(-1)
+    end
 end
 
 if options[:doc_location].nil?
@@ -463,24 +508,92 @@ end
 
 case operation.to_s
 when "create"
-    did, msg = Oydid.create(content,options)
-    if did.nil?
-        if msg.to_s != ""
+    if options[:simulate]
+        did, didDocument, revoc_log, l1, l2, r1, privateKey, revocationKey, did_old, log_old, msg = Oydid.generate_base(content, "", "create", options)
+        if did.nil?
+            if msg.to_s != ""
+                if options[:silent].nil? || !options[:silent]
+                    if options[:json].nil? || !options[:json]
+                        puts "Error: " + msg.to_s
+                    else
+                        puts '{"error": "' + msg + '"}'
+                    end
+                end
+            end
+            exit(-1)
+        end
+        retVal = {}
+        retVal["did"] = did
+        retVal["doc"] = didDocument
+        retVal["log_create"] = l1
+        retVal["log_terminate"] = l2
+        retVal["log_revoke"] = r1
+        puts retVal.to_json
+    else
+        retVal, msg = Oydid.create(content,options)
+        if retVal.nil?
+            if msg.to_s != ""
+                if options[:silent].nil? || !options[:silent]
+                    if options[:json].nil? || !options[:json]
+                        puts "Error: " + msg.to_s
+                    else
+                        puts '{"error": "' + msg + '"}'
+                    end
+                end
+            end
+            exit(-1)
+        else
             if options[:silent].nil? || !options[:silent]
                 if options[:json].nil? || !options[:json]
-                    puts "Error: " + msg.to_s
+                    puts "created " + retVal["did"]
                 else
-                    puts '{"error": "' + msg + '"}'
+                    puts '{"did": "' + retVal["did"].to_s + '", "operation": "create"}'
                 end
             end
         end
-        exit(-1)
+    end
+when "update"
+    if options[:simulate]
+        did, didDocument, revoc_log, l1, l2, r1, privateKey, revocationKey, did_old, log_old, msg = Oydid.generate_base(content, input_did, "update", options)
+        if did.nil?
+            if msg.to_s != ""
+                if options[:silent].nil? || !options[:silent]
+                    if options[:json].nil? || !options[:json]
+                        puts "Error: " + msg.to_s
+                    else
+                        puts '{"error": "' + msg + '"}'
+                    end
+                end
+            end
+            exit(-1)
+        end
+        retVal = {}
+        retVal["did"] = did
+        retVal["doc"] = didDocument
+        retVal["log_update"] = l1
+        retVal["log_terminate"] = l2
+        retVal["log_revoke"] = r1
+        puts retVal.to_json
     else
-        if options[:silent].nil? || !options[:silent]
-            if options[:json].nil? || !options[:json]
-                puts "created " + did
-            else
-                puts '{"did": "did:oyd:"' + did.to_s + '", "operation": "create"}'
+        retVal, msg = Oydid.update(content, input_did, options)
+        if retVal.nil?
+            if msg.to_s != ""
+                if options[:silent].nil? || !options[:silent]
+                    if options[:json].nil? || !options[:json]
+                        puts "Error: " + msg.to_s
+                    else
+                        puts '{"error": "' + msg + '"}'
+                    end
+                end
+            end
+            exit(-1)
+        else
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "updated " + retVal["did"]
+                else
+                    puts '{"did": "' + retVal["did"].to_s + '", "operation": "update"}'
+                end
             end
         end
     end
@@ -489,11 +602,6 @@ when "read"
     if result.nil?
         if options[:silent].nil? || !options[:silent]
             if options[:json].nil? || !options[:json]
-                if  options[:show_verification]
-                    puts result["verification"]
-                    puts "=== end of verification output ==="
-                    puts ""
-                end
                 puts "Error: cannot resolve DID (on reading DID)"
             else
                 puts '{"error": "cannot resolve DID (on reading DID)"}'
@@ -534,8 +642,8 @@ when "read"
         end
     end
 when "clone"
-    did, msg = Oydid.clone(input_did, options)
-    if did.nil?
+    retVal, msg = Oydid.clone(input_did, options)
+    if retVal.nil?
         if msg.to_s != ""
             if options[:silent].nil? || !options[:silent]
                 if options[:json].nil? || !options[:json]
@@ -549,11 +657,84 @@ when "clone"
     else
         if options[:silent].nil? || !options[:silent]
             if options[:json].nil? || !options[:json]
-                puts "cloned " + did
+                puts "cloned " + retVal["did"]
             else
-                puts '{"did": "did:oyd:"' + did.to_s + '", "operation": "clone"}'
+                puts '{"did": "' + retVal["did"].to_s + '", "operation": "clone"}'
             end
         end
+    end
+when "fromW3C"
+    # check if valif W3C DID document
+    if content["id"].to_s == ""
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: invalid input (cannot parse DID document)"
+            else
+                puts '{"error": "invalid input (cannot parse DID document)"}'
+            end
+        end
+        exit(-1)
+    end
+    if !content["id"].to_s.start_with?("did:oyd:")
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: invalid input (non did:oyd method)"
+            else
+                puts '{"error": "invalid input (non did:oyd method)"}'
+            end
+        end
+        exit(-1)
+    end
+    retVal, msg = Oydid.retrieve_document_raw(content["id"].to_s, Oydid.get_location(content["id"].to_s), "", options)
+    if retVal.nil?
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: cannot resolve DID"
+            else
+                puts '{"error": "cannot resolve DID"}'
+            end
+        end
+        exit (-1)
+    end
+    puts retVal["doc"].to_json
+when "toW3C"
+    # check if valif did:oyd document
+    if content["doc"].to_s == "" || content["key"].to_s == "" || content["log"].to_s == ""
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: invalid input (can't parse OYDID document)"
+            else
+                puts '{"error": "invalid input (cannot parse OYDID document)"}'
+            end
+        end
+        exit(-1)
+    end
+    did = Oydid.hash(Oydid.canonical(content.to_json_c14n))
+    did_info = {}
+    did_info["did"] = did
+    did_info["doc"] = content
+    retVal, msg = Oydid.w3c(did_info, options)
+    if retVal.nil?
+        if msg.to_s == ""
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "Error: unknown error"
+                else
+                    puts '{"error": "unknown error"}'
+                end
+            end
+        else
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "Error: " + msg.to_s
+                else
+                    puts '{"error": "' + msg + '"}'
+                end
+            end
+        end
+        exit(-1)
+    else
+        puts retVal.to_json
     end
 when "log", "logs"
     if operation.to_s == "logs"
@@ -629,28 +810,6 @@ when "dag"
         end
         exit(-1)
     end
-when "update"
-    did, msg = Oydid.update(content, input_did, options)
-    if did.nil?
-        if msg.to_s != ""
-            if options[:silent].nil? || !options[:silent]
-                if options[:json].nil? || !options[:json]
-                    puts "Error: " + msg.to_s
-                else
-                    puts '{"error": "' + msg + '"}'
-                end
-            end
-        end
-        exit(-1)
-    else
-        if options[:silent].nil? || !options[:silent]
-            if options[:json].nil? || !options[:json]
-                puts "updated " + did
-            else
-                puts '{"did": "did:oyd:"' + did.to_s + '", "operation": "update"}'
-            end
-        end
-    end
 when "revoke"
     did, msg = Oydid.revoke(input_did, options)
     if did.nil?
@@ -705,9 +864,9 @@ when "sc_create"
 
 when "delegate", "challenge", "confirm"
     if options[:json].nil? || !options[:json]
-        puts "Error: function not yet available"
+        puts "Warning: function not yet available"
     else
-        puts '{"error": "function not yet available"}'
+        puts '{"warning": "function not yet available"}'
     end
 else
     print_help()

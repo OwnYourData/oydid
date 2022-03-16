@@ -11,8 +11,6 @@ RUN mkdir -p $RAILS_ROOT/tmp/pids && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY Gemfile $WORKDIR
-COPY oydid-0.0.2.gem oydid.gemspec $WORKDIR
-
 RUN bundle install
 
 ENV LANG=C.UTF-8

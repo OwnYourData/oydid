@@ -156,12 +156,23 @@ class DidsController < ApplicationController
             end
         end
 
-        Did.new(did: didHash, doc: didDocument.to_json).save
+        @did = Did.find_by_did(didHash)
+        if @did.nil?
+            Did.new(did: didHash, doc: didDocument.to_json).save
+        end
         logs.each do |item|
             if item["op"] == 1 # REVOKE
-                Log.new(did: didHash, item: item.to_json, oyd_hash: Oydid.hash(Oydid.canonical(item.except("previous"))), ts: Time.now.to_i).save
+                my_hash = Oydid.hash(Oydid.canonical(item.except("previous")))
+                @log = Log.find_by_oyd_hash(my_hash)
+                if @log.nil?
+                    Log.new(did: didHash, item: item.to_json, oyd_hash: my_hash, ts: Time.now.to_i).save
+                end
             else
-                Log.new(did: didHash, item: item.to_json, oyd_hash: Oydid.hash(Oydid.canonical(item)), ts: Time.now.to_i).save
+                my_hash = Oydid.hash(Oydid.canonical(item))
+                @log = Log.find_by_oyd_hash(my_hash)
+                if @log.nil?
+                    Log.new(did: didHash, item: item.to_json, oyd_hash: my_hash, ts: Time.now.to_i).save
+                end
             end
         end
 

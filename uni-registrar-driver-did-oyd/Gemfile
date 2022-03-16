@@ -7,7 +7,7 @@ gem 'puma', '>= 3.12.2'
 gem 'rack-cors', ">= 1.0.4", require: 'rack/cors'
 gem 'responders'
 gem 'bootsnap'
-gem 'oydid', path: "../ruby-gem"
+gem 'oydid'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

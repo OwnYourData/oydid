@@ -99,6 +99,10 @@ class Oydid
         rescue
             return [nil, "cannot read file"]
         end
+        decode_private_key(key_encoded)
+    end
+
+    def self.decode_private_key(key_encoded)
         begin
             code, length, digest = decode(key_encoded).unpack('SCa*')
             case Multicodecs[code].name
@@ -120,7 +124,11 @@ class Oydid
     end
 
     def self.read_private_storage(filename)
-        File.open(filename, 'r') { |f| f.read }
+        begin
+            File.open(filename, 'r') { |f| f.read }
+        rescue
+            nil
+        end
     end
 
     def self.get_location(id)
