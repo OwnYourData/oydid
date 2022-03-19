@@ -23,7 +23,7 @@ docker run -p 8080:3000 oydeu/oydid-registrar
 Use the following command to run the automated tests (including oydid-registrar tests) in the [`oydeu/oydid-cli`](https://hub.docker.com/r/oydeu/oydid-cli) Docker image:    
 
 ```bash
-docker run -it --rm -w /usr/src/pytest oydeu/oydid-cli pytest
+docker run -it --rm -w /usr/src/pytest -e OYDIDCMD=oydid oydeu/oydid-cli pytest -vv
 ```
 
 ## Supported DID Operations
