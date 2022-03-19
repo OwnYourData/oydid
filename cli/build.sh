@@ -6,7 +6,7 @@ REPOSITORY="oydeu"
 # read commandline options
 BUILD_CLEAN=false
 DOCKER_UPDATE=false
-BUILD_LOCAL=false
+BUILD_GITHUB=false
 
 
 while [ $# -gt 0 ]; do
@@ -17,8 +17,8 @@ while [ $# -gt 0 ]; do
         --dockerhub*)
             DOCKER_UPDATE=true
             ;;
-        --local*)
-            BUILD_LOCAL=true
+        --github*)
+            BUILD_GITHUB=true
             ;;
         *)
             printf "unknown option(s)\n"
@@ -32,14 +32,14 @@ while [ $# -gt 0 ]; do
 done
 
 if $BUILD_CLEAN; then
-    if $BUILD_LOCAL; then
-        docker build --platform linux/amd64 --no-cache -f ./docker/Dockerfile.local -t $REPOSITORY/$CONTAINER .
+    if $BUILD_GITHUB; then
+        docker build --platform linux/amd64 --no-cache -f ./docker/Dockerfile.github -t $REPOSITORY/$CONTAINER .
     else
         docker build --platform linux/amd64 --no-cache -f ./docker/Dockerfile -t $REPOSITORY/$CONTAINER .
     fi
 else
-    if $BUILD_LOCAL; then
-        docker build --platform linux/amd64 -f ./docker/Dockerfile.local -t $REPOSITORY/$CONTAINER .
+    if $BUILD_GITHUB; then
+        docker build --platform linux/amd64 -f ./docker/Dockerfile.github -t $REPOSITORY/$CONTAINER .
     else
         docker build --platform linux/amd64 -f ./docker/Dockerfile -t $REPOSITORY/$CONTAINER .
     fi

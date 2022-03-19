@@ -1,0 +1,16 @@
+{
+  "options": {
+    "ts": 1
+  },
+  "secret": {
+    "doc_pwd": "pwd1",
+    "rev_pwd": "pwd2"
+  },
+  "didDocument": {
+    "@context": "https://www.w3.org/ns/did/v1",
+    "authentication": [],
+    "service": [{
+      "privacy": "https://data-vault.eu/api/data"
+    }]
+  }
+}

@@ -7,6 +7,12 @@ class DidsController < ApplicationController
     respond_to :html, only: []
     respond_to :xml, only: []
 
+
+    def version
+        render json: {"version": VERSION.to_s}.to_json,
+               status: 200
+    end
+
     # input
     # {
     #     "jobId": null,
@@ -23,12 +29,11 @@ class DidsController < ApplicationController
             jobId = SecureRandom.uuid
         end
         didDocument = params[:didDocument]
-
         params.permit!
         options = params[:options] || {}
         options[:return_secrets] = true
         secret = params[:secret] || {}
-        options = options.merge(secret).transform_keys(&:to_sym)
+        options = options.to_hash.merge(secret.to_hash).transform_keys(&:to_sym)
 
         if options[:doc_location] == "local"
             render json: {"error": "location not supported"},
@@ -172,14 +177,14 @@ class DidsController < ApplicationController
         if jobId.nil?
             jobId = SecureRandom.uuid
         end
-        old_did = params[:identifer]
+        old_did = params[:identifier]
         didDocument = params[:didDocument]
 
         params.permit!
-        options = params[:options].to_hash
+        options = params[:options] || {}
         options[:return_secrets] = true
-        secret = params[:secret].to_hash
-        options = options.merge(secret).transform_keys(&:to_sym)
+        secret = params[:secret] || {}
+        options = options.to_hash.merge(secret.to_hash).transform_keys(&:to_sym)
 
         if options[:doc_location] == "local"
             render json: {"error": "location not supported"},
@@ -187,11 +192,10 @@ class DidsController < ApplicationController
             return
         end
 
-        doc = didDocument
-        did_obj = JSON.parse(doc.to_json) rescue nil
+        did_obj = JSON.parse(didDocument.to_json) rescue nil
         if !did_obj.nil? && did_obj.is_a?(Hash)
             if did_obj["@context"] == "https://www.w3.org/ns/did/v1"
-                doc = Oydid.fromW3C(didDocument, options)
+                did_obj = Oydid.fromW3C(did_obj, options)
             end
         end
 
@@ -204,26 +208,30 @@ class DidsController < ApplicationController
                 # perform sanity checks on input data =========
 
                 # check valid signature in update create record
-                doc_pubkey = did_obj["doc"]["key"].split(":").first.to_s
-                success, msg = Oydid.verify(options[:log_update]["doc"], options[:log_update]["sig"], doc_pubkey)
+                doc_pubkey = did_obj["key"].split(":").first.to_s
+                old_doc_location = Oydid.get_location(old_did)
+                old_didDocument = Oydid.retrieve_document_raw(old_did, "", old_doc_location, {})
+                old_doc_pubkey = old_didDocument.first["doc"]["key"].split(":").first.to_s
+                success, msg = Oydid.verify(options[:log_update]["doc"], options[:log_update]["sig"], old_doc_pubkey)
+                raise error
                 if !success
-                    render json: {"error": "invalid input data (create log has invalid signature)"},
+                    render json: {"error": "invalid input data (update log has invalid signature)"},
                            status: 400
                     return
                 end
 
                 # update DID
                 did = "did:oyd:" + Oydid.hash(Oydid.canonical(did_obj))
-                logs = [options[:log_revoke], options[:log_create], options[:log_terminate]]
+                logs = [options[:log_revoke], options[:log_update], options[:log_terminate]]
                 success, msg = Oydid.publish(did, did_obj, logs, options)
                 if success
                     w3c_input = {
                         "did" => did,
-                        "doc" => didDocument
+                        "doc" => did_obj
                     }
                     status = {
                         "did" => did,
-                        "doc" => didDocument,
+                        "doc" => did_obj,
                         "doc_w3c" => Oydid.w3c(w3c_input, options),
                         "log" => logs,
                         "private_key" => "",
@@ -237,7 +245,7 @@ class DidsController < ApplicationController
         end
 
         if !preprocessed
-            status, msg = Oydid.update(didDocument, old_did, options)
+            status, msg = Oydid.update(did_obj, old_did, options)
         end
         if status.nil?
             render json: {"error": msg},

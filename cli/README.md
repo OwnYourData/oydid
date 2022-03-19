@@ -19,6 +19,22 @@ Often it makes sense to keep private keys and revocation information beyond a Do
 * create a local directory, e.g., `mkdir ~/.oydid`
 * mount this directory on startup: `docker run -it --rm -v ~/.oydid:/home/oydid oydeu/oydid-cli`
 
+## Build Docker image
+
+To package oydid-cli with additional tools ([jq](https://stedolan.github.io/jq/)) in a ready-to-use Docker container run the following command in the `cli` directory:    
+```bash
+./build.sh
+```
+
+The current `oydeu/oydid-cli` Docker image is available here: https://hub.docker.com/r/oydeu/oydid-cli
+
+### Verify with automated tests    
+
+Use the following command to run the automated tests in the `oydeu/oydid-cli` Docker image:    
+
+```bash
+docker run -it --rm -w /usr/src/pytest -e OYDIDCMD=oydid oydeu/oydid-cli pytest
+```
 
 ## Example
 create the most simple DID:
@@ -32,6 +48,7 @@ oydid read {use output from above did:oyd:...}
 ```
 
 ## Further Resources
+
 Read about the concept and examples: [OYDIDintro.pdf](https://github.com/OwnYourData/oydid/blob/main/docs/OYDIDintro.pdf)    
 W3C conform DID Method Specification: https://ownyourdata.github.io/oydid/    
 `oydid` commandline tool in a Docker image: https://hub.docker.com/r/oydeu/oydid-cli         

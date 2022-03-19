@@ -6,9 +6,6 @@ import requests
 import subprocess
 from pathlib import Path
 
-# run in pytest/
-# export OYDIDCMD='../oydid.rb'; pytest
-
 service = "https://oydid-registrar.data-container.net"
 
 def test_service():
@@ -22,8 +19,8 @@ def test_service():
 
 # doc: https://pypi.org/project/pytest-subprocess/
 cwd = os.getcwd()
-@pytest.mark.parametrize('input',  glob.glob(cwd+'/01_input/*.doc'))
-def test_01_simple(fp, input):
+@pytest.mark.parametrize('input',  glob.glob(cwd+'/03_input/*.doc'))
+def test_03_registrar(fp, input):
     fp.allow_unregistered(True)
     with open(input) as f:
         content = f.read()

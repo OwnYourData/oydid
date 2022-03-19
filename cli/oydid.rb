@@ -459,6 +459,9 @@ opt_parser = OptionParser.new do |opt|
   opt.on("--simulate") do |simulate|
     options[:simulate] = true
   end
+  opt.on("--return-secrets") do |rs|
+    options[:return_secrets] = true
+  end
   opt.on("-t", "--token TOKEN", "token to access Semantic Container") do |t|
     options[:token] = t
   end
@@ -569,7 +572,9 @@ when "update"
         end
         retVal = {}
         retVal["did"] = did
+        retVal["did_old"] = input_did
         retVal["doc"] = didDocument
+        retVal["log_revoke_old"] = revoc_log
         retVal["log_update"] = l1
         retVal["log_terminate"] = l2
         retVal["log_revoke"] = r1

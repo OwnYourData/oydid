@@ -1645,3 +1645,383 @@ Processing by DidsController#create as */*
 Completed 200 OK in 121ms (Views: 0.6ms)
 
 
+Started POST "/1.0/create" for 127.0.0.1 at 2022-03-16 22:54:26 +0100
+Processing by DidsController#create as */*
+  Parameters: {"options"=>{"ts"=>1}, "security"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "authentication"=>[], "service"=>[{"privacy"=>"https://data-vault.eu/api/data"}]}, "did"=>{"options"=>{"ts"=>1}, "security"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "authentication"=>[], "service"=>[{"privacy"=>"https://data-vault.eu/api/data"}]}}}
+Completed 200 OK in 137ms (Views: 0.2ms)
+
+
+Started POST "/1.0/create" for 127.0.0.1 at 2022-03-16 22:54:29 +0100
+Processing by DidsController#create as */*
+  Parameters: {"options"=>{"ts"=>1}, "security"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "authentication"=>[], "service"=>[{"privacy"=>"https://data-vault.eu/api/data"}]}, "did"=>{"options"=>{"ts"=>1}, "security"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "authentication"=>[], "service"=>[{"privacy"=>"https://data-vault.eu/api/data"}]}}}
+Completed 200 OK in 120ms (Views: 0.2ms)
+
+
+Started POST "/1.0/create" for 127.0.0.1 at 2022-03-16 22:55:16 +0100
+Processing by DidsController#create as */*
+  Parameters: {"options"=>{"ts"=>1}, "security"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "authentication"=>[], "service"=>[{"privacy"=>"https://data-vault.eu/api/data"}]}, "did"=>{"options"=>{"ts"=>1}, "security"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "authentication"=>[], "service"=>[{"privacy"=>"https://data-vault.eu/api/data"}]}}}
+Completed 200 OK in 114ms (Views: 0.2ms)
+
+
+Started POST "/1.0/create" for 127.0.0.1 at 2022-03-16 22:56:00 +0100
+Processing by DidsController#create as */*
+  Parameters: {"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "authentication"=>[], "service"=>[{"privacy"=>"https://data-vault.eu/api/data"}]}, "did"=>{"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "authentication"=>[], "service"=>[{"privacy"=>"https://data-vault.eu/api/data"}]}}}
+Completed 200 OK in 129ms (Views: 0.1ms)
+
+
+Started POST "/1.0/create" for 127.0.0.1 at 2022-03-16 22:56:02 +0100
+Processing by DidsController#create as */*
+  Parameters: {"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "authentication"=>[], "service"=>[{"privacy"=>"https://data-vault.eu/api/data"}]}, "did"=>{"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "authentication"=>[], "service"=>[{"privacy"=>"https://data-vault.eu/api/data"}]}}}
+Completed 200 OK in 103ms (Views: 0.2ms)
+
+
+Started POST "/1.0/create" for 127.0.0.1 at 2022-03-16 22:56:17 +0100
+Processing by DidsController#create as */*
+  Parameters: {"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "authentication"=>[], "service"=>[{"privacy"=>"https://data-vault.eu/api/data"}]}, "did"=>{"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "authentication"=>[], "service"=>[{"privacy"=>"https://data-vault.eu/api/data"}]}}}
+Completed 200 OK in 90ms (Views: 0.2ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-17 00:01:22 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "security"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "security"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 500 Internal Server Error in 2ms
+
+
+
+NoMethodError - undefined method `to_hash' for nil:NilClass:
+  app/controllers/dids_controller.rb:187:in `update'
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-17 00:02:35 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "security"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "security"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 500 Internal Server Error in 4ms
+
+
+
+NoMethodError - undefined method `delete_prefix' for nil:NilClass:
+  app/controllers/dids_controller.rb:244:in `update'
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-17 00:04:03 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "security"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "security"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 500 Internal Server Error in 8ms
+
+
+
+NoMethodError - undefined method `delete_prefix' for nil:NilClass:
+  app/controllers/dids_controller.rb:250:in `update'
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-17 00:05:00 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "security"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "security"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 500 Internal Server Error in 1542ms (Views: 0.5ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-17 00:07:02 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 200 OK in 670ms (Views: 0.3ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-17 00:07:12 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 200 OK in 1000ms (Views: 0.2ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-17 00:07:15 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 200 OK in 1014ms (Views: 0.3ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-17 00:08:43 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 200 OK in 1007ms (Views: 0.5ms)
+
+
+Started POST "/1.0/create" for 127.0.0.1 at 2022-03-18 00:49:47 +0100
+Processing by DidsController#create as */*
+  Parameters: {"options"=>{"ts"=>2}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"options"=>{"ts"=>2}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 200 OK in 380ms (Views: 0.2ms)
+
+
+Started POST "/1.0/create" for 127.0.0.1 at 2022-03-18 00:49:52 +0100
+Processing by DidsController#create as */*
+  Parameters: {"options"=>{"ts"=>2}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"options"=>{"ts"=>2}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 200 OK in 260ms (Views: 0.3ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-18 00:54:51 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 200 OK in 1421ms (Views: 0.1ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-18 00:55:00 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 200 OK in 1458ms (Views: 0.3ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-18 00:56:02 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 200 OK in 1272ms (Views: 0.2ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-18 00:56:45 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 200 OK in 1451ms (Views: 0.6ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-18 00:57:36 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 200 OK in 1420ms (Views: 0.2ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-18 00:59:11 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 200 OK in 1257ms (Views: 0.2ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-18 00:59:44 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 200 OK in 1331ms (Views: 0.1ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-18 01:01:47 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}, "did"=>{"identifier"=>"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ", "options"=>{"ts"=>2}, "secret"=>{"old_doc_pwd"=>"myDocPwd", "old_rev_pwd"=>"myRevPwd", "doc_pwd"=>"newDocPwd", "rev_pwd"=>"myRevPwd"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1", "service"=>[{"state"=>"new"}]}}}
+Completed 200 OK in 1382ms (Views: 0.3ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 10:26:23 +0100
+Processing by DidsController#update as */*
+  Parameters: {"options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}, "did"=>{"options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}}}
+Completed 500 Internal Server Error in 2ms
+
+
+
+NoMethodError - undefined method `split' for nil:NilClass:
+  app/controllers/dids_controller.rb:211:in `update'
+
+Started GET "/__better_errors" for 127.0.0.1 at 2022-03-19 10:29:10 +0100
+Started POST "/__better_errors/ec046bcdd63d782f/variables" for 127.0.0.1 at 2022-03-19 10:29:10 +0100
+Started GET "/favicon.ico" for 127.0.0.1 at 2022-03-19 10:29:10 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"favicon.ico"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started POST "/__better_errors/ec046bcdd63d782f/variables" for 127.0.0.1 at 2022-03-19 10:29:39 +0100
+Started POST "/__better_errors/ec046bcdd63d782f/variables" for 127.0.0.1 at 2022-03-19 10:29:42 +0100
+Started POST "/__better_errors/ec046bcdd63d782f/variables" for 127.0.0.1 at 2022-03-19 10:29:44 +0100
+Started POST "/__better_errors/ec046bcdd63d782f/variables" for 127.0.0.1 at 2022-03-19 10:29:46 +0100
+Started POST "/__better_errors/ec046bcdd63d782f/variables" for 127.0.0.1 at 2022-03-19 10:29:48 +0100
+Started POST "/__better_errors/ec046bcdd63d782f/variables" for 127.0.0.1 at 2022-03-19 10:30:15 +0100
+Started POST "/__better_errors/ec046bcdd63d782f/variables" for 127.0.0.1 at 2022-03-19 10:30:17 +0100
+Started POST "/__better_errors/ec046bcdd63d782f/variables" for 127.0.0.1 at 2022-03-19 10:30:17 +0100
+Started POST "/__better_errors/ec046bcdd63d782f/variables" for 127.0.0.1 at 2022-03-19 10:30:18 +0100
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 10:34:36 +0100
+Processing by DidsController#update as */*
+  Parameters: {"options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}, "did"=>{"options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}}}
+Completed 500 Internal Server Error in 2ms
+
+
+
+NoMethodError - undefined method `split' for nil:NilClass:
+  app/controllers/dids_controller.rb:211:in `update'
+
+Started GET "/__better_errors" for 127.0.0.1 at 2022-03-19 10:34:41 +0100
+Started POST "/__better_errors/2b0885ab1668c1d9/variables" for 127.0.0.1 at 2022-03-19 10:34:41 +0100
+Started POST "/__better_errors/2b0885ab1668c1d9/eval" for 127.0.0.1 at 2022-03-19 10:35:10 +0100
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 10:36:54 +0100
+Processing by DidsController#update as */*
+  Parameters: {"options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}, "did"=>{"options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}}}
+Completed 400 Bad Request in 2ms (Views: 0.1ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 10:37:41 +0100
+Processing by DidsController#update as */*
+  Parameters: {"options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}, "did"=>{"options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}}}
+Completed 500 Internal Server Error in 76ms
+
+
+
+NameError - undefined local variable or method `error' for #<DidsController:0x0000000101507808>:
+  app/controllers/dids_controller.rb:213:in `update'
+
+Started GET "/__better_errors" for 127.0.0.1 at 2022-03-19 10:37:46 +0100
+Started POST "/__better_errors/565e760f897b108b/variables" for 127.0.0.1 at 2022-03-19 10:37:46 +0100
+Started POST "/__better_errors/565e760f897b108b/eval" for 127.0.0.1 at 2022-03-19 10:38:04 +0100
+Started POST "/__better_errors/565e760f897b108b/eval" for 127.0.0.1 at 2022-03-19 10:38:19 +0100
+Started POST "/__better_errors/565e760f897b108b/eval" for 127.0.0.1 at 2022-03-19 10:38:56 +0100
+Started POST "/__better_errors/565e760f897b108b/eval" for 127.0.0.1 at 2022-03-19 10:39:03 +0100
+Started POST "/__better_errors/565e760f897b108b/eval" for 127.0.0.1 at 2022-03-19 10:45:09 +0100
+Started POST "/__better_errors/565e760f897b108b/eval" for 127.0.0.1 at 2022-03-19 10:45:28 +0100
+Started POST "/__better_errors/565e760f897b108b/eval" for 127.0.0.1 at 2022-03-19 10:45:40 +0100
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 10:50:46 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"zQmRgH1oAC6ucvg69ewtTZVaqcUNzx7dasF7nrwonzWhxM4", "options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}, "did"=>{"identifier"=>"zQmRgH1oAC6ucvg69ewtTZVaqcUNzx7dasF7nrwonzWhxM4", "options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}}}
+Completed 500 Internal Server Error in 2ms
+
+
+
+ArgumentError - wrong number of arguments (given 1, expected 2):
+  app/controllers/dids_controller.rb:212:in `update'
+
+Started GET "/__better_errors" for 127.0.0.1 at 2022-03-19 10:50:49 +0100
+Started POST "/__better_errors/90a50aa876797db7/variables" for 127.0.0.1 at 2022-03-19 10:50:49 +0100
+Started GET "/__better_errors" for 127.0.0.1 at 2022-03-19 10:51:43 +0100
+Started POST "/__better_errors/90a50aa876797db7/variables" for 127.0.0.1 at 2022-03-19 10:51:43 +0100
+Started POST "/__better_errors/90a50aa876797db7/variables" for 127.0.0.1 at 2022-03-19 10:51:52 +0100
+Started POST "/__better_errors/90a50aa876797db7/variables" for 127.0.0.1 at 2022-03-19 10:51:53 +0100
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 10:52:05 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"zQmRgH1oAC6ucvg69ewtTZVaqcUNzx7dasF7nrwonzWhxM4", "options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}, "did"=>{"identifier"=>"zQmRgH1oAC6ucvg69ewtTZVaqcUNzx7dasF7nrwonzWhxM4", "options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}}}
+Completed 500 Internal Server Error in 701ms
+
+
+
+NameError - undefined local variable or method `old_doc_pubkey' for #<DidsController:0x00000001015975e8>
+Did you mean?  doc_pubkey:
+  app/controllers/dids_controller.rb:213:in `update'
+
+Started GET "/__better_errors" for 127.0.0.1 at 2022-03-19 10:52:09 +0100
+Started POST "/__better_errors/99afa82294571ff0/variables" for 127.0.0.1 at 2022-03-19 10:52:09 +0100
+Started POST "/__better_errors/99afa82294571ff0/eval" for 127.0.0.1 at 2022-03-19 10:52:30 +0100
+Started POST "/__better_errors/99afa82294571ff0/eval" for 127.0.0.1 at 2022-03-19 10:52:37 +0100
+Started POST "/__better_errors/99afa82294571ff0/eval" for 127.0.0.1 at 2022-03-19 10:52:45 +0100
+Started POST "/__better_errors/99afa82294571ff0/eval" for 127.0.0.1 at 2022-03-19 10:53:07 +0100
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 10:53:32 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"zQmRgH1oAC6ucvg69ewtTZVaqcUNzx7dasF7nrwonzWhxM4", "options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}, "did"=>{"identifier"=>"zQmRgH1oAC6ucvg69ewtTZVaqcUNzx7dasF7nrwonzWhxM4", "options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}}}
+Completed 500 Internal Server Error in 665ms
+
+
+
+NameError - undefined local variable or method `error' for #<DidsController:0x0000000101435e48>:
+  app/controllers/dids_controller.rb:215:in `update'
+
+Started GET "/__better_errors" for 127.0.0.1 at 2022-03-19 10:53:39 +0100
+Started POST "/__better_errors/d40319c6aa47eb95/variables" for 127.0.0.1 at 2022-03-19 10:53:39 +0100
+Started POST "/__better_errors/d40319c6aa47eb95/eval" for 127.0.0.1 at 2022-03-19 10:53:45 +0100
+Started POST "/__better_errors/d40319c6aa47eb95/eval" for 127.0.0.1 at 2022-03-19 10:53:50 +0100
+Started POST "/__better_errors/d40319c6aa47eb95/eval" for 127.0.0.1 at 2022-03-19 10:53:57 +0100
+Started POST "/__better_errors/d40319c6aa47eb95/eval" for 127.0.0.1 at 2022-03-19 10:54:07 +0100
+Started POST "/__better_errors/d40319c6aa47eb95/eval" for 127.0.0.1 at 2022-03-19 10:54:13 +0100
+Started POST "/__better_errors/d40319c6aa47eb95/eval" for 127.0.0.1 at 2022-03-19 10:54:23 +0100
+Started POST "/__better_errors/d40319c6aa47eb95/eval" for 127.0.0.1 at 2022-03-19 10:55:07 +0100
+Started POST "/__better_errors/d40319c6aa47eb95/eval" for 127.0.0.1 at 2022-03-19 10:55:33 +0100
+Started POST "/__better_errors/d40319c6aa47eb95/eval" for 127.0.0.1 at 2022-03-19 10:55:35 +0100
+Started POST "/__better_errors/d40319c6aa47eb95/eval" for 127.0.0.1 at 2022-03-19 10:56:01 +0100
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 10:56:27 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"zQmRgH1oAC6ucvg69ewtTZVaqcUNzx7dasF7nrwonzWhxM4", "options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}, "did"=>{"identifier"=>"zQmRgH1oAC6ucvg69ewtTZVaqcUNzx7dasF7nrwonzWhxM4", "options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}}}
+Completed 500 Internal Server Error in 1454ms
+
+
+
+NameError - undefined local variable or method `error' for #<DidsController:0x00000001289f1928>:
+  app/controllers/dids_controller.rb:215:in `update'
+
+Started GET "/__better_errors" for 127.0.0.1 at 2022-03-19 10:56:32 +0100
+Started POST "/__better_errors/ac00621ffadbb820/variables" for 127.0.0.1 at 2022-03-19 10:56:32 +0100
+Started POST "/__better_errors/ac00621ffadbb820/eval" for 127.0.0.1 at 2022-03-19 10:56:37 +0100
+Started POST "/__better_errors/ac00621ffadbb820/eval" for 127.0.0.1 at 2022-03-19 10:56:38 +0100
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 10:56:51 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"zQmRgH1oAC6ucvg69ewtTZVaqcUNzx7dasF7nrwonzWhxM4", "options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}, "did"=>{"identifier"=>"zQmRgH1oAC6ucvg69ewtTZVaqcUNzx7dasF7nrwonzWhxM4", "options"=>{"log_revoke"=>{"ts"=>1, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmYRB3SnP4WVsJVsoANJz5CMaj1mj7gBpw4Y31FRutqScv", "zQmRBjo8GgQMZyKv84XpGoYStsZ5ZTNDntqwWRQui3TgaFW"]}, "log_update"=>{"ts"=>11, "op"=>3, "doc"=>"zQmYrnvYf8k5iDqicYnpvesahgMk7XvRhAn4X8jUUbrkDxJ", "sig"=>"z5wqqL31trqyxrsxzjtE5CxcbUuv6Q9R2BedEnjAYWfze9uyLwnNxUeuAyNMPMgUH4n8cvWoUZ8DSjjLZE2ABwT51", "previous"=>["zQmNbTmNH6XhFgQiaBTAhhE6gQihbrSMpJeoazqn77Q6kpn"]}, "log_terminate"=>{"ts"=>11, "op"=>0, "doc"=>"zQmdWbhnRB6iNCk3jvmciAcYPgcs2PrQ72QuoKZ4iLSB3dg", "sig"=>"z53NwDnzoi7UaPCvVLFFkYoDrP5EDgi7qrqYxYwqvvEbkNLQXhgnRE4dBKswerHQhwRMmVtjqBC2Kqt8EkwST1Kw1", "previous"=>[]}}, "didDocument"=>{"doc"=>{"new"=>"state"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWfhUsQeRxiRJ3SG3E8TexBBYUYDexfjQZwWrTuBHgWA4"}}}
+Completed 200 OK in 933ms (Views: 0.4ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 11:04:13 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"zQmViBbfvc9zkSv2L6UDGbvaHsb4mP17HPyURH6ajGF2Mkr", "options"=>{"log_revoke"=>{"ts"=>1647684186, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmdKEV67nf5dw5BmU4oHEQNty3tA7o6NiEArC6CFKeoYgp", "zQmbJEQpd8xsZT1wnN8JUp9HDSzHMCrh9gt343hFiLhZCje"]}, "log_update"=>{"ts"=>1647684253, "op"=>3, "doc"=>"zQmTKCmWFgLoXnANdLwYC6HrqTozy3JKMw8wmChNNyY9bFR", "sig"=>"z5JzF88aabBFeau9iMssXxm4pQ28vtMqeVP2cgB83DC6BXqqRfK5bMEUg2ZnNeusU9LchXK9LTxR1pF2apbzwjTu1", "previous"=>["zQmbm46AZ6qj6sMtznnU75ZJU9E6XgVWwhsT4oGGWYFHzFd"]}, "log_terminate"=>{"ts"=>1647684253, "op"=>0, "doc"=>"zQmZev1MmkuXSanZfpe3NPB1KoxtaQKFTotPpyrT41Ry8yB", "sig"=>"z4Vh1jQSgMnatJ8aFMiXKnHLSYEBDdA7N4xSwNK1sJccTrrbUb7rX8cUmaEaC1zbbB3s3JLx8Au3fPEqr26j9YMyt", "previous"=>[]}}, "didDocument"=>{"doc"=>{"state"=>"new"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmSLFnBaw8KwRnGssrjysquvzKZXZEnrx1kvzX2crHmyhG"}, "did"=>{"identifier"=>"zQmViBbfvc9zkSv2L6UDGbvaHsb4mP17HPyURH6ajGF2Mkr", "options"=>{"log_revoke"=>{"ts"=>1647684186, "op"=>1, "doc"=>"zQmf9bFPngMpGtqUB72mdDtQTRM71iMhBHXCjJDzPVeLec6", "sig"=>"z3LDpSvFqFTBsf6M4KWauBdXFsLHegh6oihxJnaBPKSUnDvj5xmmPCPGQJEnX8YrfW9SNWQBWDKqLUZAPea34BAPB", "previous"=>["zQmdKEV67nf5dw5BmU4oHEQNty3tA7o6NiEArC6CFKeoYgp", "zQmbJEQpd8xsZT1wnN8JUp9HDSzHMCrh9gt343hFiLhZCje"]}, "log_update"=>{"ts"=>1647684253, "op"=>3, "doc"=>"zQmTKCmWFgLoXnANdLwYC6HrqTozy3JKMw8wmChNNyY9bFR", "sig"=>"z5JzF88aabBFeau9iMssXxm4pQ28vtMqeVP2cgB83DC6BXqqRfK5bMEUg2ZnNeusU9LchXK9LTxR1pF2apbzwjTu1", "previous"=>["zQmbm46AZ6qj6sMtznnU75ZJU9E6XgVWwhsT4oGGWYFHzFd"]}, "log_terminate"=>{"ts"=>1647684253, "op"=>0, "doc"=>"zQmZev1MmkuXSanZfpe3NPB1KoxtaQKFTotPpyrT41Ry8yB", "sig"=>"z4Vh1jQSgMnatJ8aFMiXKnHLSYEBDdA7N4xSwNK1sJccTrrbUb7rX8cUmaEaC1zbbB3s3JLx8Au3fPEqr26j9YMyt", "previous"=>[]}}, "didDocument"=>{"doc"=>{"state"=>"new"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmSLFnBaw8KwRnGssrjysquvzKZXZEnrx1kvzX2crHmyhG"}}}
+Completed 200 OK in 752ms (Views: 0.4ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 11:10:16 +0100
+Processing by DidsController#update as */*
+  Parameters: {"did"=>{}}
+Completed 500 Internal Server Error in 2ms
+
+
+
+NoMethodError - undefined method `delete_prefix' for nil:NilClass:
+  app/controllers/dids_controller.rb:246:in `update'
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 11:11:51 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"zQmRotMvA2GSKEsW8TXS32NW4DTgcf3HxvBaGC7szUUJsnp", "options"=>{"log_revoke"=>{"ts"=>1647684703, "op"=>1, "doc"=>"zQmfJAr4ZRDd7e8BcKcXBNbMRQ13wemL2kD3SFTYDmduR8n", "sig"=>"z4ALb8rtLr8raaWoNczzkPN3EmNR8ZeLArHNsztLSHahf2uPFg4jH9EtBiuVBvRHyGE2DG54QmoupxMCrXQRUjCeP", "previous"=>["zQmQLNn1k8EpWPGXXvmRsrjb6a2QsXtSo5QgHujco7aCHer", "zQmSd9ysLe99m6feiLP3o5mDT3mmY4Baq7Jfpzd7uz3kRnN"]}, "log_update"=>{"ts"=>1647684710, "op"=>3, "doc"=>"zQmPcRZ3Y6YdVYZAzXqddFHdHj3uTskdx8fAvsrUj4vpqa8", "sig"=>"z3ASqcCu8gr1Px29bRQmzJPpRCnF92ccefDt1n3ZPtG84Ft13JYFomwmzBe8iGjLH3fo7FyosWRkKHYDyeMMKPeQM", "previous"=>["zQmRsNMLKDK4kZjiUVeUBECdJg8UnFzGZzTZwpyqkgtAjLf"]}, "log_terminate"=>{"ts"=>1647684710, "op"=>0, "doc"=>"zQmcFsr1W5E3agrYcJY7f4NtBrRErz7sekTe7ivAkKtYUnV", "sig"=>"z24AEsW22KVdz9PWQKJJyVotNd5ieSyMznimhNaaucAnXyzhPXJ4wpt7N1FPHfzqppBnfHXDp3jnjyTQEVUkLr5m8", "previous"=>[]}}, "didDocument"=>{"doc"=>{"state"=>"new"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmTpLEUdY22FGEq5bRcvCVuYV3v6dZtdJSud4cZUu5k3Wa"}, "did"=>{"identifier"=>"zQmRotMvA2GSKEsW8TXS32NW4DTgcf3HxvBaGC7szUUJsnp", "options"=>{"log_revoke"=>{"ts"=>1647684703, "op"=>1, "doc"=>"zQmfJAr4ZRDd7e8BcKcXBNbMRQ13wemL2kD3SFTYDmduR8n", "sig"=>"z4ALb8rtLr8raaWoNczzkPN3EmNR8ZeLArHNsztLSHahf2uPFg4jH9EtBiuVBvRHyGE2DG54QmoupxMCrXQRUjCeP", "previous"=>["zQmQLNn1k8EpWPGXXvmRsrjb6a2QsXtSo5QgHujco7aCHer", "zQmSd9ysLe99m6feiLP3o5mDT3mmY4Baq7Jfpzd7uz3kRnN"]}, "log_update"=>{"ts"=>1647684710, "op"=>3, "doc"=>"zQmPcRZ3Y6YdVYZAzXqddFHdHj3uTskdx8fAvsrUj4vpqa8", "sig"=>"z3ASqcCu8gr1Px29bRQmzJPpRCnF92ccefDt1n3ZPtG84Ft13JYFomwmzBe8iGjLH3fo7FyosWRkKHYDyeMMKPeQM", "previous"=>["zQmRsNMLKDK4kZjiUVeUBECdJg8UnFzGZzTZwpyqkgtAjLf"]}, "log_terminate"=>{"ts"=>1647684710, "op"=>0, "doc"=>"zQmcFsr1W5E3agrYcJY7f4NtBrRErz7sekTe7ivAkKtYUnV", "sig"=>"z24AEsW22KVdz9PWQKJJyVotNd5ieSyMznimhNaaucAnXyzhPXJ4wpt7N1FPHfzqppBnfHXDp3jnjyTQEVUkLr5m8", "previous"=>[]}}, "didDocument"=>{"doc"=>{"state"=>"new"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmTpLEUdY22FGEq5bRcvCVuYV3v6dZtdJSud4cZUu5k3Wa"}}}
+Completed 200 OK in 752ms (Views: 0.1ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 11:37:27 +0100
+Processing by DidsController#update as */*
+  Parameters: {"did"=>{}}
+Completed 500 Internal Server Error in 3ms
+
+
+
+NoMethodError - undefined method `delete_prefix' for nil:NilClass:
+  app/controllers/dids_controller.rb:246:in `update'
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 11:39:07 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"zQmNb5QBa6MjLTtk9aDiiBUWe7pQZvtcyzzxUYsDVeHNzDU", "options"=>{"log_revoke"=>{"ts"=>30, "op"=>1, "doc"=>"zQmfJAr4ZRDd7e8BcKcXBNbMRQ13wemL2kD3SFTYDmduR8n", "sig"=>"z4ALb8rtLr8raaWoNczzkPN3EmNR8ZeLArHNsztLSHahf2uPFg4jH9EtBiuVBvRHyGE2DG54QmoupxMCrXQRUjCeP", "previous"=>["zQmXJGvM4AV2P95ZXdnBxWhEjVqjUvpcTT38ZsjHCsUxyVH", "zQmRjSJQiFa8TAPh4ANyTJgJvBkU2WECabC2SJ1F77oX8oe"]}, "log_update"=>{"ts"=>31, "op"=>3, "doc"=>"zQmbCMrKih2VTsrSTMdxUHZAQXvza3TbX998GiopDioJ7rp", "sig"=>"z5f4KFcHqKFwHsSeJXifN3nKx2ZTk2UY7QrmHuWAfJt3pfihugxjGMizrxREqPUkkGxvRTC2FiPXHstqnSPcYGtWh", "previous"=>["zQmZhvRkfHeMq76zC3Xm1D7psjkB8xYbkpLhyBuAyg2UWhF"]}, "log_terminate"=>{"ts"=>31, "op"=>0, "doc"=>"zQmZ9Ayro5qMaAJdLCnBK3kGG4jgnnNzwagTw2aXsHb9wnW", "sig"=>"z4ySEJeh9Dxhz6apnCwP7hHc6EPfQunY3jSSxT1kzwPQHhoPxMANMx83o5pmiZ6jfdHqt4JNgoL66e1hJaXbbBJfS", "previous"=>[]}}, "didDocument"=>{"doc"=>{"state"=>"new"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWG7AX4gLEXiUL428n29Vueotc4Pm6NrftyUMayG6FZrk"}, "did"=>{"identifier"=>"zQmNb5QBa6MjLTtk9aDiiBUWe7pQZvtcyzzxUYsDVeHNzDU", "options"=>{"log_revoke"=>{"ts"=>30, "op"=>1, "doc"=>"zQmfJAr4ZRDd7e8BcKcXBNbMRQ13wemL2kD3SFTYDmduR8n", "sig"=>"z4ALb8rtLr8raaWoNczzkPN3EmNR8ZeLArHNsztLSHahf2uPFg4jH9EtBiuVBvRHyGE2DG54QmoupxMCrXQRUjCeP", "previous"=>["zQmXJGvM4AV2P95ZXdnBxWhEjVqjUvpcTT38ZsjHCsUxyVH", "zQmRjSJQiFa8TAPh4ANyTJgJvBkU2WECabC2SJ1F77oX8oe"]}, "log_update"=>{"ts"=>31, "op"=>3, "doc"=>"zQmbCMrKih2VTsrSTMdxUHZAQXvza3TbX998GiopDioJ7rp", "sig"=>"z5f4KFcHqKFwHsSeJXifN3nKx2ZTk2UY7QrmHuWAfJt3pfihugxjGMizrxREqPUkkGxvRTC2FiPXHstqnSPcYGtWh", "previous"=>["zQmZhvRkfHeMq76zC3Xm1D7psjkB8xYbkpLhyBuAyg2UWhF"]}, "log_terminate"=>{"ts"=>31, "op"=>0, "doc"=>"zQmZ9Ayro5qMaAJdLCnBK3kGG4jgnnNzwagTw2aXsHb9wnW", "sig"=>"z4ySEJeh9Dxhz6apnCwP7hHc6EPfQunY3jSSxT1kzwPQHhoPxMANMx83o5pmiZ6jfdHqt4JNgoL66e1hJaXbbBJfS", "previous"=>[]}}, "didDocument"=>{"doc"=>{"state"=>"new"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWG7AX4gLEXiUL428n29Vueotc4Pm6NrftyUMayG6FZrk"}}}
+Completed 200 OK in 1438ms (Views: 0.1ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 11:39:29 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"zQmbCMrKih2VTsrSTMdxUHZAQXvza3TbX998GiopDioJ7rp", "options"=>{"log_revoke"=>{"ts"=>31, "op"=>1, "doc"=>"zQmcB3kLJYTRU8Uff7DhJzZ6py7y1qvRUCznQCdVphobyPP", "sig"=>"z3hivwqUjDfaBAQKyABnPtn8DePryFw5sHQNvTi7czwyZ594j5SoV7njBGVLjGoKHnp27t185FMKn9qY5AwS7wSPQ", "previous"=>["zQmNRBEDU1CWdPjn9kxGSA9ZfeLkfHjQwqyVPjCsHpcJUrt", "zQmWG7AX4gLEXiUL428n29Vueotc4Pm6NrftyUMayG6FZrk"]}, "log_update"=>{"ts"=>31, "op"=>3, "doc"=>"zQmbCMrKih2VTsrSTMdxUHZAQXvza3TbX998GiopDioJ7rp", "sig"=>"z5f4KFcHqKFwHsSeJXifN3nKx2ZTk2UY7QrmHuWAfJt3pfihugxjGMizrxREqPUkkGxvRTC2FiPXHstqnSPcYGtWh", "previous"=>["zQmWaDPL21bgxJRnh5ptKbFpTCvTQPaPJjpMJoAcv1UfFaW"]}, "log_terminate"=>{"ts"=>31, "op"=>0, "doc"=>"zQmZ9Ayro5qMaAJdLCnBK3kGG4jgnnNzwagTw2aXsHb9wnW", "sig"=>"z4ySEJeh9Dxhz6apnCwP7hHc6EPfQunY3jSSxT1kzwPQHhoPxMANMx83o5pmiZ6jfdHqt4JNgoL66e1hJaXbbBJfS", "previous"=>[]}}, "didDocument"=>{"doc"=>{"state"=>"new"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWG7AX4gLEXiUL428n29Vueotc4Pm6NrftyUMayG6FZrk"}, "did"=>{"identifier"=>"zQmbCMrKih2VTsrSTMdxUHZAQXvza3TbX998GiopDioJ7rp", "options"=>{"log_revoke"=>{"ts"=>31, "op"=>1, "doc"=>"zQmcB3kLJYTRU8Uff7DhJzZ6py7y1qvRUCznQCdVphobyPP", "sig"=>"z3hivwqUjDfaBAQKyABnPtn8DePryFw5sHQNvTi7czwyZ594j5SoV7njBGVLjGoKHnp27t185FMKn9qY5AwS7wSPQ", "previous"=>["zQmNRBEDU1CWdPjn9kxGSA9ZfeLkfHjQwqyVPjCsHpcJUrt", "zQmWG7AX4gLEXiUL428n29Vueotc4Pm6NrftyUMayG6FZrk"]}, "log_update"=>{"ts"=>31, "op"=>3, "doc"=>"zQmbCMrKih2VTsrSTMdxUHZAQXvza3TbX998GiopDioJ7rp", "sig"=>"z5f4KFcHqKFwHsSeJXifN3nKx2ZTk2UY7QrmHuWAfJt3pfihugxjGMizrxREqPUkkGxvRTC2FiPXHstqnSPcYGtWh", "previous"=>["zQmWaDPL21bgxJRnh5ptKbFpTCvTQPaPJjpMJoAcv1UfFaW"]}, "log_terminate"=>{"ts"=>31, "op"=>0, "doc"=>"zQmZ9Ayro5qMaAJdLCnBK3kGG4jgnnNzwagTw2aXsHb9wnW", "sig"=>"z4ySEJeh9Dxhz6apnCwP7hHc6EPfQunY3jSSxT1kzwPQHhoPxMANMx83o5pmiZ6jfdHqt4JNgoL66e1hJaXbbBJfS", "previous"=>[]}}, "didDocument"=>{"doc"=>{"state"=>"new"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWG7AX4gLEXiUL428n29Vueotc4Pm6NrftyUMayG6FZrk"}}}
+Completed 400 Bad Request in 2313ms (Views: 0.1ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 11:45:19 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"zQmbCMrKih2VTsrSTMdxUHZAQXvza3TbX998GiopDioJ7rp", "options"=>{"log_revoke"=>{"ts"=>31, "op"=>1, "doc"=>"zQmcB3kLJYTRU8Uff7DhJzZ6py7y1qvRUCznQCdVphobyPP", "sig"=>"z3hivwqUjDfaBAQKyABnPtn8DePryFw5sHQNvTi7czwyZ594j5SoV7njBGVLjGoKHnp27t185FMKn9qY5AwS7wSPQ", "previous"=>["zQmNRBEDU1CWdPjn9kxGSA9ZfeLkfHjQwqyVPjCsHpcJUrt", "zQmWG7AX4gLEXiUL428n29Vueotc4Pm6NrftyUMayG6FZrk"]}, "log_update"=>{"ts"=>31, "op"=>3, "doc"=>"zQmbCMrKih2VTsrSTMdxUHZAQXvza3TbX998GiopDioJ7rp", "sig"=>"z5f4KFcHqKFwHsSeJXifN3nKx2ZTk2UY7QrmHuWAfJt3pfihugxjGMizrxREqPUkkGxvRTC2FiPXHstqnSPcYGtWh", "previous"=>["zQmWaDPL21bgxJRnh5ptKbFpTCvTQPaPJjpMJoAcv1UfFaW"]}, "log_terminate"=>{"ts"=>31, "op"=>0, "doc"=>"zQmZ9Ayro5qMaAJdLCnBK3kGG4jgnnNzwagTw2aXsHb9wnW", "sig"=>"z4ySEJeh9Dxhz6apnCwP7hHc6EPfQunY3jSSxT1kzwPQHhoPxMANMx83o5pmiZ6jfdHqt4JNgoL66e1hJaXbbBJfS", "previous"=>[]}}, "didDocument"=>{"doc"=>{"state"=>"new"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWG7AX4gLEXiUL428n29Vueotc4Pm6NrftyUMayG6FZrk"}, "did"=>{"identifier"=>"zQmbCMrKih2VTsrSTMdxUHZAQXvza3TbX998GiopDioJ7rp", "options"=>{"log_revoke"=>{"ts"=>31, "op"=>1, "doc"=>"zQmcB3kLJYTRU8Uff7DhJzZ6py7y1qvRUCznQCdVphobyPP", "sig"=>"z3hivwqUjDfaBAQKyABnPtn8DePryFw5sHQNvTi7czwyZ594j5SoV7njBGVLjGoKHnp27t185FMKn9qY5AwS7wSPQ", "previous"=>["zQmNRBEDU1CWdPjn9kxGSA9ZfeLkfHjQwqyVPjCsHpcJUrt", "zQmWG7AX4gLEXiUL428n29Vueotc4Pm6NrftyUMayG6FZrk"]}, "log_update"=>{"ts"=>31, "op"=>3, "doc"=>"zQmbCMrKih2VTsrSTMdxUHZAQXvza3TbX998GiopDioJ7rp", "sig"=>"z5f4KFcHqKFwHsSeJXifN3nKx2ZTk2UY7QrmHuWAfJt3pfihugxjGMizrxREqPUkkGxvRTC2FiPXHstqnSPcYGtWh", "previous"=>["zQmWaDPL21bgxJRnh5ptKbFpTCvTQPaPJjpMJoAcv1UfFaW"]}, "log_terminate"=>{"ts"=>31, "op"=>0, "doc"=>"zQmZ9Ayro5qMaAJdLCnBK3kGG4jgnnNzwagTw2aXsHb9wnW", "sig"=>"z4ySEJeh9Dxhz6apnCwP7hHc6EPfQunY3jSSxT1kzwPQHhoPxMANMx83o5pmiZ6jfdHqt4JNgoL66e1hJaXbbBJfS", "previous"=>[]}}, "didDocument"=>{"doc"=>{"state"=>"new"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWG7AX4gLEXiUL428n29Vueotc4Pm6NrftyUMayG6FZrk"}}}
+Completed 400 Bad Request in 546ms (Views: 0.7ms)
+
+
+Started POST "/1.0/update" for 127.0.0.1 at 2022-03-19 11:49:46 +0100
+Processing by DidsController#update as */*
+  Parameters: {"identifier"=>"zQmbCMrKih2VTsrSTMdxUHZAQXvza3TbX998GiopDioJ7rp", "options"=>{"log_revoke"=>{"ts"=>31, "op"=>1, "doc"=>"zQmcB3kLJYTRU8Uff7DhJzZ6py7y1qvRUCznQCdVphobyPP", "sig"=>"z3hivwqUjDfaBAQKyABnPtn8DePryFw5sHQNvTi7czwyZ594j5SoV7njBGVLjGoKHnp27t185FMKn9qY5AwS7wSPQ", "previous"=>["zQmNRBEDU1CWdPjn9kxGSA9ZfeLkfHjQwqyVPjCsHpcJUrt", "zQmWG7AX4gLEXiUL428n29Vueotc4Pm6NrftyUMayG6FZrk"]}, "log_update"=>{"ts"=>31, "op"=>3, "doc"=>"zQmbCMrKih2VTsrSTMdxUHZAQXvza3TbX998GiopDioJ7rp", "sig"=>"z5f4KFcHqKFwHsSeJXifN3nKx2ZTk2UY7QrmHuWAfJt3pfihugxjGMizrxREqPUkkGxvRTC2FiPXHstqnSPcYGtWh", "previous"=>["zQmWaDPL21bgxJRnh5ptKbFpTCvTQPaPJjpMJoAcv1UfFaW"]}, "log_terminate"=>{"ts"=>31, "op"=>0, "doc"=>"zQmZ9Ayro5qMaAJdLCnBK3kGG4jgnnNzwagTw2aXsHb9wnW", "sig"=>"z4ySEJeh9Dxhz6apnCwP7hHc6EPfQunY3jSSxT1kzwPQHhoPxMANMx83o5pmiZ6jfdHqt4JNgoL66e1hJaXbbBJfS", "previous"=>[]}}, "didDocument"=>{"doc"=>{"state"=>"new"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWG7AX4gLEXiUL428n29Vueotc4Pm6NrftyUMayG6FZrk"}, "did"=>{"identifier"=>"zQmbCMrKih2VTsrSTMdxUHZAQXvza3TbX998GiopDioJ7rp", "options"=>{"log_revoke"=>{"ts"=>31, "op"=>1, "doc"=>"zQmcB3kLJYTRU8Uff7DhJzZ6py7y1qvRUCznQCdVphobyPP", "sig"=>"z3hivwqUjDfaBAQKyABnPtn8DePryFw5sHQNvTi7czwyZ594j5SoV7njBGVLjGoKHnp27t185FMKn9qY5AwS7wSPQ", "previous"=>["zQmNRBEDU1CWdPjn9kxGSA9ZfeLkfHjQwqyVPjCsHpcJUrt", "zQmWG7AX4gLEXiUL428n29Vueotc4Pm6NrftyUMayG6FZrk"]}, "log_update"=>{"ts"=>31, "op"=>3, "doc"=>"zQmbCMrKih2VTsrSTMdxUHZAQXvza3TbX998GiopDioJ7rp", "sig"=>"z5f4KFcHqKFwHsSeJXifN3nKx2ZTk2UY7QrmHuWAfJt3pfihugxjGMizrxREqPUkkGxvRTC2FiPXHstqnSPcYGtWh", "previous"=>["zQmWaDPL21bgxJRnh5ptKbFpTCvTQPaPJjpMJoAcv1UfFaW"]}, "log_terminate"=>{"ts"=>31, "op"=>0, "doc"=>"zQmZ9Ayro5qMaAJdLCnBK3kGG4jgnnNzwagTw2aXsHb9wnW", "sig"=>"z4ySEJeh9Dxhz6apnCwP7hHc6EPfQunY3jSSxT1kzwPQHhoPxMANMx83o5pmiZ6jfdHqt4JNgoL66e1hJaXbbBJfS", "previous"=>[]}}, "didDocument"=>{"doc"=>{"state"=>"new"}, "key"=>"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2", "log"=>"zQmWG7AX4gLEXiUL428n29Vueotc4Pm6NrftyUMayG6FZrk"}}}
+Completed 500 Internal Server Error in 329ms
+
+
+
+NameError - undefined local variable or method `error' for #<DidsController:0x000000010137e978>:
+  app/controllers/dids_controller.rb:216:in `update'
+
+Started GET "/__better_errors" for 127.0.0.1 at 2022-03-19 11:49:58 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/variables" for 127.0.0.1 at 2022-03-19 11:49:59 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:50:07 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:50:09 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:50:20 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:50:26 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:50:31 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:50:46 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:50:52 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:51:21 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:52:32 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:52:33 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:53:09 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:53:20 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:53:30 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:53:44 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:53:52 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:54:03 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:54:08 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:54:24 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:54:40 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:54:46 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:57:44 +0100
+Started POST "/__better_errors/7e11ee1b5cdea21b/eval" for 127.0.0.1 at 2022-03-19 11:58:11 +0100
