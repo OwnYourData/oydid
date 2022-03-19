@@ -1,0 +1,6 @@
+# demonstrating update without passwords
+
+did_v1=`echo '{"state": "initial"}' | $OYDIDCMD create --doc-pwd pwd1 --rev-pwd pwd2 --return_secrets --json-output`
+created did:oyd:zQmViBbfvc9zkSv2L6UDGbvaHsb4mP17HPyURH6ajGF2Mkr
+
+echo '{"state": "new"}' | $OYDIDCMD update $(echo '{"state": "initial"}' | $OYDIDCMD create --doc-pwd pwd1 --rev-pwd pwd2 --ts 30 --return_secrets --json-output | jq -r '.did') --simulate --old-doc-pwd pwd1 --old-rev-pwd pwd2 --doc-pwd pwd3 --rev-pwd pwd4 --ts 31 | jq '{identifier: .did_old, options: {log_revoke: .log_revoke_old, log_update: .log_update, log_terminate: .log_terminate}, didDocument: .doc}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/update

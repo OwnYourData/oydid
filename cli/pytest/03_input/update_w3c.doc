@@ -1,0 +1,1 @@
+{"identifier":"did:oyd:zQmPy6LnarRoWyXau5DaL1NX8wn7QWzigx6r8qNUvVF4DgZ","options":{"ts":2},"secret":{"old_doc_pwd":"myDocPwd","old_rev_pwd":"myRevPwd","doc_pwd":"newDocPwd","rev_pwd":"myRevPwd"},"didDocument":{"@context":"https://www.w3.org/ns/did/v1","service":[{"state":"new"}]}}

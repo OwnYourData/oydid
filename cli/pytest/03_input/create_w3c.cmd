@@ -1,0 +1,1 @@
+curl -s -H "Content-Type: application/json" -d @- -X POST https://oydid-registrar.data-container.net/1.0/create | jq -c 'del(.jobId)'
