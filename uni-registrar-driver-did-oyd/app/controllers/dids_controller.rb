@@ -213,7 +213,6 @@ class DidsController < ApplicationController
                 old_didDocument = Oydid.retrieve_document_raw(old_did, "", old_doc_location, {})
                 old_doc_pubkey = old_didDocument.first["doc"]["key"].split(":").first.to_s
                 success, msg = Oydid.verify(options[:log_update]["doc"], options[:log_update]["sig"], old_doc_pubkey)
-                raise error
                 if !success
                     render json: {"error": "invalid input data (update log has invalid signature)"},
                            status: 400
