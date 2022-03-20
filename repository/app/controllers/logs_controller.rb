@@ -21,13 +21,19 @@ include ApplicationHelper
 
     def create
         did = params[:did]
-        @log = Log.new(did: did, item: params[:log].to_json, oyd_hash: Oydid.hash(Oydid.canonical(params[:log])), ts: Time.now.to_i)
-        if @log.save
+        my_hash = Oydid.hash(Oydid.canonical(params[:log]))
+        if Log.find_by_oyd_hash(my_hash).nil?
+            @log = Log.new(did: did, item: params[:log].to_json, oyd_hash: my_hash, ts: Time.now.to_i)
+            if @log.save
+                render plain: "", 
+                       status: 200
+            else
+                render json: {"error": "failed to save log entry"},
+                       status: 500
+            end
+        else
             render plain: "", 
                    status: 200
-        else
-            render json: {"error": "failed to save log entry"},
-                   status: 500
         end
     end
 

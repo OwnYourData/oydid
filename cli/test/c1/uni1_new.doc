@@ -17,9 +17,7 @@
       "publicKeyBase58": "z6Mv7EYihbAat6Wq7GsjNsjcxt58dZT8fmsRjQGTkYamYrjB"
     }
   ],
-  "service": [
-    {
-      "simple": "example"
-    }
-  ]
+  "service": {
+    "simple": "example"
+  }
 }
