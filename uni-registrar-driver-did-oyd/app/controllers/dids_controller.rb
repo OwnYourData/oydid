@@ -286,17 +286,58 @@ class DidsController < ApplicationController
     #     "secret": {}
     # }
     def deactivate
-        jobId = params[:jobId]
+        jobId = params[:jobId] rescue nil
+        if jobId.nil?
+            jobId = SecureRandom.uuid
+        end
+        did = params[:identifier]
+        params.permit!
+        options = params[:options] || {}
+        options[:return_secrets] = true
+        secret = params[:secret] || {}
+        options = options.to_hash.merge(secret.to_hash).transform_keys(&:to_sym)
+        if options[:old_doc_pwd].nil? && !options[:doc_pwd].nil?
+            options[:old_doc_pwd] = options[:doc_pwd]
+        end
+        if options[:old_rev_pwd].nil? && !options[:rev_pwd].nil?
+            options[:old_rev_pwd] = options[:rev_pwd]
+        end
+        if options[:doc_location] == "local"
+            render json: {"error": "location not supported"},
+                   status: 500
+            return
+        end
 
-        retVal = {
-            "jobId": jobId,
-            "didState": {
-                "state": "finished"
-            },
-            "didRegistrationMetadata": {},
-            "didDocumentMetadata": {}
-        }
-        render json: retVal.to_json,
-               status: 200
+        preprocessed = false
+        msg = ""
+        if !options[:log_revoke].nil?
+            preprocessed = true
+
+            # perform sanity checks on input data =========
+
+        end
+        if !preprocessed
+            status, msg = Oydid.revoke(did, options)
+        end
+
+        if status.nil?
+            render json: {"error": msg},
+                   status: 500
+        else
+            retVal = {
+                "jobId": jobId,
+                "didState": {
+                    "identifier": did,
+                    "state": "finished",
+                },
+                "didRegistrationMetadata": {},
+                "didDocumentMetadata": {
+                    "did": status["did"].to_s,
+                    "registry": Oydid.get_location(status["did"].to_s)
+                }
+            }
+            render json: retVal.to_json,
+                   status: 200
+        end
     end
 end

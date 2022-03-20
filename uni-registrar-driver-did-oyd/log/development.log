@@ -2049,3 +2049,101 @@ Processing by DidsController#update as */*
 Completed 200 OK in 337ms (Views: 0.1ms)
 
 
+Started POST "/1.0/deactivate" for 127.0.0.1 at 2022-03-20 00:13:09 +0100
+Processing by DidsController#deactivate as */*
+  Parameters: {"identifier"=>"did:oyd:zQmZPcMTda2uc7hejDcZenrMwfX5kHLgcKS6b7oyWRhShTj", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "did"=>{"identifier"=>"did:oyd:zQmZPcMTda2uc7hejDcZenrMwfX5kHLgcKS6b7oyWRhShTj", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}}}
+Completed 500 Internal Server Error in 708ms
+
+
+
+NoMethodError - undefined method `[]' for nil:NilClass:
+  app/controllers/dids_controller.rb:314:in `deactivate'
+
+Started GET "/__better_errors" for 127.0.0.1 at 2022-03-20 00:13:31 +0100
+Started POST "/__better_errors/6d928fd8a69e62bf/variables" for 127.0.0.1 at 2022-03-20 00:13:31 +0100
+Started POST "/__better_errors/6d928fd8a69e62bf/variables" for 127.0.0.1 at 2022-03-20 00:13:41 +0100
+Started POST "/__better_errors/6d928fd8a69e62bf/eval" for 127.0.0.1 at 2022-03-20 00:14:04 +0100
+Started POST "/__better_errors/6d928fd8a69e62bf/eval" for 127.0.0.1 at 2022-03-20 00:14:47 +0100
+Started POST "/1.0/deactivate" for 127.0.0.1 at 2022-03-20 00:16:34 +0100
+Processing by DidsController#deactivate as */*
+  Parameters: {"identifier"=>"did:oyd:zQmZPcMTda2uc7hejDcZenrMwfX5kHLgcKS6b7oyWRhShTj", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "did"=>{"identifier"=>"did:oyd:zQmZPcMTda2uc7hejDcZenrMwfX5kHLgcKS6b7oyWRhShTj", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}}}
+Completed 500 Internal Server Error in 677ms (Views: 0.2ms)
+
+
+
+AbstractController::DoubleRenderError - Render and/or redirect were called multiple times in this action. Please note that you may only call render OR redirect, and at most once per action. Also note that neither redirect nor render terminate execution of the action, so if you want to exit an action after redirecting, you need to do something like "redirect_to(...) and return".:
+  app/controllers/dids_controller.rb:353:in `deactivate'
+
+Started GET "/__better_errors" for 127.0.0.1 at 2022-03-20 00:16:44 +0100
+Started POST "/__better_errors/4f0b343f8f26b7d6/variables" for 127.0.0.1 at 2022-03-20 00:16:44 +0100
+Started POST "/__better_errors/4f0b343f8f26b7d6/eval" for 127.0.0.1 at 2022-03-20 00:17:09 +0100
+Started POST "/__better_errors/4f0b343f8f26b7d6/eval" for 127.0.0.1 at 2022-03-20 00:17:15 +0100
+Started POST "/__better_errors/4f0b343f8f26b7d6/eval" for 127.0.0.1 at 2022-03-20 00:17:21 +0100
+Started POST "/__better_errors/4f0b343f8f26b7d6/eval" for 127.0.0.1 at 2022-03-20 00:17:32 +0100
+Started POST "/__better_errors/4f0b343f8f26b7d6/eval" for 127.0.0.1 at 2022-03-20 00:17:42 +0100
+Started POST "/1.0/deactivate" for 127.0.0.1 at 2022-03-20 00:19:52 +0100
+Processing by DidsController#deactivate as */*
+  Parameters: {"identifier"=>"did:oyd:zQmZPcMTda2uc7hejDcZenrMwfX5kHLgcKS6b7oyWRhShTj", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "did"=>{"identifier"=>"did:oyd:zQmZPcMTda2uc7hejDcZenrMwfX5kHLgcKS6b7oyWRhShTj", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}}}
+Completed 500 Internal Server Error in 742ms (Views: 0.2ms)
+
+
+Started POST "/1.0/deactivate" for 127.0.0.1 at 2022-03-20 00:20:36 +0100
+Processing by DidsController#deactivate as */*
+  Parameters: {"identifier"=>"did:oyd:zQmZPcMTda2uc7hejDcZenrMwfX5kHLgcKS6b7oyWRhShTj", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "did"=>{"identifier"=>"did:oyd:zQmZPcMTda2uc7hejDcZenrMwfX5kHLgcKS6b7oyWRhShTj", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}}}
+Completed 200 OK in 818ms (Views: 0.4ms)
+
+
+Started POST "/1.0/deactivate" for 127.0.0.1 at 2022-03-20 00:21:02 +0100
+Processing by DidsController#deactivate as */*
+  Parameters: {"identifier"=>"did:oyd:zQmZPcMTda2uc7hejDcZenrMwfX5kHLgcKS6b7oyWRhShTj", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "did"=>{"identifier"=>"did:oyd:zQmZPcMTda2uc7hejDcZenrMwfX5kHLgcKS6b7oyWRhShTj", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}}}
+Completed 200 OK in 825ms (Views: 0.5ms)
+
+
+Started POST "/1.0/deactivate" for 127.0.0.1 at 2022-03-20 00:21:11 +0100
+Processing by DidsController#deactivate as */*
+  Parameters: {"identifier"=>"did:oyd:zQmZPcMTda2uc7hejDcZenrMwfX5kHLgcKS6b7oyWRhShTj", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "did"=>{"identifier"=>"did:oyd:zQmZPcMTda2uc7hejDcZenrMwfX5kHLgcKS6b7oyWRhShTj", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}}}
+Completed 200 OK in 785ms (Views: 0.1ms)
+
+
+Started POST "/1.0/deactivate" for 127.0.0.1 at 2022-03-20 00:28:09 +0100
+Processing by DidsController#deactivate as */*
+  Parameters: {"identifier"=>"did:oyd:zQmPyjnkL52gQxBBhPuCFkf167MzpCKquqbu5Qt5ia2JGTr", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "did"=>{"identifier"=>"did:oyd:zQmPyjnkL52gQxBBhPuCFkf167MzpCKquqbu5Qt5ia2JGTr", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}}}
+Completed 200 OK in 780ms (Views: 0.5ms)
+
+
+Started POST "/1.0/deactivate" for 127.0.0.1 at 2022-03-20 00:40:55 +0100
+Processing by DidsController#deactivate as */*
+  Parameters: {"identifier"=>"did:oyd:zQmVR8NcbDye1wNhesTDpbxc6LkHLr8WbrvAKBrFogtXgoK", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "did"=>{"identifier"=>"did:oyd:zQmVR8NcbDye1wNhesTDpbxc6LkHLr8WbrvAKBrFogtXgoK", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}}}
+Completed 200 OK in 805ms (Views: 0.3ms)
+
+
+Started POST "/1.0/deactivate" for 127.0.0.1 at 2022-03-20 00:41:03 +0100
+Processing by DidsController#deactivate as */*
+  Parameters: {"identifier"=>"did:oyd:zQmVR8NcbDye1wNhesTDpbxc6LkHLr8WbrvAKBrFogtXgoK", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "did"=>{"identifier"=>"did:oyd:zQmVR8NcbDye1wNhesTDpbxc6LkHLr8WbrvAKBrFogtXgoK", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}}}
+Completed 500 Internal Server Error in 132ms (Views: 0.4ms)
+
+
+Started POST "/1.0/deactivate" for 127.0.0.1 at 2022-03-20 00:41:39 +0100
+Processing by DidsController#deactivate as */*
+  Parameters: {"identifier"=>"did:oyd:zQmXiFUuedxNHNT1afkSAmCracDfQWCs1X4ZegK7AzBSa6V", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "did"=>{"identifier"=>"did:oyd:zQmXiFUuedxNHNT1afkSAmCracDfQWCs1X4ZegK7AzBSa6V", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}}}
+Completed 200 OK in 857ms (Views: 0.3ms)
+
+
+Started POST "/1.0/deactivate" for 127.0.0.1 at 2022-03-20 00:41:46 +0100
+Processing by DidsController#deactivate as */*
+  Parameters: {"identifier"=>"did:oyd:zQmQCoR1HMEBFuc1dzaNpGqMcbpf5zAnJGq8tmoQFrTB4PZ", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "did"=>{"identifier"=>"did:oyd:zQmQCoR1HMEBFuc1dzaNpGqMcbpf5zAnJGq8tmoQFrTB4PZ", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}}}
+Completed 200 OK in 830ms (Views: 0.3ms)
+
+
+Started POST "/1.0/deactivate" for 127.0.0.1 at 2022-03-20 00:43:29 +0100
+Processing by DidsController#deactivate as */*
+  Parameters: {"identifier"=>"did:oyd:zQmbLCWjRiCMPx8K8mF8G1GQaMSFBCjF2RsoMSDRgeZqqNZ", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "did"=>{"identifier"=>"did:oyd:zQmbLCWjRiCMPx8K8mF8G1GQaMSFBCjF2RsoMSDRgeZqqNZ", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}}}
+Completed 200 OK in 791ms (Views: 0.3ms)
+
+
+Started POST "/1.0/deactivate" for 127.0.0.1 at 2022-03-20 00:56:07 +0100
+Processing by DidsController#deactivate as */*
+  Parameters: {"identifier"=>"did:oyd:zQmbq34CYgD7pGkZtqg4VnSVfF6k4nyDmTbwzmTh12CqecK", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}, "did"=>{"identifier"=>"did:oyd:zQmbq34CYgD7pGkZtqg4VnSVfF6k4nyDmTbwzmTh12CqecK", "secret"=>{"doc_pwd"=>"pwd1", "rev_pwd"=>"pwd2"}}}
+Completed 200 OK in 817ms (Views: 0.3ms)
+
+

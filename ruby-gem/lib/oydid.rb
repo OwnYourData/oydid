@@ -467,7 +467,7 @@ class Oydid
         end
     end
 
-    def self.revoke(did, options)
+    def self.revoke_base(did, options)
         did_orig = did.dup
         doc_location = options[:doc_location]
         if options[:ts].nil?
@@ -498,25 +498,40 @@ class Oydid
         did_old = did.dup
         did10_old = did10.dup
         log_old = did_info["log"]
-        privateKey_old = read_private_storage(did10_old + "_private_key.b58")
-        revocationKey_old = read_private_storage(did10_old + "_revocation_key.b58")
 
-        if options[:doc_key].nil?
-            if options[:doc_pwd].nil?
-                if options[:doc_enc].nil?
-                    privateKey, msg = read_private_key(did10 + "_private_key.b58")
+        if options[:old_doc_key].nil?
+            if options[:old_doc_enc].nil?
+                if options[:old_doc_pwd].nil?
+                    privateKey_old = read_private_storage(did10_old + "_private_key.b58")
                 else
-                    privateKey, msg = decode_private_key(options[:doc_enc].to_s)
+                    privateKey_old, msg = generate_private_key(options[:old_doc_pwd].to_s, 'ed25519-priv')
                 end
             else
-                privateKey, msg = generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv')
+                privateKey_old, msg = decode_private_key(options[:old_doc_enc].to_s)
             end
         else
-            privateKey, msg = read_private_key(options[:doc_key].to_s)
+            privateKey_old, msg = read_private_key(options[:old_doc_key].to_s)
         end
-        if privateKey.nil?
-            return [nil, "private key not found"]
+        if privateKey_old.nil?
+            return [nil, "invalid or missing old private document key"]
         end
+        if options[:old_rev_key].nil?
+            if options[:old_rev_enc].nil?
+                if options[:old_rev_pwd].nil?
+                    revocationKey_old = read_private_storage(did10_old + "_revocation_key.b58")
+                else
+                    revocationKey_old, msg = generate_private_key(options[:old_rev_pwd].to_s, 'ed25519-priv')
+                end
+            else
+                revocationKey_old, msg = decode_private_key(options[:old_rev_enc].to_s)
+            end
+        else
+            revocationKey_old, msg = read_private_key(options[:old_rev_key].to_s)
+        end
+        if revocationKey_old.nil?
+            return [nil, "invalid or missing old private revocation key"]
+        end
+
         if options[:rev_key].nil? && options[:rev_pwd].nil? && options[:rev_enc].nil?
             revocationKey, msg = read_private_key(did10 + "_revocation_key.b58")
             revocationLog = read_private_storage(did10 + "_revocation.json")
@@ -538,7 +553,7 @@ class Oydid
             did_key_old = publicKey_old + ":" + pubRevoKey_old
             subDid = {"doc": did_old_doc, "key": did_key_old}.to_json
             subDidHash = hash(subDid)
-            signedSubDidHash = sign(subDidHash, revocationKey).first
+            signedSubDidHash = sign(subDidHash, revocationKey_old).first
             revocationLog = { 
                 "ts": ts_old,
                 "op": 1, # REVOKE
@@ -555,7 +570,18 @@ class Oydid
             hash(canonical(log_old[did_info["doc_log_id"].to_i])), 
             hash(canonical(log_old[did_info["termination_log_id"].to_i]))
         ]
+        return [revoc_log, ""]
+    end
 
+    def self.revoke_publish(did, revoc_log, options)
+        did_hash = did.delete_prefix("did:oyd:")
+        did10 = did_hash[0,10]
+        doc_location = options[:doc_location]
+        if did_hash.include?(LOCATION_PREFIX)
+            hash_split = did_hash.split(LOCATION_PREFIX)
+            did_hash = hash_split[0]
+            doc_location = hash_split[1]
+        end
         if doc_location.to_s == ""
             doc_location = DEFAULT_LOCATION
         end
@@ -563,22 +589,29 @@ class Oydid
         # publish revocation log based on location
         case doc_location.to_s
         when /^http/
-            retVal = HTTParty.post(doc_location.to_s + "/log/" + did.to_s,
+            retVal = HTTParty.post(doc_location.to_s + "/log/" + did_hash.to_s,
                 headers: { 'Content-Type' => 'application/json' },
                 body: {"log": revoc_log}.to_json )
             if retVal.code != 200
-                msg = retVal.parsed_response("error").to_s rescue "invalid response from " + doc_location.to_s + "/log/" + did.to_s
+                msg = retVal.parsed_response("error").to_s rescue "invalid response from " + doc_location.to_s + "/log/" + did_hash.to_s
                 return [nil, msg]
             end
         else
-            File.write(did10 + ".log", [log_old, revoc_log].flatten.compact.to_json)
+            File.write(did10 + ".log", revoc_log.to_json)
             if !did_old.nil?
-                File.write(did10_old + ".log", [log_old, revoc_log].flatten.compact.to_json)
+                File.write(did10_old + ".log", revoc_log.to_json)
             end
         end
 
-        return [did_orig, ""]
+        return [did, ""]
+    end
 
+    def self.revoke(did, options)
+        revoc_log, msg = revoke_base(did, options)
+        if revoc_log.nil?
+            return [nil, msg]
+        end
+        success, msg = revoke_publish(did, revoc_log, options)
     end
 
     def self.clone(did, options)

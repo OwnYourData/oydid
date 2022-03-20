@@ -815,25 +815,54 @@ when "dag"
         end
         exit(-1)
     end
+
 when "revoke"
-    did, msg = Oydid.revoke(input_did, options)
-    if did.nil?
-        if msg.to_s != ""
-            if options[:silent].nil? || !options[:silent]
-                if options[:json].nil? || !options[:json]
-                    puts "Error: " + msg.to_s
-                else
-                    puts '{"error": "' + msg + '"}'
+    if options[:old_doc_pwd].nil? && !options[:doc_pwd].nil?
+        options[:old_doc_pwd] = options[:doc_pwd]
+    end
+    if options[:old_rev_pwd].nil? && !options[:rev_pwd].nil?
+        options[:old_rev_pwd] = options[:rev_pwd]
+    end
+    did = input_did.delete_prefix("did:oyd:")
+    if options[:simulate]
+        result, msg = Oydid.revoke_base(did, options)
+        if result.nil?
+            if msg.to_s != ""
+                if options[:silent].nil? || !options[:silent]
+                    if options[:json].nil? || !options[:json]
+                        puts "Error: " + msg.to_s
+                    else
+                        puts '{"error": "' + msg + '"}'
+                    end
                 end
             end
+            exit(-1)
         end
-        exit(-1)
+        retVal = {
+            "did": input_did,
+            "log": result
+        }
+        puts retVal.to_json
     else
-        if options[:silent].nil? || !options[:silent]
-            if options[:json].nil? || !options[:json]
-                puts "revoked " + did
-            else
-                puts '{"did": "did:oyd:"' + did.to_s + '", "operation": "revoke"}'
+        did, msg = Oydid.revoke(did, options)
+        if did.nil?
+            if msg.to_s != ""
+                if options[:silent].nil? || !options[:silent]
+                    if options[:json].nil? || !options[:json]
+                        puts "Error: " + msg.to_s
+                    else
+                        puts '{"error": "' + msg + '"}'
+                    end
+                end
+            end
+            exit(-1)
+        else
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "revoked " + did
+                else
+                    puts '{"did": "did:oyd:"' + did.to_s + '", "operation": "revoke"}'
+                end
             end
         end
     end

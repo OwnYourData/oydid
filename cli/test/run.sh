@@ -135,7 +135,7 @@ fi
 rm tmp.doc
 
 # test revoking DID
-$OYDIDCMD revoke did:oyd:zQmeMnYBBYvddAdgH6Ape2L4FzRty3y69grDZcQd5kR2tQH --doc-pwd pwd1 --rev-pwd pwd2
+$OYDIDCMD revoke did:oyd:zQme7H3X9CheEE9ftWAjDiEsBbomFVmijHsWqP9dn3KsUsd --doc-pwd pwd3 --rev-pwd pwd4
 retval=`$OYDIDCMD read did:oyd:zQmeMnYBBYvddAdgH6Ape2L4FzRty3y69grDZcQd5kR2tQH`
 if [ "$retval" != "Error: cannot resolve DID (on reading DID)" ]; then
 	echo "revoking DID failed"
