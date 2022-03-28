@@ -137,9 +137,8 @@ class DidsController < ApplicationController
                    status: 500
         else
             retVal = {
-                "jobId": jobId,
                 "didState": {
-                    "identifier": status["did"],
+                    "did": status["did"],
                     "state": "finished",
                     "secret": {
                         "documentKey": status["private_key"],
@@ -251,9 +250,8 @@ class DidsController < ApplicationController
                    status: 500
         else
             retVal = {
-                "jobId": jobId,
                 "didState": {
-                    "identifier": status["did"],
+                    "did": status["did"],
                     "state": "finished",
                     "secret": {
                         "documentKey": status["private_key"],
@@ -325,9 +323,8 @@ class DidsController < ApplicationController
                    status: 500
         else
             retVal = {
-                "jobId": jobId,
                 "didState": {
-                    "identifier": did,
+                    "did": did,
                     "state": "finished",
                 },
                 "didRegistrationMetadata": {},
