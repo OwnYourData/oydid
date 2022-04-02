@@ -6,6 +6,12 @@ docker rm -f resolver
 
 curl http://localhost:3000/1.0/identifiers/asdf
 
-curl http://localhost:3000/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj | jq
+curl -s http://localhost:3000/1.0/identifiers/did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh | jq
 
-https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmZ8DEGQtJcpoQDMKYJkTiQn9dQLM2QzvmDQXuj8vCfvdj
+https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
+
+
+curl -s http://localhost:3000/1.0/identifiers/did:oyd:zQmdXNRiMWEYTiYF58a9BaiUkfB2xWUgL7G7ozyCCNPqjKV | jq
+
+
+curl -s http://localhost:3000/1.0/identifiers/did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR | jq

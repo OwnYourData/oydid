@@ -1,3 +1,8 @@
+# run pytest locally in oydid/cli/pytest
+export OYDIDCMD='../oydid.rb'
+pytest
+
+
 # demonstrating update without passwords
 
 did_v1=`echo '{"state": "initial"}' | $OYDIDCMD create --doc-pwd pwd1 --rev-pwd pwd2 --return_secrets --json-output`

@@ -30,7 +30,7 @@ class DidsController < ApplicationController
             "didResolutionMetadata":{},
             "didDocument": Oydid.w3c(result, {}),
             "didDocumentMetadata": {
-                "did": result["did"].to_s,
+                "did": "did:oyd:" + result["did"].to_s,
                 "registry": Oydid.get_location(result["did"].to_s),
                 "log_hash": result["doc"]["log"].to_s,
                 "log": result["log"],
@@ -38,6 +38,16 @@ class DidsController < ApplicationController
                 "termination_log_id": result["termination_log_id"].to_i
             }
         }
+        equivalentIds = []
+        result["log"].each do |log|
+            if log["op"] == 2 || log["op"] == 3
+                equivalentIds << "did:oyd:" + log["doc"]
+            end
+        end unless result["log"].nil?
+
+        if equivalentIds.length > 1
+            retVal[:didDocumentMetadata][:equivalentId] = equivalentIds
+        end
 
         render plain: retVal.to_json,
                mime_type: Mime::Type.lookup("application/ld+json"),
