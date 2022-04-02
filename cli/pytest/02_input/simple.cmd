@@ -1,0 +1,1 @@
+curl -s https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
