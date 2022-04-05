@@ -12,6 +12,10 @@ RUN mkdir -p $RAILS_ROOT/tmp/pids && \
 
 COPY Gemfile $WORKDIR
 RUN bundle install
+RUN gem install bundler:1.17.3 && \
+	gem update --system 3.2.3 && \
+	bundle install && \
+	bundle update
 
 ENV LANG=C.UTF-8
 ENV RAILS_LOG_TO_STDOUT="TRUE"

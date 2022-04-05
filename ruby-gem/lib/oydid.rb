@@ -139,9 +139,9 @@ class Oydid
 
     def self.generate_base(content, did, mode, options)
         # input validation
-        did_doc = JSON.parse(content.to_json) rescue {}
-        if did_doc == {}
-            return [nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, "empty or invalid payload"]
+        did_doc = JSON.parse(content.to_json) rescue nil
+        if did_doc.nil?
+            return [nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, "invalid payload"]
         end        
         did_old = nil
         log_old = nil

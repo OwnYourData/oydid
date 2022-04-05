@@ -72,7 +72,7 @@ class DidsController < ApplicationController
                 doc = Oydid.fromW3C(didDocument, options)
             end
         end
-
+        
         preprocessed = false
         msg = ""
         if !did_obj.nil? && did_obj.is_a?(Hash)

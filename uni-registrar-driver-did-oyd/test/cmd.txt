@@ -43,6 +43,10 @@ echo '{"jobId": null, "options": {"log_create":{"ts":1647132010,"op":2,"doc":"zQ
 # pre-processed - better
 echo '[1]' | ../oydid.rb create --simulate --doc-pwd pwd1 --rev-pwd pwd2 --ts 1610839947 | jq '{jobId: null, options: {log_create: .log_create, log_terminate: .log_terminate}, secret: {}, didDocument: .doc}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
 
+# create empty DID document (input Markus)
+# curl -X POST 'http://localhost:9080/1.0/create?method=oyd' -d '{"didDocument":{"@context":"https://www.w3.org/ns/did/v1"}}'
+echo '{"didDocument":{"@context":"https://www.w3.org/ns/did/v1"}}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
+
 
 ### UPDATE =============
 # document only
