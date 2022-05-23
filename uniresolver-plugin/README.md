@@ -22,6 +22,7 @@ docker run -p 8080:3000 oydeu/oydid-resolver
 curl -X GET http://localhost:8080/1.0/identifiers/did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
 ```
 
+Docker images are available here: https://hub.docker.com/r/oydeu/oydid-resolver
 
 ## OYDID Universal Resolver Driver
 

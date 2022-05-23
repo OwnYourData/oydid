@@ -275,7 +275,7 @@ class Oydid
                 pubRevoKey_old = public_key(revocationKey_old).first
                 did_key_old = publicKey_old + ":" + pubRevoKey_old
                 subDid = {"doc": did_old_doc, "key": did_key_old}.to_json
-                subDidHash = hash(subDid)
+                subDidHash = hash(canonical(subDid))
                 signedSubDidHash = sign(subDidHash, revocationKey_old).first
                 revocationLog = { 
                     "ts": ts_old,
@@ -552,7 +552,7 @@ class Oydid
             pubRevoKey_old = public_key(revocationKey_old).first
             did_key_old = publicKey_old + ":" + pubRevoKey_old
             subDid = {"doc": did_old_doc, "key": did_key_old}.to_json
-            subDidHash = hash(subDid)
+            subDidHash = hash(canonical(subDid))
             signedSubDidHash = sign(subDidHash, revocationKey_old).first
             revocationLog = { 
                 "ts": ts_old,
