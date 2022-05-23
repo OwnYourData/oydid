@@ -708,9 +708,9 @@ class Oydid
                     end
                     newDidDoc << didDoc["service"]
                     newDidDoc = newDidDoc.flatten
+                else
+                    newDidDoc = didDoc["service"]
                 end
-            else
-                newDidDoc = didDoc
             end
         else
             newDidDoc = didDoc
