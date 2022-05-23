@@ -2,6 +2,9 @@
 export OYDIDCMD='../oydid.rb'
 pytest
 
+# run pytest in CLI image
+docker run -it --rm -w /usr/src/pytest -e OYDIDCMD=oydid oydeu/oydid-cli pytest
+
 
 # demonstrating update without passwords
 
