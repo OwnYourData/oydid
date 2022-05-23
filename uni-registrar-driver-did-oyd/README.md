@@ -18,6 +18,8 @@ docker build -f ./docker/Dockerfile . -t oydeu/oydid-registrar
 docker run -p 8080:3000 oydeu/oydid-registrar
 ```
 
+Docker images are available here: https://hub.docker.com/r/oydeu/oydid-registrar
+
 ### Verify with automated tests    
 
 Use the following command to run the automated tests (including oydid-registrar tests) in the [`oydeu/oydid-cli`](https://hub.docker.com/r/oydeu/oydid-cli) Docker image:    

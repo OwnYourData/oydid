@@ -1,4 +1,4 @@
-FROM ruby:2.5.9-alpine
+FROM arm64v8/ruby:2.5.9-alpine
 MAINTAINER "Christoph Fabianek" christoph@ownyourdata.eu
 
 RUN addgroup -S user && \
@@ -7,7 +7,6 @@ RUN addgroup -S user && \
     gem install httparty ed25519 multibases multihashes multicodecs optparse rbnacl dag uri oydid && \
     gem install json-canonicalization -v 0.2.1 && \
     gem install securerandom -v 0.1.1 && \
-    gem update && \
     apk del make gcc musl-dev && \
     apk add --update --no-cache python3 && \
     ln -sf python3 /usr/bin/python && \
