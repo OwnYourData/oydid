@@ -711,6 +711,8 @@ class Oydid
                 else
                     newDidDoc = didDoc["service"]
                 end
+            else
+                newDidDoc = didDoc
             end
         else
             newDidDoc = didDoc
