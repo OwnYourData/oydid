@@ -485,6 +485,9 @@ if input_did.to_s == "" && operation.to_s.start_with?("did:oyd:")
     input_did = operation
     operation = "read"
 end
+if input_did.to_s != "" && input_did.include?("%40")
+    input_did = input_did.sub "%40", "@"
+end
 
 if operation == "create" || operation == "sc_create" || operation == "update" || operation == "fromW3C" || operation == "toW3C"
     content = []
