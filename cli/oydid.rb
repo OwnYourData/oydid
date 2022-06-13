@@ -383,6 +383,7 @@ def print_help()
     puts " -v, --version                     - display version number"
     puts "     --w3c-did                     - display DID Document in W3C conform"
     puts "                                     format"
+    # fix me: describe DIDComm options
 end
 
 # main -------------------------------
@@ -476,6 +477,18 @@ opt_parser = OptionParser.new do |opt|
     print_version()
     exit(0)
   end
+
+  # DIDComm Options
+  opt.on("--type TYPE") do |t|
+    options[:didcomm_type] = t.to_s
+  end
+  opt.on("--from FROM_DID") do |fd|
+    options[:didcomm_from_did] = fd.to_s
+  end
+  opt.on("--to TO_DID") do |td|
+    options[:didcomm_to_did] = td.to_s
+  end
+
 end
 opt_parser.parse!
 
@@ -489,7 +502,7 @@ if input_did.to_s != "" && input_did.include?("%40")
     input_did = input_did.sub "%40", "@"
 end
 
-if operation == "create" || operation == "sc_create" || operation == "update" || operation == "fromW3C" || operation == "toW3C"
+if operation == "create" || operation == "sc_create" || operation == "update" || operation == "fromW3C" || operation == "toW3C" || operation == "didcomm"
     content = []
     ARGF.each_line { |line| content << line }
     content = JSON.parse(content.join("")) rescue nil
@@ -892,6 +905,15 @@ when "delete"
             end
         end
     end
+when "didcomm"
+    dcDoc = {}
+    dcDoc["id"] = SecureRandom.random_number(10e14).to_i
+    dcDoc["type"] = options[:didcomm_type]
+    dcDoc["from"] = options[:didcomm_from_did]
+    dcDoc["to"] = [options[:didcomm_to_did]]
+    dcDoc["created_time"] = Time.now.utc.to_i
+    dcDoc["body"] = content
+    puts JSON.pretty_generate(dcDoc)
 when "sc_init"
     sc_init(options)
 when "sc_token"

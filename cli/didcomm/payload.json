@@ -1,0 +1,11 @@
+{
+  "id": 900758127879992,
+  "type": "https://ownyourdata.eu/oydid/0.1/example",
+  "to": [
+    "did:oyd:zQmcd1WLbrMQSa3SGcb1Vx3skv9Ah2JWSnueaojp8K4Nbux"
+  ],
+  "created_time": 1655121612,
+  "body": {
+    "my": "message"
+  }
+}
