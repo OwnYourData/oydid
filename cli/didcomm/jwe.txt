@@ -1,0 +1,28 @@
+require 'oydid'
+
+payload = { data: 'test' }
+
+# creating JWE ----------
+f = File.open("zQmcd1WLbr_private_key.b58")
+key_encoded = f.read
+f.close
+# key_encoded = "z1S5hN3SzvzugTSDnQ5mcKsAJpiDziXVa6RZavdsgQHjHQRt"
+code, length, digest = Oydid.decode(key_encoded).unpack('SCa*')
+private_key = RbNaCl::Signatures::Ed25519::SigningKey.new(digest)
+# public_key = private_key.verify_key
+token = JWT.encode payload, private_key, 'ED25519'
+puts token
+# eyJhbGciOiJFRDI1NTE5In0.eyJkYXRhIjoidGVzdCJ9.HvqQlU3qguSkDPm6jOiz_Bl06FVhGi90TafpOYo26oLcV2jyuAklqiuHbL85o79A2NNViwOYmSCRY5TJEzDYDw
+
+# reading JWE ----------
+f = File.open("zQmcd1WLbrMQSa3SGcb1Vx3skv9Ah2JWSnueaojp8K4Nbux.did")
+did_json = f.read
+f.close
+didDoc = JSON.parse(did_json)
+public_key_encoded = didDoc["verificationMethod"].first["publicKeyBase58"]
+code, length, digest = Oydid.decode(public_key_encoded).unpack('CCa*')
+public_key = RbNaCl::Signatures::Ed25519::VerifyKey.new(digest)
+decoded_token = JWT.decode token, public_key, true, { algorithm: 'ED25519' }
+puts decoded_token
+# {"data"=>"test"}
+# {"alg"=>"ED25519"}

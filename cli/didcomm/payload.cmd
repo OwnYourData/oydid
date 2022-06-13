@@ -1,0 +1,1 @@
+echo '{"my":"message"}' | ../oydid.rb didcomm plain --type https://ownyourdata.eu/oydid/0.1/example --to did:oyd:zQmcd1WLbrMQSa3SGcb1Vx3skv9Ah2JWSnueaojp8K4Nbux 
