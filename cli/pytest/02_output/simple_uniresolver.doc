@@ -2,12 +2,12 @@
   "didDocument": {
     "@context": "https://www.w3.org/ns/did/v1",
     "id": "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
-    "verificationMethod": [
+    "assertionMethod": [
       {
         "id": "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
         "type": "Ed25519VerificationKey2020",
         "controller": "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
-        "publicKeyBase58": "z6MusYB5iT5krCHYsZ76EzBaTdRwGKsaBhMcSbrXaPJgkuRQ"
+        "publicKeyMultibase": "z6MusYB5iT5krCHYsZ76EzBaTdRwGKsaBhMcSbrXaPJgkuRQ"
       }
     ],
     "keyAgreement": [
@@ -15,7 +15,7 @@
         "id": "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
         "type": "Ed25519VerificationKey2020",
         "controller": "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
-        "publicKeyBase58": "z6Mv7EYihbAat6Wq7GsjNsjcxt58dZT8fmsRjQGTkYamYrjB"
+        "publicKeyMultibase": "z6Mv7EYihbAat6Wq7GsjNsjcxt58dZT8fmsRjQGTkYamYrjB"
       }
     ],
     "service": {
