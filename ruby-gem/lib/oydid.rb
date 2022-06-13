@@ -670,17 +670,17 @@ class Oydid
         wd = {}
         wd["@context"] = "https://www.w3.org/ns/did/v1"
         wd["id"] = did
-        wd["verificationMethod"] = [{
+        wd["assertionMethod"] = [{
             "id": did,
             "type": "Ed25519VerificationKey2020",
             "controller": did,
-            "publicKeyBase58": pubDocKey
+            "publicKeyMultibase": pubDocKey
         }]
         wd["keyAgreement"] = [{
             "id": did,
             "type": "Ed25519VerificationKey2020",
             "controller": did,
-            "publicKeyBase58": pubRevKey
+            "publicKeyMultibase": pubRevKey
         }]
 
         if didDoc["@context"].to_s == "https://www.w3.org/ns/did/v1"
