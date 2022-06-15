@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require 'dag'
+require 'jwt'
 require 'rbnacl'
 require 'ed25519'
 require 'httparty'
@@ -11,6 +12,7 @@ require 'multicodecs'
 require 'json/canonicalization'
 require 'oydid/basic'
 require 'oydid/log'
+require 'oydid/didcomm'
 
 class Oydid
 

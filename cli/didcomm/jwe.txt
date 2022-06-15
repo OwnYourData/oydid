@@ -1,4 +1,6 @@
 require 'oydid'
+require 'rbnacl'
+require 'jwt'
 
 payload = { data: 'test' }
 
@@ -26,3 +28,45 @@ decoded_token = JWT.decode token, public_key, true, { algorithm: 'ED25519' }
 puts decoded_token
 # {"data"=>"test"}
 # {"alg"=>"ED25519"}
+
+
+# OYDID examples ===============================================
+
+# create plain text message (in oydid/cli/didcomm) -------------
+echo '{"my":"message"}' | ../oydid.rb message --type https://ownyourdata.eu/oydid/0.1/example --to did:oyd:zQmcd1WLbrMQSa3SGcb1Vx3skv9Ah2JWSnueaojp8K4Nbux
+
+# output:
+{
+  "id": 171665990236413,
+  "type": "https://ownyourdata.eu/oydid/0.1/example",
+  "to": [
+    "did:oyd:zQmcd1WLbrMQSa3SGcb1Vx3skv9Ah2JWSnueaojp8K4Nbux"
+  ],
+  "created_time": 1655274664,
+  "body": {
+    "my": "message"
+  }
+}
+
+# msg to file:
+echo '{"my":"message"}' | ../oydid.rb message --type https://ownyourdata.eu/oydid/0.1/example --to did:oyd:zQmcd1WLbrMQSa3SGcb1Vx3skv9Ah2JWSnueaojp8K4Nbux > test.dcpm
+
+
+# encrypt plain text message -----------------------------------
+echo '{"id":528784186798112,"type":"https://ownyourdata.eu/oydid/0.1/example","to":["did:oyd:zQmcd1WLbrMQSa3SGcb1Vx3skv9Ah2JWSnueaojp8K4Nbux"],"created_time":1655244533,"body":{"my":"message"}}' | ../oydid.rb encrypt  --from did:oyd:zQmcd1WLbrMQSa3SGcb1Vx3skv9Ah2JWSnueaojp8K4Nbux
+
+# short: 
+cat test.dcpm | ../oydid.rb encrypt  --from did:oyd:zQmcd1WLbrMQSa3SGcb1Vx3skv9Ah2JWSnueaojp8K4Nbux 
+
+# to file:
+cat test.dcpm | ../oydid.rb encrypt  --from did:oyd:zQmcd1WLbrMQSa3SGcb1Vx3skv9Ah2JWSnueaojp8K4Nbux > test_crypt.txt
+
+
+# decrypt plain text message -----------------------------------
+cat test_crypt.txt | ../oydid.rb decrypt  --from did:oyd:zQmcd1WLbrMQSa3SGcb1Vx3skv9Ah2JWSnueaojp8K4Nbux
+
+
+
+
+
+

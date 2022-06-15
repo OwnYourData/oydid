@@ -502,10 +502,27 @@ if input_did.to_s != "" && input_did.include?("%40")
     input_did = input_did.sub "%40", "@"
 end
 
-if operation == "create" || operation == "sc_create" || operation == "update" || operation == "fromW3C" || operation == "toW3C" || operation == "didcomm"
+if operation == "create" || operation == "sc_create" || operation == "update" || operation == "fromW3C" || operation == "toW3C" || 
+        operation == "message" || operation == "encrypt"
     content = []
     ARGF.each_line { |line| content << line }
     content = JSON.parse(content.join("")) rescue nil
+    if content.nil?
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: empty or invalid payload"
+            else
+                puts '{"error": "empty or invalid payload"}'
+            end
+        end
+        exit(-1)
+    end
+end
+
+if operation == "decrypt"
+    content = []
+    ARGF.each_line { |line| content << line }
+    content = content.join('').strip
     if content.nil?
         if options[:silent].nil? || !options[:silent]
             if options[:json].nil? || !options[:json]
@@ -905,15 +922,25 @@ when "delete"
             end
         end
     end
-when "didcomm"
-    dcDoc = {}
-    dcDoc["id"] = SecureRandom.random_number(10e14).to_i
-    dcDoc["type"] = options[:didcomm_type]
-    dcDoc["from"] = options[:didcomm_from_did]
-    dcDoc["to"] = [options[:didcomm_to_did]]
-    dcDoc["created_time"] = Time.now.utc.to_i
-    dcDoc["body"] = content
-    puts JSON.pretty_generate(dcDoc)
+when "message"
+    didcomm_message, msg = Oydid.dcpm(content, options)
+    puts JSON.pretty_generate(didcomm_message)
+when "encrypt"
+    from_did = options[:didcomm_from_did].to_s
+    did10 = from_did.delete_prefix("did:oyd:")[0,10]
+    f = File.open(did10 + "_private_key.b58")
+    key_encoded = f.read
+    f.close
+    msg_encrypted, msg = Oydid.msg_encrypt(content, key_encoded)
+    puts msg_encrypted.to_s
+
+when "decrypt"
+    from_did = options[:didcomm_from_did].to_s
+    result, msg = Oydid.read(from_did, options)
+    public_key_encoded = result["doc"]["key"].split(':').first
+    msg_decrypted, msg = Oydid.msg_decrypt(content, public_key_encoded)
+    puts JSON.pretty_generate(msg_decrypted.first)
+
 when "sc_init"
     sc_init(options)
 when "sc_token"
