@@ -149,7 +149,7 @@ class Oydid
         log_old = nil
         prev_hash = []
         revoc_log = nil
-        doc_location = options[:doc_location]
+        doc_location = options[:location]
         if options[:ts].nil?
             ts = Time.now.to_i
         else
@@ -672,14 +672,13 @@ class Oydid
         wd = {}
         wd["@context"] = "https://www.w3.org/ns/did/v1"
         wd["id"] = did
-        wd["assertionMethod"] = [{
-            "id": did,
+        wd["verificationMethod"] = [{
+            "id": did + "#key-doc",
             "type": "Ed25519VerificationKey2020",
             "controller": did,
             "publicKeyMultibase": pubDocKey
-        }]
-        wd["keyAgreement"] = [{
-            "id": did,
+        },{
+            "id": did + "#key-rev",
             "type": "Ed25519VerificationKey2020",
             "controller": did,
             "publicKeyMultibase": pubRevKey

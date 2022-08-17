@@ -329,24 +329,27 @@ def print_help()
     puts "Usage: oydid [OPERATION] [OPTION]"
     puts ""
     puts "OPERATION"
-    puts "  create    - new DID, reads doc from STDIN"
-    puts "  read      - output DID Document for given DID in option"
-    puts "  update    - update DID Document, reads doc from STDIN and DID specified"
-    puts "              as option"
-    puts "  revoke    - revoke DID by publishing revocation entry"
-    puts "  delete    - remove DID and all associated records (only for testing)"
-    puts "  log       - print relevant log for given DID or log entry hash"
-    puts "  logs      - print all available log entries for given DID or log hash"
-    puts "  dag       - print graph for given DID"
-    puts "  fromW3C   - read W3C-conform DID document and convert to OYDID format"
-    puts "  toW3C     - read OYDID internal document and convert to W3C-conform"
-    puts "              DID document"
-    puts "  clone     - clone DID to new location"
-    puts "  delegate  - add log entry with additional keys for validating signatures"
-    puts "              of document or revocation entries"
-    puts "  challenge - publish challenge for given DID and revoke specified as"
-    puts "              options"
-    puts "  confirm   - confirm specified clones or delegates for given DID"
+    puts "  create     - new DID, reads doc from STDIN"
+    puts "  read       - output DID Document for given DID in option"
+    puts "  update     - update DID Document, reads doc from STDIN and DID specified"
+    puts "               as option"
+    puts "  revoke     - revoke DID by publishing revocation entry"
+    puts "  delete     - remove DID and all associated records (only for testing)"
+    puts "  log        - print relevant log for given DID or log entry hash"
+    puts "  logs       - print all available log entries for given DID or log hash"
+    puts "  dag        - print graph for given DID"
+    puts "  fromW3C    - read W3C-conform DID document and convert to OYDID format"
+    puts "  toW3C      - read OYDID internal document and convert to W3C-conform"
+    puts "               DID document"
+    puts "  clone      - clone DID to new location"
+    puts "  delegate   - add log entry with additional keys for validating signatures"
+    puts "               of document or revocation entries"
+    # puts "  challenge - publish challenge for given DID and revoke specified as"
+    # puts "              options"
+    puts "  confirm    - confirm specified clones or delegates for given DID"
+    puts "  message    - output plain DIDComm message, reads from STDIN"
+    puts "  jws        - output signed DIDComm message, reads from STDIN"
+    puts "  jws-verify - read JWS and verify signature"
     puts ""
     puts "Semantic Container operations:"
     puts "  sc_init   - create initial DID for a Semantic Container "
@@ -479,6 +482,9 @@ opt_parser = OptionParser.new do |opt|
   end
 
   # DIDComm Options
+  opt.on("--sign-did DID") do |sign_did|
+    options[:sign_did] = sign_did
+  end
   opt.on("--type TYPE") do |t|
     options[:didcomm_type] = t.to_s
   end
@@ -487,6 +493,9 @@ opt_parser = OptionParser.new do |opt|
   end
   opt.on("--to TO_DID") do |td|
     options[:didcomm_to_did] = td.to_s
+  end
+  opt.on("--hmac_secret HMAC_SECRET") do |secret|
+    options[:hmac_secret] = secret.to_s
   end
 
 end
@@ -502,8 +511,11 @@ if input_did.to_s != "" && input_did.include?("%40")
     input_did = input_did.sub "%40", "@"
 end
 
-if operation == "create" || operation == "sc_create" || operation == "update" || operation == "fromW3C" || operation == "toW3C" || 
-        operation == "message" || operation == "encrypt"
+case operation.to_s
+# JSON input
+when "create", "update", 
+     "fromW3C", "toW3C",
+     "message", "jws", "encrypt-message", "sign-message"
     content = []
     ARGF.each_line { |line| content << line }
     content = JSON.parse(content.join("")) rescue nil
@@ -517,9 +529,8 @@ if operation == "create" || operation == "sc_create" || operation == "update" ||
         end
         exit(-1)
     end
-end
-
-if operation == "decrypt"
+# JWT input
+when "decrypt-jwt", "verify-jws", "verify-signed-message"
     content = []
     ARGF.each_line { |line| content << line }
     content = content.join('').strip
@@ -922,24 +933,69 @@ when "delete"
             end
         end
     end
+
+# DIDComm Functions =============
 when "message"
-    didcomm_message, msg = Oydid.dcpm(content, options)
+    didcomm_message, err_msg = Oydid.dcpm(content, options)
     puts JSON.pretty_generate(didcomm_message)
-when "encrypt"
+when "jws"
+    did10 = options[:sign_did].to_s.delete_prefix("did:oyd:")[0,10]
+    f = File.open(did10 + "_private_key.b58")
+    private_key_encoded = f.read
+    f.close
+    didcomm_signed_message, err_msg = Oydid.dcsm(content, private_key_encoded, options)
+    puts didcomm_signed_message.to_s
+when "verify-jws"
+    msg_verified, err_msg = Oydid.dcsm_verify(content, options)
+    if !msg_verified.nil?
+        if options[:json].nil? || !options[:json]
+            puts "✅ Signature verified for: "
+            puts JSON.pretty_generate(msg_verified)
+        else
+            puts JSON.pretty_generate(msg_verified)
+        end
+    else
+        if options[:json].nil? || !options[:json]
+            puts "⛔ " + err_msg
+        else
+            puts JSON.pretty_generate("error": err_msg)
+        end
+    end
+
+
+when "encrypt-message"
     from_did = options[:didcomm_from_did].to_s
     did10 = from_did.delete_prefix("did:oyd:")[0,10]
     f = File.open(did10 + "_private_key.b58")
     key_encoded = f.read
     f.close
-    msg_encrypted, msg = Oydid.msg_encrypt(content, key_encoded)
+    msg_encrypted, msg = Oydid.msg_encrypt(content, key_encoded, from_did)
     puts msg_encrypted.to_s
-
-when "decrypt"
+when "decrypt-jwt"
     from_did = options[:didcomm_from_did].to_s
     result, msg = Oydid.read(from_did, options)
     public_key_encoded = result["doc"]["key"].split(':').first
     msg_decrypted, msg = Oydid.msg_decrypt(content, public_key_encoded)
     puts JSON.pretty_generate(msg_decrypted.first)
+when "sign-message"
+    msg_signed, msg = Oydid.msg_sign(content, options[:hmac_secret].to_s)
+    puts msg_signed.to_s
+when "verify-signed-message"
+    msg_verified, msg = Oydid.msg_verify_jws(content, options[:hmac_secret].to_s)
+    if !msg_verified.nil?
+        if options[:json].nil? || !options[:json]
+            puts "✅ Signature verified for: "
+            puts JSON.pretty_generate(msg_verified)
+        else
+            puts JSON.pretty_generate(msg_verified)
+        end
+    else
+        if options[:json].nil? || !options[:json]
+            puts "⛔ " + msg
+        else
+            puts JSON.pretty_generate("error": msg)
+        end
+    end
 
 when "sc_init"
     sc_init(options)

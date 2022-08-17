@@ -15,7 +15,6 @@ class DidsController < ApplicationController
 
     # input
     # {
-    #     "jobId": null,
     #     "options": {
     #         "ledger": "test",
     #         "keytype": "ed25519"
@@ -162,7 +161,6 @@ class DidsController < ApplicationController
 
     # input
     # {
-    #     "jobId": null,
     #     "identifier": "did:sov:WRfXPg8dantKVubE3HX8pw",
     #     "options": {
     #         "ledger": "test",
@@ -275,7 +273,6 @@ class DidsController < ApplicationController
 
     # input
     # {
-    #     "jobId": null,
     #     "identifier": "did:sov:WRfXPg8dantKVubE3HX8pw",
     #     "options": {
     #         "ledger": "test",

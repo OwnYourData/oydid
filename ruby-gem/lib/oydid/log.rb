@@ -152,20 +152,23 @@ class Oydid
 
     def self.dag_update(currentDID, options)
         i = 0
-        initial_did = currentDID["did"].to_s
+        doc_location = ""
+        initial_did = currentDID["did"].to_s.dup
         initial_did = initial_did.delete_prefix("did:oyd:")
-        initial_did = initial_did.split("@").first
+        if initial_did.include?(LOCATION_PREFIX)
+            tmp = initial_did.split(LOCATION_PREFIX)
+            initial_did = tmp[0] 
+            doc_location = tmp[1]
+        end
         current_public_doc_key = ""
         verification_output = false
         currentDID["log"].each do |el|
             case el["op"]
             when 2,3 # CREATE, UPDATE
                 currentDID["doc_log_id"] = i
-
                 doc_did = el["doc"]
-                doc_location = get_location(doc_did)
                 did_hash = doc_did.delete_prefix("did:oyd:")
-                did_hash = did_hash.split("@").first
+                did_hash = did_hash.split(LOCATION_PREFIX).first
                 did10 = did_hash[0,10]
                 doc = retrieve_document_raw(doc_did, did10 + ".doc", doc_location, {})
                 if doc.first.nil?
@@ -217,9 +220,8 @@ class Oydid
                 currentDID["termination_log_id"] = i
 
                 doc_did = currentDID["did"]
-                doc_location = get_location(doc_did)
                 did_hash = doc_did.delete_prefix("did:oyd:")
-                did_hash = did_hash.split("@").first
+                did_hash = did_hash.split(LOCATION_PREFIX).first
                 did10 = did_hash[0,10]
                 doc = retrieve_document_raw(doc_did, did10 + ".doc", doc_location, {})
                 # since it retrieves a DID that previously existed, this test is not necessary
@@ -230,11 +232,11 @@ class Oydid
                 # end
                 doc = doc.first["doc"]
                 term = doc["log"]
-                log_location = term.split("@")[1] rescue ""
+                log_location = term.split(LOCATION_PREFIX)[1] rescue ""
                 if log_location.to_s == ""
                     log_location = DEFAULT_LOCATION
                 end
-                term = term.split("@").first
+                term = term.split(LOCATION_PREFIX).first
                 if hash(canonical(el)) != term
                     currentDID["error"] = 1
                     currentDID["message"] = "Log reference and record don't match"
@@ -256,7 +258,7 @@ class Oydid
                 # check if there is a revocation entry
                 revocation_record = {}
                 revoc_term = el["doc"]
-                revoc_term = revoc_term.split("@").first
+                revoc_term = revoc_term.split(LOCATION_PREFIX).first
                 revoc_term_found = false
                 log_array, msg = retrieve_log(did_hash, did10 + ".log", log_location, options)
                 log_array.each do |log_el|
@@ -321,9 +323,9 @@ class Oydid
                                         currentDID["verification"] += "of next DID Document (Details: https://ownyourdata.github.io/oydid/#verify_signature)" + "\n"
 
                                         next_doc_did = log_el["doc"].to_s
-                                        next_doc_location = get_location(next_doc_did)
+                                        next_doc_location = doc_location
                                         next_did_hash = next_doc_did.delete_prefix("did:oyd:")
-                                        next_did_hash = next_did_hash.split("@").first
+                                        next_did_hash = next_did_hash.split(LOCATION_PREFIX).first
                                         next_did10 = next_did_hash[0,10]
                                         next_doc = retrieve_document_raw(next_doc_did, next_did10 + ".doc", next_doc_location, {})
                                         if next_doc.first.nil?
@@ -342,9 +344,9 @@ class Oydid
                                     currentDID["message"] = "Signature does not match"
                                     if verification_output
                                         new_doc_did = log_el["doc"].to_s
-                                        new_doc_location = get_location(new_doc_did)
+                                        new_doc_location = doc_location
                                         new_did_hash = new_doc_did.delete_prefix("did:oyd:")
-                                        new_did_hash = new_did_hash.split("@").first
+                                        new_did_hash = new_did_hash.split(LOCATION_PREFIX).first
                                         new_did10 = new_did_hash[0,10]
                                         new_doc = retrieve_document(new_doc_did, new_did10 + ".doc", new_doc_location, {}).first
                                         currentDID["verification"] += "found UPDATE log record:" + "\n"
