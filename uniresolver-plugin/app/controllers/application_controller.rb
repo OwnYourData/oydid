@@ -25,6 +25,11 @@ class ApplicationController < ActionController::API
         headers['Access-Control-Expose-Headers'] = '*'
     end
 
+    def version
+        render json: {"service": "oydid uniresolver plugin", "version": VERSION.to_s, "oydid-gem": Gem.loaded_specs["oydid"].version.to_s}.to_json,
+               status: 200
+    end
+
     def missing
         render json: {"error": "invalid path"},
                status: 404

@@ -25,6 +25,10 @@ echo '{"options": {"ts": 1610839949}, "secret": {"doc_enc":"z1S5U4Pu1ks2mcye8swT
 # OK: document + other location
 echo '{"options": {"location":"did2.data-container.net"}, "secret": {}, "didDocument": [0]}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
 
+echo '{"options": {"location":"did2.data-container.net"}, "secret": {}, "didDocument": [0]}' | curl -H "Content-Type: application/json" -d @- -X POST https://did2.data-container.net/1.0/create
+
+echo '{"options": {"location":"coronawhy.data-container.net"}, "secret": {}, "didDocument": {"@context": "https://www.w3.org/ns/did/v1","authentication": [],"service": {"test":2}}}' | curl -H "Content-Type: application/json" -d @- -X POST "https://coronawhy.data-container.net/1.0/create?method=oyd"
+
 # OK: W3C did doc
 echo '{"options": {}, "secret": {}, "didDocument": {"@context": "https://www.w3.org/ns/did/v1","authentication": [],"service": [0]}}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
 

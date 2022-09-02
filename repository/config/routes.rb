@@ -11,7 +11,17 @@ Rails.application.routes.draw do
     match 'log/:did',     to: 'logs#create', via: 'post', constraints: {did: /.*/}
     match 'doc/:did',     to: 'dids#delete', via: 'delete', constraints: {did: /.*/}
 
+    # Uniresolver endpoint
     match '1.0/identifiers/:did', to: 'dids#resolve', via: 'get', constraints: {did: /.*/}
 
-    match ':not_found' => 'application#missing', :constraints => { :not_found => /.*/ }, via: [:get, :post]
+    # Uniregistrar endpoints
+    match '1.0/create',     to: 'dids#uniregistrar_create',     via: 'post'
+    match '1.0/update',     to: 'dids#uniregistrar_update',     via: 'post'
+    match '1.0/deactivate', to: 'dids#uniregistrar_deactivate', via: 'post'
+
+    # administrative
+    root 'application#home'
+    match '/',          to: 'application#home', via: 'get'
+    match '/version',   to: 'application#version', via: 'get'
+    match ':not_found', to: 'application#missing', via: [:get, :post], :constraints => { :not_found => /.*/ }
 end

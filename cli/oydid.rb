@@ -9,7 +9,7 @@ require 'oydid'
 
 LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
-VERSION = "0.4.7"
+VERSION = "0.4.8"
 
 # internal functions -------------------------------
 
@@ -570,7 +570,7 @@ when "create"
             exit(-1)
         end
         retVal = {}
-        retVal["did"] = did
+        retVal["did"] = Oydid.percent_encode(did.to_s)
         retVal["doc"] = didDocument
         retVal["log_create"] = l1
         retVal["log_terminate"] = l2
@@ -592,9 +592,9 @@ when "create"
         else
             if options[:silent].nil? || !options[:silent]
                 if options[:json].nil? || !options[:json]
-                    puts "created " + retVal["did"]
+                    puts "created " + Oydid.percent_encode(retVal["did"].to_s)
                 else
-                    puts '{"did": "' + retVal["did"].to_s + '", "operation": "create"}'
+                    puts '{"did": "' + Oydid.percent_encode(retVal["did"].to_s) + '", "operation": "create"}'
                 end
             end
         end
@@ -615,8 +615,8 @@ when "update"
             exit(-1)
         end
         retVal = {}
-        retVal["did"] = did
-        retVal["did_old"] = input_did
+        retVal["did"] = Oydid.percent_encode(did.to_s)
+        retVal["did_old"] = Oydid.percent_encode(input_did.to_s)
         retVal["doc"] = didDocument
         retVal["log_revoke_old"] = revoc_log
         retVal["log_update"] = l1
@@ -639,9 +639,9 @@ when "update"
         else
             if options[:silent].nil? || !options[:silent]
                 if options[:json].nil? || !options[:json]
-                    puts "updated " + retVal["did"]
+                    puts "updated " + Oydid.percent_encode(retVal["did"].to_s)
                 else
-                    puts '{"did": "' + retVal["did"].to_s + '", "operation": "update"}'
+                    puts '{"did": "' + Oydid.percent_encode(retVal["did"].to_s) + '", "operation": "update"}'
                 end
             end
         end
@@ -706,9 +706,9 @@ when "clone"
     else
         if options[:silent].nil? || !options[:silent]
             if options[:json].nil? || !options[:json]
-                puts "cloned " + retVal["did"]
+                puts "cloned " + Oydid.percent_encode(retVal["did"].to_s)
             else
-                puts '{"did": "' + retVal["did"].to_s + '", "operation": "clone"}'
+                puts '{"did": "' + Oydid.percent_encode(retVal["did"].to_s) + '", "operation": "clone"}'
             end
         end
     end
@@ -760,7 +760,7 @@ when "toW3C"
     end
     did = Oydid.hash(Oydid.canonical(content.to_json_c14n))
     did_info = {}
-    did_info["did"] = did
+    did_info["did"] = Oydid.percent_encode(did)
     did_info["doc"] = content
     retVal, msg = Oydid.w3c(did_info, options)
     if retVal.nil?
@@ -883,7 +883,7 @@ when "revoke"
             exit(-1)
         end
         retVal = {
-            "did": input_did,
+            "did": Oydid.percent_encode(input_did.to_s),
             "log": result
         }
         puts retVal.to_json
@@ -903,9 +903,9 @@ when "revoke"
         else
             if options[:silent].nil? || !options[:silent]
                 if options[:json].nil? || !options[:json]
-                    puts "revoked " + did
+                    puts "revoked " + Oydid.percent_encode(did.to_s)
                 else
-                    puts '{"did": "did:oyd:"' + did.to_s + '", "operation": "revoke"}'
+                    puts '{"did": "did:oyd:"' + Oydid.percent_encode(did.to_s) + '", "operation": "revoke"}'
                 end
             end
         end
@@ -927,9 +927,9 @@ when "delete"
     else
         if options[:silent].nil? || !options[:silent]
             if options[:json].nil? || !options[:json]
-                puts "deleted " + did
+                puts "deleted " + Oydid.percent_encode(did.to_s)
             else
-                puts '{"did": "did:oyd:"' + did.to_s + '", "operation": "delete"}'
+                puts '{"did": "did:oyd:"' + Oydid.percent_encode(did.to_s) + '", "operation": "delete"}'
             end
         end
     end
@@ -961,7 +961,6 @@ when "verify-jws"
             puts JSON.pretty_generate("error": err_msg)
         end
     end
-
 
 when "encrypt-message"
     from_did = options[:didcomm_from_did].to_s

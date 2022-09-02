@@ -98,4 +98,23 @@ class Oydid
             return [nil, "verification failed"]
         end
     end
+
+    # DID Auth for data container with challenge ---
+    def self.token_from_challenge(host, pwd)
+        sid = SecureRandom.hex(20).to_s
+        retVal = HTTParty.post(host + "/oydid/init",
+                    headers: { 'Content-Type' => 'application/json' },
+                    body: { "session_id": sid }.to_json )
+        challenge = retVal.parsed_response["challenge"]
+        signed_challenge = Oydid.sign(challenge, Oydid.generate_private_key(pwd).first).first
+        public_key = Oydid.public_key(Oydid.generate_private_key(pwd).first).first
+        retVal = HTTParty.post(host + "/oydid/token",
+                    headers: { 'Content-Type' => 'application/json' },
+                    body: {
+                        "session_id": sid,
+                        "signed_challenge": signed_challenge,
+                        "public_key": public_key
+                    }.to_json)
+        return retVal.parsed_response["access_token"]
+    end
 end

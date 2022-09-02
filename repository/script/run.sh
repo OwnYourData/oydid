@@ -14,7 +14,11 @@ esac
 
 
 rm -f /usr/src/app/tmp/pids/server.pid /usr/src/app/log/*.log
+bundle exec rake db:create
 bundle exec rake db:migrate
+if [[ -z "${SECRET_KEY_BASE}" ]]; then
+	export SECRET_KEY_BASE=`RAILS_ENV=production rake secret`
+fi
 
 rails server -b 0.0.0.0 &
 sleep infinity
