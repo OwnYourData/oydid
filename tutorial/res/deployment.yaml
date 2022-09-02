@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oydid
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: oydid
+  template:
+    metadata:
+      labels:
+        app: oydid
+    spec:
+      containers:
+      - name: oydid
+        image: oydid/did-base:latest
+        ports:
+        - containerPort: 3000
+        env:
+          - name: LANG
+            value: C.UTF-8
+          - name: RAILS_LOG_TO_STDOUT
+            value: "TRUE"
+          - name: RAILS_SERVE_STATIC_FILES
+            value: "TRUE"
+          - name: RAILS_ENV
+            value: production
+          - name: DB_HOST
+            value: db-cluster-postgresql.default.svc.cluster.local
+          - name: DB_NAME
+            value: oydid_production
+          - name: DB_USER
+            value: postgres
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: general-secrets
+                key: db-passwd
+          - name: SECRET_KEY_BASE
+            valueFrom:
+              secretKeyRef:
+                name: oydid-secrets
+                key: secret-key-base

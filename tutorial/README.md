@@ -1,28 +1,15 @@
 # OYDID Tutorial
 
-*latest update: 1 September 2022*
+*latest update: 2 September 2022*
 
 This tutorial introduces the use of `did:oyd` DIDs with the following sections:
 
-0) **[Prerequisites:](#prerequisites)** useful commands to install when using OYDID
-1) **[Deployment:](#deployment)** various options to run a DID repository locally, with a PostgreSQL DB backend, or on a Kubernetes cluster
+1) **[Deployment:](#deployment)** various options to run a DID repository locally, with a PostgreSQL DB backend, or on a Kubernetes cluster    
+	a) [Local Deployment](#local-deployment)    
+	b) [PostgreSQL Backend](#persisting-dids-in-postgresql)    
+	c) [Kubernetes Cluster](#run-an-oydid-repository-on-a-kubernetes-cluster)    
 2) **[DID Life-cycle:](#did-life-cycle)** describes the typical life-cycle of a DID using concrete and simple examples of entities exchanging information
 
-## Prerequisites
-
-To execute commands in the steps below make sure to have the following tools installed:    
-* `oydid`: download and installation instructions [available here](https://github.com/OwnYourData/oydid/tree/main/cli)    
-* `jq`: download and installation instructions [available here](https://stedolan.github.io/jq/download/)    
-
-Alternatively, you can use a ready-to-use Docker image with all tools pre-installed: [https://hub.docker.com/r/oydeu/oydid-base](https://hub.docker.com/r/oydeu/oydid-base). Use the following command to start the image:    
-
-```console
-docker run -it --rm --network host -v ~/.oydid:/home/oydid oydeu/oydid-cli
-```
-
-*Note:* since it makes sense to keep private keys and revocation information beyond a Docker session a directory is mounted in the container to persist files; create a local directory, `mkdir ~/.oydid`
-
-[back to top](#)
 
 ## Deployment
 
@@ -61,6 +48,8 @@ Clean up your environment by removing the Docker container:
 docker rm -f did_repo
 ```
 ***Important note:*** As soon as you end the `did_repo` container all DIDs and associated information are lost since it is stored in a Sqlite3 database inside the container.
+
+[back to top](#)
 
 ### Persisting DIDs in PostgreSQL
 
@@ -146,9 +135,13 @@ To clean up the environment close the OYDID CLI (just type `exit` on the command
 docker-compose -f docker-compose.yml down
 ```
 
+[back to top](#)
+
 ### Run an OYDID Repository on a Kubernetes Cluster
 
-coming soon...
+The production site for the [default OYDID repository](https://oydid.ownyourdata.eu) (at https://oydid.ownyourdata.eu) is hosted on a Kubernetes cluster with a dedicated PostreSQL cluster. The follwing files were used as setup on this Kubernetes cluster (currently at v1.91.2):
+* [deplyoment.yaml](res/deployment.yaml)
+
 
 [back to top](#)
 
@@ -161,6 +154,22 @@ This section describes the typical life-cycle of a DID using concrete and simple
 * Eve (E) is a malicious party and tries to manipulate the information exchange unnoticed    
 
 Each step describes a task performed by one of the actors and provides commands (to be run on a command line like bash) demonstrating working with OYDID.
+
+### Prerequisites
+
+To execute commands in the steps below make sure to have the following tools installed:    
+* `oydid`: download and installation instructions [available here](https://github.com/OwnYourData/oydid/tree/main/cli)    
+* `jq`: download and installation instructions [available here](https://stedolan.github.io/jq/download/)    
+
+Alternatively, you can use a ready-to-use Docker image with all tools pre-installed: [https://hub.docker.com/r/oydeu/oydid-base](https://hub.docker.com/r/oydeu/oydid-base). Use the following command to start the image:    
+
+```console
+docker run -it --rm --network host -v ~/.oydid:/home/oydid oydeu/oydid-cli
+```
+
+*Note:* since it makes sense to keep private keys and revocation information beyond a Docker session a directory is mounted in the container to persist files; create a local directory, `mkdir ~/.oydid`
+
+
 ### Alice creates a DID to document an available service endpoint
 
 Alice provides a service endpoint and wants to share this information in a DID document.
