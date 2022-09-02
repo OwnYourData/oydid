@@ -139,6 +139,11 @@ class Oydid
         return write(content, did, "update", options)
     end
 
+    def self.simulate_did(content, did, mode, options)
+        user_did, didDocument, revoc_log, l1, l2, r1, privateKey, revocationKey, did_old, log_old, msg = Oydid.generate_base(content, did, mode, options)
+        return [user_did, msg]
+    end
+    
     def self.generate_base(content, did, mode, options)
         # input validation
         did_doc = JSON.parse(content.to_json) rescue nil

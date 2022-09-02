@@ -37,6 +37,7 @@ class Oydid
 
         case log_location
         when /^http/
+            log_location = log_location.sub("%3A%2F%2F","://")
             retVal = HTTParty.get(log_location + "/log/" + did_hash)
             if retVal.code != 200
                 msg = retVal.parsed_response("error").to_s rescue 

@@ -1,0 +1,19 @@
+version: "3"
+services:
+  oydid:
+    image: oydeu/oydid-base:latest
+    environment:
+      DID_DB: "external"
+      RAILS_ENV: "production"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - "db"
+  db:
+    image: postgres:12.1
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    volumes:
+      - oydid_data:/var/lib/postgresql/data
+volumes:
+  oydid_data:

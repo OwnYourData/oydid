@@ -8395,3 +8395,350 @@ Completed 200 OK in 4ms (Views: 0.1ms | ActiveRecord: 0.5ms)
   [1m[35m (0.0ms)[0m  [1m[36mbegin transaction[0m
   [1m[36mLog Destroy (0.1ms)[0m  [1m[31mDELETE FROM "logs" WHERE "logs"."id" = ?[0m  [["id", 59]]
   [1m[35m (0.2ms)[0m  [1m[36mcommit transaction[0m
+Started GET "/" for 127.0.0.1 at 2022-08-29 17:03:02 +0200
+  [1m[35m (0.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC[0m
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 4ms (Views: 0.1ms | ActiveRecord: 0.4ms)
+
+
+Started GET "/api-docs" for 127.0.0.1 at 2022-08-29 17:03:04 +0200
+Started GET "/api-docs/index.html" for 127.0.0.1 at 2022-08-29 17:03:04 +0200
+Started GET "/api-docs/swagger-ui.css" for 127.0.0.1 at 2022-08-29 17:03:04 +0200
+Started GET "/api-docs/swagger-ui-standalone-preset.js" for 127.0.0.1 at 2022-08-29 17:03:04 +0200
+Started GET "/api-docs/swagger-ui-bundle.js" for 127.0.0.1 at 2022-08-29 17:03:04 +0200
+Started GET "/api-docs/favicon-32x32.png" for 127.0.0.1 at 2022-08-29 17:03:05 +0200
+Started GET "/api-docs/v1/swagger.yml" for 127.0.0.1 at 2022-08-29 17:03:05 +0200
+Started GET "/api-docs/index.html" for 127.0.0.1 at 2022-08-29 17:03:54 +0200
+Started GET "/api-docs/swagger-ui.css" for 127.0.0.1 at 2022-08-29 17:03:54 +0200
+Started GET "/api-docs/swagger-ui-standalone-preset.js" for 127.0.0.1 at 2022-08-29 17:03:54 +0200
+Started GET "/api-docs/swagger-ui-bundle.js" for 127.0.0.1 at 2022-08-29 17:03:54 +0200
+Started GET "/api-docs/v1/swagger.yml" for 127.0.0.1 at 2022-08-29 17:03:54 +0200
+Started GET "/api-docs/index.html" for 127.0.0.1 at 2022-08-29 17:10:14 +0200
+Started GET "/api-docs/swagger-ui.css" for 127.0.0.1 at 2022-08-29 17:10:14 +0200
+Started GET "/api-docs/swagger-ui-bundle.js" for 127.0.0.1 at 2022-08-29 17:10:14 +0200
+Started GET "/api-docs/swagger-ui-standalone-preset.js" for 127.0.0.1 at 2022-08-29 17:10:14 +0200
+Started GET "/api-docs/v1/swagger.yml" for 127.0.0.1 at 2022-08-29 17:10:15 +0200
+Started GET "/api-docs/index.html" for 127.0.0.1 at 2022-08-29 17:11:02 +0200
+Started GET "/api-docs/swagger-ui.css" for 127.0.0.1 at 2022-08-29 17:11:02 +0200
+Started GET "/api-docs/swagger-ui-bundle.js" for 127.0.0.1 at 2022-08-29 17:11:02 +0200
+Started GET "/api-docs/swagger-ui-standalone-preset.js" for 127.0.0.1 at 2022-08-29 17:11:02 +0200
+Started GET "/api-docs/v1/swagger.yml" for 127.0.0.1 at 2022-08-29 17:11:02 +0200
+Started GET "/api-docs/index.html" for 127.0.0.1 at 2022-08-29 17:33:40 +0200
+Started GET "/api-docs/swagger-ui.css" for 127.0.0.1 at 2022-08-29 17:33:40 +0200
+Started GET "/api-docs/swagger-ui-standalone-preset.js" for 127.0.0.1 at 2022-08-29 17:33:40 +0200
+Started GET "/api-docs/swagger-ui-bundle.js" for 127.0.0.1 at 2022-08-29 17:33:40 +0200
+Started GET "/api-docs/v1/swagger.yml" for 127.0.0.1 at 2022-08-29 17:33:40 +0200
+Started GET "/api-docs/index.html" for 127.0.0.1 at 2022-08-29 17:34:56 +0200
+Started GET "/api-docs/swagger-ui.css" for 127.0.0.1 at 2022-08-29 17:34:56 +0200
+Started GET "/api-docs/swagger-ui-bundle.js" for 127.0.0.1 at 2022-08-29 17:34:56 +0200
+Started GET "/api-docs/swagger-ui-standalone-preset.js" for 127.0.0.1 at 2022-08-29 17:34:56 +0200
+Started GET "/api-docs/v1/swagger.yml" for 127.0.0.1 at 2022-08-29 17:34:56 +0200
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:02:54 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 5ms (Views: 0.1ms | ActiveRecord: 0.8ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:08:03 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 4ms (Views: 0.2ms | ActiveRecord: 0.5ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:08:05 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.2ms | ActiveRecord: 0.4ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:08:10 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.2ms | ActiveRecord: 0.4ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:08:15 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.3ms | ActiveRecord: 0.5ms)
+
+
+Started GET "/" for ::1 at 2022-08-30 17:08:54 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 4ms (Views: 0.2ms | ActiveRecord: 0.5ms)
+
+
+Started GET "/" for ::1 at 2022-08-30 17:08:57 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.7ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.8ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 6ms (Views: 0.2ms | ActiveRecord: 1.6ms)
+
+
+Started GET "/" for ::1 at 2022-08-30 17:12:54 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (1.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 5ms (Views: 0.2ms | ActiveRecord: 1.5ms)
+
+
+Started GET "/" for ::1 at 2022-08-30 17:12:57 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.5ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 4ms (Views: 0.2ms | ActiveRecord: 0.8ms)
+
+
+Started GET "/" for ::1 at 2022-08-30 17:13:05 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.5ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 4ms (Views: 0.3ms | ActiveRecord: 0.7ms)
+
+
+Started GET "/" for ::1 at 2022-08-30 17:13:07 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.4ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.2ms | ActiveRecord: 0.5ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:14:48 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.5ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.4ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 7ms (Views: 0.2ms | ActiveRecord: 0.9ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:15:04 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.8ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 6ms (Views: 0.4ms | ActiveRecord: 1.1ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:15:06 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.2ms | ActiveRecord: 0.4ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:15:07 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.4ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 4ms (Views: 0.2ms | ActiveRecord: 0.7ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:15:07 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.2ms | ActiveRecord: 0.4ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:15:08 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 6ms (Views: 0.3ms | ActiveRecord: 0.4ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:15:20 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 6ms (Views: 0.6ms | ActiveRecord: 0.6ms)
+
+
+Started GET "/" for ::1 at 2022-08-30 17:15:54 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.8ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 5ms (Views: 0.3ms | ActiveRecord: 1.1ms)
+
+
+Started GET "/" for ::1 at 2022-08-30 17:15:58 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.5ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 4ms (Views: 0.2ms | ActiveRecord: 0.8ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:32:45 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.4ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 5ms (Views: 0.2ms | ActiveRecord: 0.6ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:32:50 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.4ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 6ms (Views: 0.2ms | ActiveRecord: 0.7ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:32:51 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.5ms | ActiveRecord: 0.5ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:33:04 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.2ms | ActiveRecord: 0.4ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:33:10 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.2ms | ActiveRecord: 0.4ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:33:27 +0200
+Processing by ApplicationController#home as */*
+  [1m[35m (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.0ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 1ms (Views: 0.1ms | ActiveRecord: 0.1ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:33:42 +0200
+Processing by ApplicationController#home as */*
+  [1m[35m (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.0ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 1ms (Views: 0.1ms | ActiveRecord: 0.1ms)
+
+
+Started GET "/api-docs" for 127.0.0.1 at 2022-08-30 17:34:34 +0200
+Started GET "/api-docs/index.html" for 127.0.0.1 at 2022-08-30 17:34:34 +0200
+Started GET "/api-docs/swagger-ui.css" for 127.0.0.1 at 2022-08-30 17:34:34 +0200
+Started GET "/api-docs/swagger-ui-standalone-preset.js" for 127.0.0.1 at 2022-08-30 17:34:34 +0200
+Started GET "/api-docs/swagger-ui-bundle.js" for 127.0.0.1 at 2022-08-30 17:34:34 +0200
+Started GET "/api-docs/v1/swagger.yml" for 127.0.0.1 at 2022-08-30 17:34:35 +0200
+Started GET "/did/did:oyd:zQmc9uuTWymPGm7qL53ru3q9B6hXot55MLr42znfkQkJo63@http://localhost:3000" for 127.0.0.1 at 2022-08-30 17:38:06 +0200
+Processing by DidsController#show as */*
+  Parameters: {"did"=>"did:oyd:zQmc9uuTWymPGm7qL53ru3q9B6hXot55MLr42znfkQkJo63@http:/localhost:3000"}
+  [1m[36mDid Load (0.1ms)[0m  [1m[34mSELECT  "dids".* FROM "dids" WHERE "dids"."did" = ? LIMIT ?[0m  [["did", "zQmc9uuTWymPGm7qL53ru3q9B6hXot55MLr42znfkQkJo63"], ["LIMIT", 1]]
+Completed 500 Internal Server Error in 19ms (Views: 0.1ms | ActiveRecord: 0.1ms)
+
+
+Started GET "/doc/did:oyd:zQmc9uuTWymPGm7qL53ru3q9B6hXot55MLr42znfkQkJo63@http://localhost:3000" for 127.0.0.1 at 2022-08-30 17:38:36 +0200
+Processing by DidsController#show as */*
+  Parameters: {"did"=>"did:oyd:zQmc9uuTWymPGm7qL53ru3q9B6hXot55MLr42znfkQkJo63@http:/localhost:3000"}
+  [1m[36mDid Load (0.1ms)[0m  [1m[34mSELECT  "dids".* FROM "dids" WHERE "dids"."did" = ? LIMIT ?[0m  [["did", "zQmc9uuTWymPGm7qL53ru3q9B6hXot55MLr42znfkQkJo63"], ["LIMIT", 1]]
+Completed 500 Internal Server Error in 1ms (Views: 0.1ms | ActiveRecord: 0.1ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:46:54 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.5ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.7ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 5ms (Views: 0.7ms | ActiveRecord: 1.2ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:49:53 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.2ms | ActiveRecord: 0.4ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:50:08 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.2ms | ActiveRecord: 0.4ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:50:09 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.2ms | ActiveRecord: 0.4ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:50:15 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.2ms | ActiveRecord: 0.5ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:50:16 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.2ms | ActiveRecord: 0.4ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:54:42 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 3ms (Views: 0.2ms | ActiveRecord: 0.4ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:54:48 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.6ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 6ms (Views: 0.2ms | ActiveRecord: 0.8ms)
+
+
+Started GET "/" for 127.0.0.1 at 2022-08-30 17:55:05 +0200
+Processing by ApplicationController#home as HTML
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "dids"[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "logs"[0m
+Completed 200 OK in 4ms (Views: 0.2ms | ActiveRecord: 0.5ms)
+
+
+Started GET "/doc/did:oyd:zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5" for 127.0.0.1 at 2022-08-30 17:56:30 +0200
+Processing by DidsController#show as */*
+  Parameters: {"did"=>"did:oyd:zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5"}
+  [1m[36mDid Load (0.1ms)[0m  [1m[34mSELECT  "dids".* FROM "dids" WHERE "dids"."did" = ? LIMIT ?[0m  [["did", "zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5"], ["LIMIT", 1]]
+Completed 500 Internal Server Error in 1ms (Views: 0.1ms | ActiveRecord: 0.1ms)
+
+
+Started GET "/doc/did:oyd:zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5" for 127.0.0.1 at 2022-08-30 17:56:44 +0200
+Processing by DidsController#show as */*
+  Parameters: {"did"=>"did:oyd:zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5"}
+  [1m[36mDid Load (0.1ms)[0m  [1m[34mSELECT  "dids".* FROM "dids" WHERE "dids"."did" = ? LIMIT ?[0m  [["did", "zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5"], ["LIMIT", 1]]
+Completed 500 Internal Server Error in 1ms (Views: 0.1ms | ActiveRecord: 0.1ms)
+
+
+Started GET "/doc/did:oyd:zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5" for 127.0.0.1 at 2022-08-30 17:57:56 +0200
+Processing by DidsController#show as */*
+  Parameters: {"did"=>"did:oyd:zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5"}
+  [1m[36mDid Load (0.1ms)[0m  [1m[34mSELECT  "dids".* FROM "dids" WHERE "dids"."did" = ? LIMIT ?[0m  [["did", "zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5"], ["LIMIT", 1]]
+Completed 500 Internal Server Error in 1ms (Views: 0.1ms | ActiveRecord: 0.1ms)
+
+
+Started GET "/doc/did:oyd:zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5" for 127.0.0.1 at 2022-08-30 17:58:08 +0200
+Processing by DidsController#show as */*
+  Parameters: {"did"=>"did:oyd:zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5"}
+  [1m[36mDid Load (0.1ms)[0m  [1m[34mSELECT  "dids".* FROM "dids" WHERE "dids"."did" = ? LIMIT ?[0m  [["did", "zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5"], ["LIMIT", 1]]
+Completed 500 Internal Server Error in 1ms (Views: 0.1ms | ActiveRecord: 0.1ms)
+
+
+Started GET "/did/did:oyd:zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5" for 127.0.0.1 at 2022-08-30 17:58:21 +0200
+Processing by DidsController#show as */*
+  Parameters: {"did"=>"did:oyd:zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5"}
+  [1m[36mDid Load (0.1ms)[0m  [1m[34mSELECT  "dids".* FROM "dids" WHERE "dids"."did" = ? LIMIT ?[0m  [["did", "zQmXDjjEHWp8dX7HhfBjy2Qh6wLxCrMptY2dy8V94KHwuZ5"], ["LIMIT", 1]]
+Completed 500 Internal Server Error in 1ms (Views: 0.1ms | ActiveRecord: 0.1ms)
+
+

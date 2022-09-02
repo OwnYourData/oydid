@@ -12,7 +12,7 @@ from pathlib import Path
 service = "https://oydid-registrar.data-container.net"
 
 def test_service():
-    response = requests.get(service + "/1.0/version")
+    response = requests.get(service + "/version")
     assert response.status_code == 200
 
 # test groups

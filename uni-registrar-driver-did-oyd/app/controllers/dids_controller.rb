@@ -7,12 +7,6 @@ class DidsController < ApplicationController
     respond_to :html, only: []
     respond_to :xml, only: []
 
-
-    def version
-        render json: {"version": VERSION.to_s}.to_json,
-               status: 200
-    end
-
     # input
     # {
     #     "options": {
@@ -137,7 +131,7 @@ class DidsController < ApplicationController
         else
             retVal = {
                 "didState": {
-                    "did": status["did"],
+                    "did": Oydid.percent_encode(status["did"]),
                     "state": "finished",
                     "secret": {
                         "documentKey": status["private_key"],
@@ -148,7 +142,7 @@ class DidsController < ApplicationController
                 },
                 "didRegistrationMetadata": {},
                 "didDocumentMetadata": {
-                    "did": status["did"].to_s,
+                    "did": Oydid.percent_encode(status["did"]),
                     "registry": Oydid.get_location(status["did"].to_s),
                     "log_hash": status["doc"]["log"].to_s,
                     "log": status["log"]
@@ -249,7 +243,7 @@ class DidsController < ApplicationController
         else
             retVal = {
                 "didState": {
-                    "did": status["did"],
+                    "did": Oydid.percent_encode(status["did"]),
                     "state": "finished",
                     "secret": {
                         "documentKey": status["private_key"],
@@ -260,7 +254,7 @@ class DidsController < ApplicationController
                 },
                 "didRegistrationMetadata": {},
                 "didDocumentMetadata": {
-                    "did": status["did"].to_s,
+                    "did": Oydid.percent_encode(status["did"]),
                     "registry": Oydid.get_location(status["did"].to_s),
                     "log_hash": status["doc"]["log"].to_s,
                     "log": status["log"]
@@ -321,12 +315,12 @@ class DidsController < ApplicationController
         else
             retVal = {
                 "didState": {
-                    "did": did,
+                    "did": Oydid.percent_encode(did),
                     "state": "finished",
                 },
                 "didRegistrationMetadata": {},
                 "didDocumentMetadata": {
-                    "did": status["did"].to_s,
+                    "did": Oydid.percent_encode(status["did"]),
                     "registry": Oydid.get_location(status["did"].to_s)
                 }
             }

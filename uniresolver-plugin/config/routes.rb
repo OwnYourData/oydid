@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
     match '1.0/identifiers/:did', to: 'dids#resolve', via: 'get', constraints: {did: /.*/}
 
-    match ':not_found' => 'application#missing', :constraints => { :not_found => /.*/ }, via: [:get, :post]
+    # administrative
+    match '/version',   to: 'application#version', via: 'get'
+    match ':not_found', to: 'application#missing', via: [:get, :post], :constraints => { :not_found => /.*/ }
 end

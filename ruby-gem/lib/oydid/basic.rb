@@ -25,6 +25,11 @@ class Oydid
         message.to_json_c14n
     end
 
+    def self.percent_encode(did)
+        # remove "https://" from string as it is default
+        did = did.sub("https://","").sub("@", "%40").sub("http://","http%3A%2F%2F")
+    end
+
     # key management ----------------------------
     def self.generate_private_key(input, method = "ed25519-priv")
         begin
@@ -47,13 +52,21 @@ class Oydid
         return [encode([omc, length, raw_key].pack("SCa#{length}")), ""]
     end
 
-    def self.public_key(private_key)
+    def self.public_key(private_key, method = "ed25519-pub")
         code, length, digest = decode(private_key).unpack('SCa*')
         case Multicodecs[code].name
         when 'ed25519-priv'
-            public_key = Ed25519::SigningKey.new(digest).verify_key
+            case method
+            when 'ed25519-pub'
+                public_key = Ed25519::SigningKey.new(digest).verify_key
+            when 'x25519-pub'
+                public_key = RbNaCl::PrivateKey.new(digest).public_key
+            else
+                return [nil, "unsupported key codec"]
+            end
             length = public_key.to_bytes.bytesize
-            return [encode([Multicodecs['ed25519-pub'].code, length, public_key].pack("CCa#{length}")), ""]
+            return [encode([Multicodecs[method].code, length, public_key].pack("CCa#{length}")), ""]
+
         else
             return [nil, "unsupported key codec"]
         end
@@ -88,6 +101,53 @@ class Oydid
             end
         rescue
             return [nil, "unknown key codec"]
+        end
+    end
+
+    def self.encrypt(message, public_key)
+        begin
+            code, length, digest = decode(public_key).unpack('CCa*')
+            case Multicodecs[code].name
+            when 'x25519-pub'
+                pubKey = RbNaCl::PublicKey.new(digest)
+                authHash = RbNaCl::Hash.sha256('auth'.dup.force_encoding('ASCII-8BIT'))
+                authKey = RbNaCl::PrivateKey.new(authHash)
+                box = RbNaCl::Box.new(pubKey, authKey)
+                nonce = RbNaCl::Random.random_bytes(box.nonce_bytes)
+                msg = message.force_encoding('ASCII-8BIT')
+                cipher = box.encrypt(nonce, msg)
+                return [
+                    { 
+                        value: cipher.unpack('H*')[0], 
+                        nonce: nonce.unpack('H*')[0]
+                    }, ""
+                ]
+            else
+                return [nil, "unsupported key codec"]
+            end
+        rescue
+            return [nil, "encryption failed"]
+        end
+    end
+
+    def self.decrypt(message, private_key)
+        begin
+            cipher = [JSON.parse(message)["value"]].pack('H*')
+            nonce = [JSON.parse(message)["nonce"]].pack('H*')
+            code, length, digest = decode(private_key).unpack('SCa*')
+            case Multicodecs[code].name
+            when 'ed25519-priv'
+                privKey = RbNaCl::PrivateKey.new(digest)
+                authHash = RbNaCl::Hash.sha256('auth'.dup.force_encoding('ASCII-8BIT'))
+                authKey = RbNaCl::PrivateKey.new(authHash).public_key
+                box = RbNaCl::Box.new(authKey, privKey)
+                retVal = box.decrypt(nonce, cipher)
+                return [retVal, ""]
+            else
+                return [nil, "unsupported key codec"]
+            end
+        rescue
+            return [nil, "decryption failed"]
         end
     end
 
@@ -157,6 +217,7 @@ class Oydid
 
         case doc_location
         when /^http/
+            doc_location = doc_location.sub("%3A%2F%2F","://")
             retVal = HTTParty.get(doc_location + "/doc/" + doc_hash)
             if retVal.code != 200
                 msg = retVal.parsed_response("error").to_s rescue "invalid response from " + doc_location.to_s + "/doc/" + doc_hash.to_s
@@ -190,6 +251,7 @@ class Oydid
 
         case doc_location
         when /^http/
+            doc_location = doc_location.sub("%3A%2F%2F","://")
             retVal = HTTParty.get(doc_location + "/doc_raw/" + doc_hash)
             if retVal.code != 200
                 msg = retVal.parsed_response("error").to_s rescue "invalid response from " + doc_location.to_s + "/doc/" + doc_hash.to_s
