@@ -140,8 +140,13 @@ docker-compose -f docker-compose.yml down
 ### Run an OYDID Repository on a Kubernetes Cluster
 
 The production site for the [default OYDID repository](https://oydid.ownyourdata.eu) (at https://oydid.ownyourdata.eu) is hosted on a Kubernetes cluster with a dedicated PostreSQL cluster. The follwing files were used as setup on this Kubernetes cluster (currently at v1.91.2):
-* [deplyoment.yaml](res/deployment.yaml)
+* [deplyoment.yaml](res/deployment.yaml)    
+* [service.yaml](res/service.yaml)
+* [ingress.yaml](res/ingress.yaml)
+* [cert.yaml](res/cert.yaml)
+* [secrets.yaml](res/secrets.yaml)
 
+If you have any questions about setting up an OYDID repository on Kubernetes don't hesitate to [contact us](mailto:support@ownyourdata.eu)!
 
 [back to top](#)
 
