@@ -11,6 +11,11 @@ class DidsController < ApplicationController
     def resolve
         options = {}
         did = params[:did]
+        didLocation = did.split(LOCATION_PREFIX)[1] rescue ""
+        didHash = did.split(LOCATION_PREFIX)[0] rescue did
+        didHash = didHash.delete_prefix("did:oyd:")
+        options[:digest] = Oydid.get_digest(didHash).first
+        options[:encode] = Oydid.get_encoding(didHash).first
         result = Oydid.read(did, options).first rescue nil
         if result.nil? || result["error"] != 0
             result = resolve_did_legacy(did, options)
@@ -30,7 +35,7 @@ class DidsController < ApplicationController
             "didResolutionMetadata":{},
             "didDocument": Oydid.w3c(result, {}),
             "didDocumentMetadata": {
-                "did": "did:oyd:" + result["did"].to_s,
+                "did": Oydid.percent_encode("did:oyd:" + result["did"].to_s),
                 "registry": Oydid.get_location(result["did"].to_s),
                 "log_hash": result["doc"]["log"].to_s,
                 "log": result["log"],
@@ -41,7 +46,7 @@ class DidsController < ApplicationController
         equivalentIds = []
         result["log"].each do |log|
             if log["op"] == 2 || log["op"] == 3
-                equivalentIds << "did:oyd:" + log["doc"]
+                equivalentIds << Oydid.percent_encode("did:oyd:" + log["doc"])
             end
         end unless result["log"].nil?
 

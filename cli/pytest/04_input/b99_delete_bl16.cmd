@@ -1,0 +1,1 @@
+$OYDIDCMD delete did:oyd:z5yEpGrAnNYXPNf8UK4rA5yZS%40did2.data-container.net --doc-pwd pwd3 --rev-pwd pwd4 --location did2.data-container.net

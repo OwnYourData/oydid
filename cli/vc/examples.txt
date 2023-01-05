@@ -1,0 +1,36 @@
+# examples from: https://w3c-ccg.github.io/di-eddsa-2020/
+
+require 'oydid'
+require 'JSON'
+require 'json/canonicalization'
+require 'base58'
+
+payload = JSON.parse('{
+    "@context": [
+      "https://www.w3.org/2018/credentials/v1",
+      "https://www.w3.org/2018/credentials/examples/v1",
+      "https://w3id.org/security/suites/ed25519-2020/v1"
+    ],
+    "id": "http://example.gov/credentials/3732",
+    "type": ["VerifiableCredential", "UniversityDegreeCredential"],
+    "issuer": "https://example.com/issuer/123",
+    "issuanceDate": "2020-03-10T04:24:12.164Z",
+    "credentialSubject": {
+      "id": "did:example:456",
+      "degree": {
+        "type": "BachelorDegree",
+        "name": "Bachelor of Science and Arts"
+      }
+    }
+  }')
+payload.to_json_c14n
+
+privateKeyBase58="47QbyJEDqmHTzsdg8xzqXD8gqKuLufYRrKWTmB7eAaWHG2EAsQ2GUyqRqWWYT15dGuag52Sf3j4hs2mu7w52mgps"
+pk = Base58.base58_to_binary(privateKeyBase58)
+
+public_key = Ed25519::SigningKey.new(pk).verify_key
+public_key = RbNaCl::PrivateKey.new(pk).public_key
+
+Base58.binary_to_base58(public_key.to_bytes)
+
+privateKeyMultibase = "zrv3kJcnBP1RpYmvNZ9jcYpKBZg41iSobWxSg3ix2U7Cp59kjwQFCT4SZTgLSL3HP8iGMdJs3nedjqYgNn6ZJmsmjRm"

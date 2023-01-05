@@ -26,6 +26,8 @@ echo '{"options": {"ts": 1610839949}, "secret": {"doc_enc":"z1S5U4Pu1ks2mcye8swT
 echo '{"options": {"location":"did2.data-container.net"}, "secret": {}, "didDocument": [0]}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
 
 echo '{"options": {"location":"did2.data-container.net"}, "secret": {}, "didDocument": [0]}' | curl -H "Content-Type: application/json" -d @- -X POST https://did2.data-container.net/1.0/create
+echo '{"options": {"location":"coronawhy.data-container.net", "digest":"blake2b-16"}, "secret": {}, "didDocument": {"short": "identifier"}}' | curl -H "Content-Type: application/json" -d @- -X POST https://coronawhy.data-container.net/1.0/create
+
 
 echo '{"options": {"location":"coronawhy.data-container.net"}, "secret": {}, "didDocument": {"@context": "https://www.w3.org/ns/did/v1","authentication": [],"service": {"test":2}}}' | curl -H "Content-Type: application/json" -d @- -X POST "https://coronawhy.data-container.net/1.0/create?method=oyd"
 
@@ -45,7 +47,7 @@ echo '{"options": {"log_create":{"ts":1647132010,"op":2,"doc":"zQmQxQ9XXQAo3wpHJ
 echo '{"options": {"log_create":{"ts":1647132010,"op":2,"doc":"zQmQxQ9XXQAo3wpHJPbgSvywgjbuGiM4gzVVWYKVVydWeGb","sig":"z3PDs2ePgPuZPWf8akniX458TsV7tcN2ankNY57sybRbd2BtzK56gmxRkfW1Tb7rHNjePhW9gcYJGWTFtxNedtgwz","previous":[]}, "log_terminate":{"ts":1647132010,"op":0,"doc":"zQmUq19VxnNYGNgzJqi2eVUths2HUQWcLt8bvzdxSL6Ee8G","sig":"z4XwfAwVcsjMggU1m9Fqcg96UmhwKtdcGFQTpeDBocPoSzGqSZ1dYUT6hkxSjeQ6oiMUq4g77zbRZob1wZoLsCEzj","previous":[]}}, "secret": {}, "didDocument": {"doc":[0],"key":"z6Mv8BiEh19XHVvhiELPJ3HTpNo56eWicP3oaymDiA4ZVgXc:z6MuuncV5NpRUdbAGafisxA4z1Ko742DgSzeAmKU9qFhRX5Q","log":"zQmVYs3r1pgMaTA1dUGdYYzZMiUyZLC187kkZrQTyDS6ZjB"}}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
 
 # pre-processed - better
-echo '[1]' | ~/dev/oydid/cli/oydid.rb create --simulate --doc-pwd pwd1 --rev-pwd pwd2 --ts 1610839947 | jq '{options: {log_create: .log_create, log_terminate: .log_terminate}, secret: {}, didDocument: .doc}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
+echo '[1]' | ~/dev/oydid/cli/oydid.rb create --simulate --doc-pwd pwd1 --rev-pwd pwd2 -z 1610839947 | jq '{options: {log_create: .log_create, log_terminate: .log_terminate}, secret: {}, didDocument: .doc}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
 
 # create empty DID document (input Markus)
 # curl -X POST 'http://localhost:9080/1.0/create?method=oyd' -d '{"didDocument":{"@context":"https://www.w3.org/ns/did/v1"}}'
@@ -60,19 +62,19 @@ echo '{"identifier":"did:oyd:zQmNacw4oZ2MkYXWfYrjzwejnx2LzcReMMcbHpNqsKgxV78", "
 echo '{"options": {}, "secret": {}, "didDocument": {"@context": "https://www.w3.org/ns/did/v1","authentication": [],"service": [0]}}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/create
 
 # pre-processed --------
-old=$(echo '[1]' | ~/dev/oydid/cli/oydid.rb create --simulate --doc-pwd pwd1 --rev-pwd pwd2 --ts 1610839947 | jq '{"did": .did, "log_revoke": .log_revoke}'); echo '[2]' | ~/dev/oydid/cli/oydid.rb update did:oyd:zQmNacw4oZ2MkYXWfYrjzwejnx2LzcReMMcbHpNqsKgxV78 --simulate --doc-pwd pwd1 --old_doc-pwd pwd1 --rev-pwd pwd2 --old-rev-pwd pwd2 --ts 1610839948 | jq -r --arg OLD "$old" '{identifier:  $OLD | fromjson .did, options: {log_revoke: $OLD | fromjson .log_revoke, log_update: .log_update, log_terminate: .log_terminate, "old-doc-pwd": "pwd1", "old-rev-pwd": "pwd2"}, secret: {}, didDocument: .doc}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/update
+old=$(echo '[1]' | ~/dev/oydid/cli/oydid.rb create --simulate --doc-pwd pwd1 --rev-pwd pwd2 -z 1610839947 | jq '{"did": .did, "log_revoke": .log_revoke}'); echo '[2]' | ~/dev/oydid/cli/oydid.rb update did:oyd:zQmNacw4oZ2MkYXWfYrjzwejnx2LzcReMMcbHpNqsKgxV78 --simulate --doc-pwd pwd1 --old_doc-pwd pwd1 --rev-pwd pwd2 --old-rev-pwd pwd2 -z 1610839948 | jq -r --arg OLD "$old" '{identifier:  $OLD | fromjson .did, options: {log_revoke: $OLD | fromjson .log_revoke, log_update: .log_update, log_terminate: .log_terminate, "old-doc-pwd": "pwd1", "old-rev-pwd": "pwd2"}, secret: {}, didDocument: .doc}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/update
 
 # get infos from first DID: identifier & revocation log => store in ENV $old
-old=$(echo '[1]' | ~/dev/oydid/cli/oydid.rb create --simulate --doc-pwd pwd1 --rev-pwd pwd2 --ts 1610839947 | jq '{"did": .did, "log_revoke": .log_revoke}');
+old=$(echo '[1]' | ~/dev/oydid/cli/oydid.rb create --simulate --doc-pwd pwd1 --rev-pwd pwd2 -z 1610839947 | jq '{"did": .did, "log_revoke": .log_revoke}');
 
 # simulte creating update 
-echo '[2]' | ~/dev/oydid/cli/oydid.rb update $(echo $old | jq -r '.did') --simulate --doc-pwd pwd1 --old_doc-pwd pwd1 --rev-pwd pwd2 --old-rev-pwd pwd2 --ts 1610839948
+echo '[2]' | ~/dev/oydid/cli/oydid.rb update $(echo $old | jq -r '.did') --simulate --doc-pwd pwd1 --old_doc-pwd pwd1 --rev-pwd pwd2 --old-rev-pwd pwd2 -z 1610839948
 
 # only relevant fields from update simulation
-echo '[2]' | ~/dev/oydid/cli/oydid.rb update did:oyd:zQmNacw4oZ2MkYXWfYrjzwejnx2LzcReMMcbHpNqsKgxV78 --simulate --doc-pwd pwd1 --old_doc-pwd pwd1 --rev-pwd pwd2 --old-rev-pwd pwd2 --ts 1610839948 | jq -r '{identifier:  null, options: {log_revoke: null, log_update: .log_update, log_terminate: .log_terminate, "old-doc-pwd": "pwd1", "old-rev-pwd": "pwd2"}, secret: {}, didDocument: .doc}'
+echo '[2]' | ~/dev/oydid/cli/oydid.rb update did:oyd:zQmNacw4oZ2MkYXWfYrjzwejnx2LzcReMMcbHpNqsKgxV78 --simulate --doc-pwd pwd1 --old_doc-pwd pwd1 --rev-pwd pwd2 --old-rev-pwd pwd2 -z 1610839948 | jq -r '{identifier:  null, options: {log_revoke: null, log_update: .log_update, log_terminate: .log_terminate, "old-doc-pwd": "pwd1", "old-rev-pwd": "pwd2"}, secret: {}, didDocument: .doc}'
 
 # stitch both versions together and build structure for registrar
-echo '[2]' | ~/dev/oydid/cli/oydid.rb update $(echo $old | jq -r '.did') --simulate --doc-pwd pwd1 --old_doc-pwd pwd1 --rev-pwd pwd2 --old-rev-pwd pwd2 --ts 1610839948 | jq -r --arg OLD "$old" '{identifier:  $OLD | fromjson .did, options: {log_revoke: $OLD | fromjson .log_revoke, log_update: .log_update, log_terminate: .log_terminate, "doc_pwd": "pwd1", "rev_pwd": "pwd2", "old_doc_pwd": "pwd1", "old_rev_pwd": "pwd2", "ts": 1610839948}, secret: {}, didDocument: .doc}'  | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/update
+echo '[2]' | ~/dev/oydid/cli/oydid.rb update $(echo $old | jq -r '.did') --simulate --doc-pwd pwd1 --old_doc-pwd pwd1 --rev-pwd pwd2 --old-rev-pwd pwd2 -z 1610839948 | jq -r --arg OLD "$old" '{identifier:  $OLD | fromjson .did, options: {log_revoke: $OLD | fromjson .log_revoke, log_update: .log_update, log_terminate: .log_terminate, "doc_pwd": "pwd1", "rev_pwd": "pwd2", "old_doc_pwd": "pwd1", "old_rev_pwd": "pwd2", "ts": 1610839948}, secret: {}, didDocument: .doc}'  | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/update
 
 # "simplified" statement 
 echo '{"identifier":"did:oyd:zQmNacw4oZ2MkYXWfYrjzwejnx2LzcReMMcbHpNqsKgxV78","options":{"log_revoke":{"ts":1610839947,"op":1,"doc":"zQmPvTVcy4UmqS39GV92H177LWRYkrYtmueQdKqfxakavuf","sig":"z546j3EsfWqb6sSAvPeP7kkjNYR2Lwb6RDZAwhj1u8zwEAqWhJVvc2jNvDsrkLge4Ch6j4arCCi55RARCS8aBEPZj"},"log_update":{"ts":1610839948,"op":3,"doc":"zQmV3EjDAYse11SFStTgY51FrUiMeV5PR9HWZh7AL25EVAS","sig":"z5U21GPgEzaYHH7BGc1KJaHMvGij8yTaAvVeAgYtexdd2id6bdtcxGZ6FK3ptYe2NehsQKanBjLroKdyWogELzCC9","previous":["zQmVAhKPfoempgSgP6y5httbag1Nfd7KBKC1PVeweQ1jAZa"]},"log_terminate":{"ts":1610839948,"op":0,"doc":"zQmTPeo4WktWyDQhhCFRGBn35BwEP4UBTnJUrrdFew6bKgt","sig":"z35KrPWrgLeuFpDB7PRPCVL1YVwpXSZPuguaVfjwSBkcPz3jW5L2JJ9SL2yvYyNEHwiUqWnKFsccNMnmSsh2PpmGN","previous":[]}, "doc_pwd": "pwd1", "rev_pwd": "pwd2", "old_doc_pwd":"pwd1","old_rev_pwd":"pwd2"},"secret":{},"didDocument":{"doc":[2],"key":"z6MuvWooepYBxXLdYggPjxfEZCW3DqDhapLCnYDxnQjkoShA:z6Mv2CANJwu6QJfowhyqeFp5VoZUL4RyNZDwRcpgNrLVc5dh","log":"zQmZM2ymPLZxey1XgiE1wU8hqcDZkn4yzFH2eVHyPuRvi6s"}}' | curl -H "Content-Type: application/json" -d @- -X POST http://localhost:3000/1.0/update

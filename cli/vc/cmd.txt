@@ -1,0 +1,21 @@
+echo '{"hello": "world"}' | oydid vc --issuer did:oyd:zQmfU6KYobW9Ga1hZGkT6e4wFvrxsgr7MqDerbRhcnsiaVz --holder did:oyd:zQmP1zuwbQSQThiJdrVb9JCZgN2NVdGJcnDNKfF7fBb5X13
+
+echo '{"memberOf": {"id": "did:oyd:zQmS9WENoTKhhGx23vZFUu1cJohJwu2meBQm7JMvBtBi2Hz", "name": "WKO"}}'  | oydid vc --issuer did:oyd:zQmS9WENoTKhhGx23vZFUu1cJohJwu2meBQm7JMvBtBi2Hz --doc-enc z1S5hFe2PfGbC7uvSdKpuLWV3kHhtmU4K3wuCobZ1zHp7Evd --holder did:oyd:z6MuxoSiWjRBDRrWyJojdRdWeYUNu2ha7ijbdNwTUjubAdv1
+
+
+docker run -d --name did_repo -e DID_DB=local -e DEFAULT_VC_OAUTH_APP="oydid-vc" -p 3000:3000 oydeu/oydid-base:arm64v8
+
+Doorkeeper::Application.create!({name: 'oydid-vc', redirect_uri: 'urn:ietf:wg:oauth:2.0:oob', scopes: 'read'})
+
+echo '{"memberOf": {"id": "did:oyd:zQmS9WENoTKhhGx23vZFUu1cJohJwu2meBQm7JMvBtBi2Hz", "name": "WKO"}}' | \
+    oydid vc-push --issuer did:oyd:zQmS9WENoTKhhGx23vZFUu1cJohJwu2meBQm7JMvBtBi2Hz \
+        --doc-enc z1S5hFe2PfGbC7uvSdKpuLWV3kHhtmU4K3wuCobZ1zHp7Evd \
+        --holder did:oyd:z6MuxoSiWjRBDRrWyJojdRdWeYUNu2ha7ijbdNwTUjubAdv1 \
+        -z 1 -l http://localhost:3000
+
+oydid read-vc zQmQtcGZZDTgNSLCJ6K7a7Snrh1MonERydSfSGqg6FiDGH9 -l http://localhost:3000 \
+        --holder did:oyd:z6MuxoSiWjRBDRrWyJojdRdWeYUNu2ha7ijbdNwTUjubAdv1 \
+        --doc-enc z1S5akd2nQN5X32sgD7icJPhCUfchiVU6CuB1Ckhvh9dgLas | \
+    oydid vp-push --holder did:oyd:zQmVkzZvue2rHSPRgJFQ4WW6FoBHPNdomA2vZkTqsBmWy9c \
+        --doc-enc z1S5akd2nQN5X32sgD7icJPhCUfchiVU6CuB1Ckhvh9dgLas \
+        -z 2 -l http://localhost:3000

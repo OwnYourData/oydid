@@ -20,6 +20,11 @@ class DidsController < ApplicationController
         end
 
         did = params[:did]
+        # didHash = did.split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first rescue did
+        # didHash = didHash.delete_prefix("did:oyd:")
+        # options[:digest] = Oydid.get_digest(didHash).first
+        # options[:encode] = Oydid.get_encoding(didHash).first
+        
         result = resolve_did(did, options)
         if result["error"] != 0
             puts "Error: " + result["message"].to_s
@@ -42,15 +47,14 @@ class DidsController < ApplicationController
                 options[:log_location] = options[:location]
             end
         end
-
-        did = remove_location(params[:did])
-        result = local_retrieve_document(did)
-        if result.nil?
-            render json: {"error": "cannot find " + did.to_s}.to_json,
+        identifier = remove_location(params[:did])
+        did, doc = local_retrieve_document(identifier)
+        if doc.nil?
+            render json: {"error": "cannot find " + identifier.to_s}.to_json,
                    status: 404
         else
             log_result = local_retrieve_log(did)
-            render json: {"doc": result, "log": log_result}.to_json,
+            render json: {"doc": doc, "log": log_result}.to_json,
                    status: 200
         end
     end
@@ -93,13 +97,20 @@ class DidsController < ApplicationController
                    status: 412
             return
         end
-        if didDoc["doc"].nil?
-            render json: {"error": "missing 'doc' key in did-document"},
+        # allow "doc": null
+        # if didDoc["doc"].nil?
+        #     render json: {"error": "missing 'doc' key in did-document"},
+        #            status: 412
+        #     return
+        # end
+        if didDoc["key"].nil?
+            render json: {"error": "missing 'key' key in did-document"},
                    status: 412
             return
         end
-        if didDoc["key"].nil?
-            render json: {"error": "missing 'key' key in did-document"},
+        didPubKey = didDoc["key"].split(":").first rescue nil
+        if didPubKey.nil?
+            render json: {"error": "missing public document key in did-document"},
                    status: 412
             return
         end
@@ -108,7 +119,10 @@ class DidsController < ApplicationController
                    status: 412
             return
         end
-        if didHash != Oydid.hash(Oydid.canonical(didDocument))
+        options = {}
+        options[:digest] = Oydid.get_digest(didHash).first
+        options[:encode] = Oydid.get_encoding(didHash).first
+        if didHash != Oydid.multi_hash(Oydid.canonical(didDocument), options).first
             render json: {"error": "DID does not match did-document"},
                    status: 400
             return
@@ -126,8 +140,15 @@ class DidsController < ApplicationController
         end
         log_entry_hash = ""
         logs.each do |item|
-            if item["op"] == 0 # TERMINATE
-                log_entry_hash = Oydid.hash(Oydid.canonical(item))
+            case item["op"]
+            when 0 # TERMINATE
+                log_entry_hash = Oydid.multi_hash(Oydid.canonical(item), LOG_HASH_OPTIONS).first
+            when 2, 3 # CREATE or UPDATE
+                # check with didPubKey validity of signature
+                if !Oydid.verify(item["doc"], item["sig"], didPubKey)
+                    render json: {"error": "invalid signature in log with op=" + item["op"].to_s},
+                           status: 400
+                end
             end
         end
         if log_entry_hash != ""
@@ -142,17 +163,17 @@ class DidsController < ApplicationController
 
         @did = Did.find_by_did(didHash)
         if @did.nil?
-            Did.new(did: didHash, doc: didDocument.to_json).save
+            Did.new(did: didHash, doc: didDocument.to_json, public_key: didPubKey).save
         end
         logs.each do |item|
             if item["op"] == 1 # REVOKE
-                my_hash = Oydid.hash(Oydid.canonical(item.except("previous")))
+                my_hash = Oydid.multi_hash(Oydid.canonical(item.except("previous")), LOG_HASH_OPTIONS).first
                 @log = Log.find_by_oyd_hash(my_hash)
                 if @log.nil?
                     Log.new(did: didHash, item: item.to_json, oyd_hash: my_hash, ts: Time.now.to_i).save
                 end
             else
-                my_hash = Oydid.hash(Oydid.canonical(item))
+                my_hash = Oydid.multi_hash(Oydid.canonical(item), LOG_HASH_OPTIONS).first
                 @log = Log.find_by_oyd_hash(my_hash)
                 if @log.nil?
                     Log.new(did: didHash, item: item.to_json, oyd_hash: my_hash, ts: Time.now.to_i).save
@@ -165,7 +186,14 @@ class DidsController < ApplicationController
     end
 
     def delete
-        @did = Did.find_by_did(params[:did].to_s)
+        options = {}
+        did = params[:did].to_s
+        didHash = did.split(LOCATION_PREFIX)[0] rescue did
+        didHash = didHash.delete_prefix("did:oyd:")
+        options[:digest] = Oydid.get_digest(didHash).first
+        options[:encode] = Oydid.get_encoding(didHash).first
+
+        @did = Did.find_by_did(didHash)
         if @did.nil?
             render json: {"error": "DID not found"},
                    status: 404
@@ -176,15 +204,15 @@ class DidsController < ApplicationController
         public_rev_key = keys.split(":")[1]
         private_doc_key = params[:dockey]
         private_rev_key = params[:revkey]
-        if public_doc_key == Oydid.public_key(private_doc_key).first &&
-           public_rev_key == Oydid.public_key(private_rev_key).first
-                Log.where(did: params[:did].to_s).destroy_all
-                Did.where(did: params[:did].to_s).destroy_all
+        if public_doc_key == Oydid.public_key(private_doc_key, options).first &&
+           public_rev_key == Oydid.public_key(private_rev_key, options).first
+                Log.where(did: didHash).destroy_all
+                Did.where(did: didHash).destroy_all
                 render plain: "",
                        status: 200
         else
-            puts "Doc key: " + public_doc_key.to_s + " <=> " + Oydid.public_key(private_doc_key).first.to_s
-            puts "Rev key: " + public_rev_key.to_s + " <=> " + Oydid.public_key(private_rev_key).first.to_s
+            puts "Doc key: " + public_doc_key.to_s + " <=> " + Oydid.public_key(private_doc_key, {}).first.to_s
+            puts "Rev key: " + public_rev_key.to_s + " <=> " + Oydid.public_key(private_rev_key, {}).first.to_s
             render json: {"error": "invalid keys"},
                    status: 403
         end
@@ -194,6 +222,11 @@ class DidsController < ApplicationController
     def resolve
         options = {}
         did = params[:did]
+        didLocation = did.split(LOCATION_PREFIX)[1] rescue ""
+        didHash = did.split(LOCATION_PREFIX)[0] rescue did
+        didHash = didHash.delete_prefix("did:oyd:")
+        options[:digest] = Oydid.get_digest(didHash).first
+        options[:encode] = Oydid.get_encoding(didHash).first
         result = resolve_did(did, options)
         if result["error"] != 0
             render json: {"error": result["message"].to_s}.to_json,
@@ -277,7 +310,7 @@ class DidsController < ApplicationController
 
                     # perform sanity checks on input data
                     # is doc in log create record == Hash(did_document)
-                    if Oydid.hash(Oydid.canonical(did_obj)) != options[:log_create]["doc"]
+                    if Oydid.multi_hash(Oydid.canonical(did_obj), options).first != options[:log_create]["doc"]
                         render json: {"error": "invalid input data (create log does not match DID document)"},
                                status: 400
                         return
@@ -301,7 +334,7 @@ class DidsController < ApplicationController
                     end
 
                     # create DID
-                    did = "did:oyd:" + Oydid.hash(Oydid.canonical(did_obj))
+                    did = "did:oyd:" + Oydid.multi_hash(Oydid.canonical(did_obj), options).first
                     logs = [options[:log_create], options[:log_terminate]]
                     success, msg = Oydid.publish(did, did_obj, logs, options)
                     if success
@@ -413,7 +446,7 @@ class DidsController < ApplicationController
                 end
 
                 # update DID
-                did = "did:oyd:" + Oydid.hash(Oydid.canonical(did_obj))
+                did = "did:oyd:" + Oydid.multi_hash(Oydid.canonical(did_obj), options).first
                 logs = [options[:log_revoke], options[:log_update], options[:log_terminate]]
                 success, msg = Oydid.publish(did, did_obj, logs, options)
                 if success
@@ -529,5 +562,81 @@ class DidsController < ApplicationController
             render json: retVal.to_json,
                    status: 200
         end
-    end    
+    end
+
+    def init
+        session_id = params[:session_id].to_s
+        if session_id == ""
+            render json: {"error": "missing session_id"},
+                   status: 401
+            return
+        end
+        public_key = params[:public_key].to_s
+        if public_key == ""
+            render json: {"error": "missing public_key"},
+                   status: 401
+            return
+        end
+
+        challenge = SecureRandom.alphanumeric(32)
+        oauth_app_name = ENV["DEFAULT_VC_OAUTH_APP"].to_s
+        @oauth_app = Doorkeeper::Application.find_by_name(oauth_app_name) rescue nil
+        if @oauth_app.nil?
+            render json: {"error": "OAuth not configured"},
+                   status: 404
+            return
+        end
+        DidSession.new(
+            session: params[:session_id].to_s,
+            public_key: params[:public_key].to_s,
+            challenge: challenge,
+            oauth_application_id: @oauth_app.id).save
+        render json: {"challenge": challenge}, 
+               status: 200
+    end
+
+    def token
+        #input
+        sid = params[:session_id].to_s
+        signed_challenge = params[:signed_challenge].to_s
+
+        # checks
+        @ds = DidSession.find_by_session(sid)
+        if @ds.nil?
+            render json: {"error": "session_id not found"},
+                   status: 404
+            return
+        end
+        public_key = @ds.public_key.to_s
+        @oauth = Doorkeeper::Application.find(@ds.oauth_application_id)
+        if @oauth.nil?
+            render json: {"error": "OAuth reference not found"},
+                   status: 404
+            return
+        end
+
+        verified, error_msg = Oydid.verify(@ds.challenge.to_s, signed_challenge, public_key)
+        if !verified
+            render json: {"error": "invalid signature"},
+                   status: 403
+            return
+        end
+
+        # create token
+        @t = Doorkeeper::AccessToken.new(application_id: @oauth.id, expires_in: 7200, scopes: @oauth.scopes, public_key: public_key)
+        if @t.save
+            retVal = {
+                "access_token": @t.token.to_s,
+                "token_type": "Bearer",
+                "expires_in": @t.expires_in,
+                "scope": @t.scopes.to_s,
+                "created_at": @t.created_at.to_i }
+            @ds.destroy
+            render json: retVal,
+                   status: 200
+        else
+            render json: {"error": "cannot create access token - " + @t.errors.to_json},
+                   status: 500
+        end
+    end
 end

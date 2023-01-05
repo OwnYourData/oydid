@@ -10,6 +10,8 @@ service = "https://oydid-resolver.data-container.net"
 
 def test_service():
     response = requests.get(service + "/version")
+    assert response.status_code == 200
+    response = requests.get(service + "/invalid")
     assert response.status_code == 404
 
 # test groups

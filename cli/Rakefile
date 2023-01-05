@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+$:.unshift(File.expand_path(File.join(File.dirname(__FILE__), 'lib')))
+require 'rubygems'
+
+namespace :test do
+  test_script = "cd /usr/src/pytest; date > report.txt; pytest -qx --show-capture=no %s >> report.txt; if [ $? -ne 0 ]; then cat report.txt | jq --raw-input --slurp '{text: .}' | curl -X POST -H 'Content-type: application/json' -d @- $SLACK_WEBHOOK; fi"
+
+  desc "Run Uniresolver tests"
+  task :uniresolver do
+    puts "Uniresolver"
+    sh test_script % "test_resolver.py"
+  end
+
+  desc "Run Uniregistrar tests"
+  task :uniregistrar do
+    sh test_script % "test_registrar.py"
+  end
+end
+
+task all: ['test:uniresolver', 'test:uniregistrar']
+

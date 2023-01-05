@@ -19,6 +19,7 @@ def test_service():
 # 01 - general tests for CLI
 # 02 - uniresolver tests
 # 03 - uniregistrar tests
+# 04 - digest agility tests
 
 # doc: https://pypi.org/project/pytest-subprocess/
 cwd = os.getcwd()

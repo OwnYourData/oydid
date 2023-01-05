@@ -23,7 +23,7 @@ Gem::Specification.new do |gem|
     gem.files                 = %w(AUTHORS README.md LICENSE VERSION) + Dir.glob('lib/**/*.rb')
     gem.test_files            = Dir.glob('spec/**/*.rb') + Dir.glob('spec/**/*.json') + Dir.glob('spec/**/*.doc')
 
-    gem.required_ruby_version = '>= 2.5.7'
+    gem.required_ruby_version = '>= 2.6.9'
     gem.requirements          = []
     gem.add_dependency 'dag',                   '~> 0.0.9'
     gem.add_dependency 'jwt',                   '~> 2.4.1'
@@ -33,7 +33,7 @@ Gem::Specification.new do |gem|
     gem.add_dependency 'multibases',            '~> 0.3.2'
     gem.add_dependency 'multihashes',           '~> 0.2.0'
     gem.add_dependency 'multicodecs',           '~> 0.2.1'
-    gem.add_dependency 'json-canonicalization', '~> 0.2.1'
+    gem.add_dependency 'json-canonicalization', '~> 0.3.0'
 
     gem.add_development_dependency 'rspec',     '~> 3.10'
 

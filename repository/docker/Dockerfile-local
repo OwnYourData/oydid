@@ -1,4 +1,4 @@
-FROM ruby:2.5.9
+FROM ruby:2.6.9
 MAINTAINER "Christoph Fabianek" christoph@ownyourdata.eu
 
 WORKDIR /usr/src/app
@@ -12,7 +12,9 @@ RUN mkdir -p $RAILS_ROOT/tmp/pids && \
 
 COPY Gemfile $WORKDIR
 
-RUN bundle install
+COPY docker/local-gem/*.gem /tmp/
+RUN gem install /tmp/*.gem && \
+	bundle install
 
 COPY . .
 COPY docker/local-gem/*.gem /tmp/

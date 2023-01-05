@@ -6,7 +6,10 @@ module ApplicationHelper
         if did.include?(LOCATION_PREFIX)
             tmp = did.split(LOCATION_PREFIX)
             did = tmp[0]
-            # did_location = tmp[1]
+        end
+        if did.include?(CGI.escape LOCATION_PREFIX)
+            tmp = did.split(CGI.escape LOCATION_PREFIX)
+            did = tmp[0] 
         end
         
         # setup
@@ -22,7 +25,7 @@ module ApplicationHelper
             "message": "",
             "verification": ""
         }.transform_keys(&:to_s)
-        did_hash = did.delete_prefix("did:oyd:")
+        did_identifier = did.delete_prefix("did:oyd:")
 
         # get did location
         did_location = ""
@@ -31,7 +34,7 @@ module ApplicationHelper
         end
 
         # retrieve DID document
-        did_document = local_retrieve_document(did_hash)
+        did, did_document = local_retrieve_document(did_identifier)
         if did_document.nil?
             currentDID["error"] = 404
             currentDID["message"] = "did not found"
@@ -40,8 +43,9 @@ module ApplicationHelper
         currentDID["doc"] = did_document
 
         # retrieve log
-        did_hash = did_hash.split("@").first
-        log_array = local_retrieve_log(did_hash)
+        # did_identifier = did_identifier.split(LOCATION_PREFIX).first
+        # did_identifier = did_identifier.split(CGI.escape(LOCATION_PREFIX)).first
+        log_array = local_retrieve_log(did)
         currentDID["log"] = log_array
 
         # traverse log to get current DID state
@@ -63,7 +67,7 @@ module ApplicationHelper
         i = 0
         initial_did = currentDID["did"].to_s
         initial_did = initial_did.delete_prefix("did:oyd:")
-        initial_did = initial_did.split("@").first
+        initial_did = initial_did.split(LOCATION_PREFIX).first
         current_public_doc_key = ""
         verification_output = false
         currentDID["log"].each do |el|
@@ -74,7 +78,7 @@ module ApplicationHelper
                 did_hash = doc_did.delete_prefix("did:oyd:")
                 did_hash = did_hash.split("@").first
                 did10 = did_hash[0,10]
-                doc = local_retrieve_document(did_hash)
+                did, doc = local_retrieve_document(did_hash)
                 if doc.nil?
                     currentDID["error"] = 2
                     msg = "cannot retrieve " + doc_did.to_s
@@ -108,14 +112,17 @@ module ApplicationHelper
                 did_hash = doc_did.delete_prefix("did:oyd:")
                 did_hash = did_hash.split("@").first
                 did10 = did_hash[0,10]
-                doc = local_retrieve_document(did_hash)
+                did, doc = local_retrieve_document(did_hash)
                 term = doc["log"]
                 log_location = term.split("@")[1] rescue ""
                 if log_location.to_s == ""
                     log_location = DEFAULT_LOCATION
                 end
-                term = term.split("@").first
-                if Oydid.hash(Oydid.canonical(el)) != term
+                term = term.split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first
+                log_options = options.dup
+                log_options[:digest] = Oydid.get_digest(term).first
+                log_options[:encode] = Oydid.get_encoding(term).first
+                if Oydid.multi_hash(Oydid.canonical(el), log_options).first != term
                     currentDID["error"] = 1
                     currentDID["message"] = "Log reference and record don't match"
                     if verification_output
@@ -144,7 +151,7 @@ module ApplicationHelper
                     if log_el["op"].to_i == 1 # TERMINATE
                         log_el_structure.delete("previous")
                     end
-                    if Oydid.hash(Oydid.canonical(log_el_structure)) == revoc_term
+                    if Oydid.multi_hash(Oydid.canonical(log_el_structure), log_options).first == revoc_term
                         revoc_term_found = true
                         revocation_record = log_el.dup
                         if verification_output
@@ -161,7 +168,7 @@ module ApplicationHelper
                     update_term_found = false
                     log_array.each do |log_el|
                         if log_el["op"] == 3
-                            if log_el["previous"].include?(Oydid.hash(Oydid.canonical(revocation_record)))
+                            if log_el["previous"].include?(Oydid.multi_hash(Oydid.canonical(revocation_record), options).first)
                                 update_term_found = true
                                 message = log_el["doc"].to_s
 
@@ -182,7 +189,7 @@ module ApplicationHelper
                                         next_did_hash = next_doc_did.delete_prefix("did:oyd:")
                                         next_did_hash = next_did_hash.split("@").first
                                         next_did10 = next_did_hash[0,10]
-                                        next_doc = local_retrieve_document(next_did_hash)
+                                        nexd_did, next_doc = local_retrieve_document(next_did_hash)
                                         if next_doc.nil?
                                             currentDID["error"] = 2
                                             currentDID["message"] = "cannot retrieve " + next_doc_did.to_s
@@ -244,15 +251,21 @@ module ApplicationHelper
         return currentDID
     end
 
-    def local_retrieve_document(doc_hash)
+    def local_retrieve_document(doc_identifier)
+        did = nil
         doc = nil
-        @did = Did.find_by_did(doc_hash)
+        @did = Did.find_by_did(doc_identifier)
         if @did.nil?
-            return nil
+            @did = Did.find_by_public_key(doc_identifier)
+            if !@did.nil?
+                did = @did.did
+                doc = JSON.parse(@did.doc) rescue nil
+            end
         else
+            did = doc_identifier
             doc = JSON.parse(@did.doc) rescue nil
-            return doc
         end
+        return [did, doc]
     end
 
     def local_retrieve_log(didHash)
@@ -306,9 +319,8 @@ module ApplicationHelper
     end
 
     def remove_location(id)
-        location = id.split(LOCATION_PREFIX)[1] rescue ""
-        id = id.split(LOCATION_PREFIX)[0] rescue id
+        # location = id.split(LOCATION_PREFIX)[1] rescue ""
+        id = id.split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first rescue id
         id.delete_prefix("did:oyd:")
-
     end
 end
