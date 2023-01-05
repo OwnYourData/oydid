@@ -134,12 +134,16 @@ An example DID with all associated information and representations:
       "publicKeyBase58": "z6Mv1rQ3ZTsLwfV8neZ1zKp17NHeb1Xv3KK5EB4D8t5mxJ3V"
     }
   ],
-  "service": [{
-    "id":"did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz#payload",
-    "type": "Custom", 
-    "serviceEndpoint": "https://oydid.ownyourdata.eu",
-    "foo": "bar"
-  }]
+  "service": [
+    {
+      "id":"did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz#payload",
+      "type": "Custom", 
+      "serviceEndpoint": "https://oydid.ownyourdata.eu",
+      "payload": {
+        "foo": "bar"
+      }
+    }
+  ]
 }
 ```
 
@@ -216,15 +220,16 @@ Note: it is in the interest of the owner to publish revocation entries and make 
 
 Note: see section [[#verification]] for a detailed description of using the OYDID command line tool to output step-wise verification information for independent proof.
 
-### Public Key Identifier
+### Public Key Identifier ### {#pubkey_identifier}
 
 Inspired by [EBSI DID v2](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/EBSI+DID+Method) it is now also possible for the `did:oyd` method to use the document public key as identifier.
 
 <div class=example id=example_did_pubkey_identifier>
-  Both DIDs resolve to the same DID Document:
-  
+Both DIDs resolve to the same DID Document:
+
   * with cryptographic hash value: `did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz`
   * with public key identifier: `did:oyd:z6MusWcRn7TWW3XAa96vrST5Fx8n3xndSEVEfMCQBDAMrQpP`
+
 </div>
 
 ## Update ## {#update}
