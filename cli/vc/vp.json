@@ -1,0 +1,42 @@
+{
+  "@context": [
+    "https://www.w3.org/2018/credentials/v1"
+  ],
+  "type": [
+    "VerifiablePresentation"
+  ],
+  "verifiableCredential": [
+    {
+      "@context": [
+        "https://www.w3.org/2018/credentials/v1"
+      ],
+      "type": [
+        "VerifiableCredential"
+      ],
+      "issuanceDate": "2022-11-13T21:30:58Z",
+      "issuer": "did:oyd:zQmS9WENoTKhhGx23vZFUu1cJohJwu2meBQm7JMvBtBi2Hz",
+      "credentialSubject": {
+        "id": "did:oyd:z6MuxoSiWjRBDRrWyJojdRdWeYUNu2ha7ijbdNwTUjubAdv1",
+        "memberOf": {
+          "id": "did:oyd:zQmS9WENoTKhhGx23vZFUu1cJohJwu2meBQm7JMvBtBi2Hz",
+          "name": "WKO"
+        }
+      },
+      "proof": {
+        "type": "Ed25519Signature2020",
+        "verificationMethod": "did:oyd:zQmS9WENoTKhhGx23vZFUu1cJohJwu2meBQm7JMvBtBi2Hz",
+        "proofPurpose": "assertionMethod",
+        "proofValue": "z5tpUn9VpPqwoqLtCYnmLWqs5ozFdayfjxuPub799LfcgnmAMZEK4aPXmXm8jFq55AQBPTkdTxnx8whiTaUd8rTGi"
+      },
+      "identifier": "zQmSPUFSppDCqriYQnQURQrBV1WGMCZ46mjeqdWebuRc6DN"
+    }
+  ],
+  "proof": {
+    "type": "Ed25519Signature2020",
+    "created": "2022-11-13T23:50:07Z",
+    "verificationMethod": "did:oyd:z6MuxoSiWjRBDRrWyJojdRdWeYUNu2ha7ijbdNwTUjubAdv1",
+    "proofPurpose": "authentication",
+    "proofValue": "zM3Uj5c84sccKQzd9Hyx6ujRA8d4ySesos5hEipT1aeE2jYKwCjH7TRqEiuCkFXV3nnpxKDFDiHQuK2bXbt1HXNp"
+  },
+  "identifier": "zQmaXiQxVvYkPUWnzuZfDnpoCL4WH7ebHw5htcYFFefLepR"
+}

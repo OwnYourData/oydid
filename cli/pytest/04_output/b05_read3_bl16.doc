@@ -1,0 +1,86 @@
+identifier: z5y8Uej6i4L7o9fbc7w4Wjrbt
+✅ is hash of DID Document:
+{
+  "doc": {
+    "digest": "blake2b-16"
+  },
+  "key": "z6MuvWooepYBxXLdYggPjxfEZCW3DqDhapLCnYDxnQjkoShA:z6Mv2CANJwu6QJfowhyqeFp5VoZUL4RyNZDwRcpgNrLVc5dh",
+  "log": "zQmeGfuVff3jqJxc4iaSvTmJYZrTpjPCV5iy6gE2Eeged5B@https://did2.data-container.net"
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+'log' reference in DID Document: zQmeGfuVff3jqJxc4iaSvTmJYZrTpjPCV5iy6gE2Eeged5B
+✅ is hash of TERMINATE log record:
+{
+  "ts": 1,
+  "op": 0,
+  "doc": "zQmYcY7XA1JJ6BNJpUrZMajdpWpHmZtkS8Zvn2GC4A6muZZ@https://did2.data-container.net",
+  "sig": "z2sa7oi3qYAL8t6rYcGoZUeeSSKoEBEidm3V8KJA42Z3vKZ2t74kAGN5YAYAZH44S8Gco8YJdUKXkHYUNEaLh5tAJ",
+  "previous": [
+
+  ]
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+'doc' reference in TERMINATE log record: zQmYcY7XA1JJ6BNJpUrZMajdpWpHmZtkS8Zvn2GC4A6muZZ
+✅ is hash of REVOCATION log record (without 'previous' attribute):
+{
+  "ts": 1,
+  "op": 1,
+  "doc": "zQmX99pAuwuMhQCxxndC3hiP49Fabr6KEaWYQK3qGJgK9sZ",
+  "sig": "zgscZjkXJi29a7c773LhzM2LSxDynAypdGZbZNDeukEAPsxEDji14mPhvPTEng7PCJhqLGG9Am2McSHYJdChonxk",
+  "previous": [
+    "zQmV534LScJig5hEuqbdNhfqgSTKHkxuQHyDWgSKxqYrAZq",
+    "zQmeGfuVff3jqJxc4iaSvTmJYZrTpjPCV5iy6gE2Eeged5B"
+  ]
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+found UPDATE log record:
+{
+  "ts": 2,
+  "op": 3,
+  "doc": "z5yEpGrAnNYXPNf8UK4rA5yZS@https://did2.data-container.net",
+  "sig": "zJfXAHiq4an6ug2zeQXyaBoGJ9DGdz6YkP7dLjx4t96LKF8sFXN6pfZKHZoNw2hyjGh1MT3663MjFM5B2uaBD5Sp",
+  "previous": [
+    "zQmQ8qgUGTsUDsv8XshjvKtu4VsUPscZuSoM5GThobXexB5"
+  ]
+}
+✅ public key from last DID Document: z6MuvWooepYBxXLdYggPjxfEZCW3DqDhapLCnYDxnQjkoShA
+verifies 'doc' reference of new DID Document: z5yEpGrAnNYXPNf8UK4rA5yZS@https://did2.data-container.net
+zJfXAHiq4an6ug2zeQXyaBoGJ9DGdz6YkP7dLjx4t96LKF8sFXN6pfZKHZoNw2hyjGh1MT3663MjFM5B2uaBD5Sp
+of next DID Document (Details: https://ownyourdata.github.io/oydid/#verify_signature)
+
+identifier: z5yEpGrAnNYXPNf8UK4rA5yZS
+✅ is hash of DID Document:
+{
+  "doc": {
+    "digest": "blake2b-16",
+    "version": 2
+  },
+  "key": "z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2",
+  "log": "zQmRkhdsWVUVHxKTHvh9Misjo7ii3K6G7G2fRYa2sNFnfmW@https://did2.data-container.net"
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+'log' reference in DID Document: zQmRkhdsWVUVHxKTHvh9Misjo7ii3K6G7G2fRYa2sNFnfmW
+✅ is hash of TERMINATE log record:
+{
+  "ts": 2,
+  "op": 0,
+  "doc": "zQmcwhtURhai5168DrBVYpPV2CUnKPBHR5zEWy9ZzYGSypr@https://did2.data-container.net",
+  "sig": "z22eys5XAtkynHQRL86EwR99acLtUXgWCQ3qQcg2tGyHD9BaMRa6puNHqMkUpGmFVvWuKRgDkqBYC9jgaTUeTKqJQ",
+  "previous": [
+
+  ]
+}
+(Details: https://ownyourdata.github.io/oydid/#calculate_hash)
+
+Revocation reference in log record: zQmcwhtURhai5168DrBVYpPV2CUnKPBHR5zEWy9ZzYGSypr
+✅ cannot find revocation record searching at
+- https://did2.data-container.net
+(Details: https://ownyourdata.github.io/oydid/#retrieve_log)
+
+=== end of verification output ===
+
+{"doc":{"digest":"blake2b-16","version":2},"key":"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2","log":"zQmRkhdsWVUVHxKTHvh9Misjo7ii3K6G7G2fRYa2sNFnfmW@https://did2.data-container.net"}

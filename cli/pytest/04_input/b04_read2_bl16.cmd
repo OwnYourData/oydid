@@ -1,0 +1,1 @@
+$OYDIDCMD read --show-verification did:oyd:z5yEpGrAnNYXPNf8UK4rA5yZS%40did2.data-container.net

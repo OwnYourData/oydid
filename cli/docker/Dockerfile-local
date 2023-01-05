@@ -1,4 +1,4 @@
-FROM ruby:2.5.9-alpine
+FROM ruby:2.6.9-alpine
 MAINTAINER "Christoph Fabianek" christoph@ownyourdata.eu
 
 RUN addgroup -S user && \
@@ -20,9 +20,10 @@ COPY docker/welcome.txt /tmp/welcome.txt
 COPY docker/etc/profile /etc/profile
 RUN chmod 755 /usr/local/bin/oydid && \
     gem install /tmp/*.gem && \
-    sed -e "s/\${oydid}/`oydid --version`/" -e "s/\${jq}/`jq --version`/" /tmp/welcome.txt > /etc/motd && \
+    sed -e "s/\${oydid}/`oydid --version | head -n 1`/" -e "s/\${jq}/`jq --version`/" /tmp/welcome.txt > /etc/motd && \
     mkdir -p /usr/src/pytest
 COPY --chown=user:user pytest /usr/src/pytest
+COPY Rakefile /usr/src/pytest
 USER user
 WORKDIR /home/user
 

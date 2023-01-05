@@ -75,7 +75,7 @@ class DidsController < ApplicationController
 
                     # perform sanity checks on input data
                     # is doc in log create record == Hash(did_document)
-                    if Oydid.hash(Oydid.canonical(did_obj)) != options[:log_create]["doc"]
+                    if Oydid.multi_hash(Oydid.canonical(did_obj), options).first != options[:log_create]["doc"]
                         render json: {"error": "invalid input data (create log does not match DID document)"},
                                status: 400
                         return
@@ -99,7 +99,7 @@ class DidsController < ApplicationController
                     end
 
                     # create DID
-                    did = "did:oyd:" + Oydid.hash(Oydid.canonical(did_obj))
+                    did = "did:oyd:" + Oydid.multi_hash(Oydid.canonical(did_obj), options).first
                     logs = [options[:log_create], options[:log_terminate]]
                     success, msg = Oydid.publish(did, did_obj, logs, options)
                     if success
@@ -211,7 +211,7 @@ class DidsController < ApplicationController
                 end
 
                 # update DID
-                did = "did:oyd:" + Oydid.hash(Oydid.canonical(did_obj))
+                did = "did:oyd:" + Oydid.multi_hash(Oydid.canonical(did_obj), options).first
                 logs = [options[:log_revoke], options[:log_update], options[:log_terminate]]
                 success, msg = Oydid.publish(did, did_obj, logs, options)
                 if success

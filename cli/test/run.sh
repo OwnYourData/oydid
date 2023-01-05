@@ -18,9 +18,9 @@ done
 if $CLEAN; then
 	# clean up ------------------------
 	# world2: creating public DID Document
-	$OYDIDCMD delete did:oyd:zQmZcUx2V9eScpAwaTnQ7Zcx8cXd2nBrJiSwyZMh7BTXKgz --doc-key c1/private_key.b58 --rev-key c1/revocation_key.b58 --silent
+	$OYDIDCMD delete did:oyd:zQmZcUx2V9eScpAwaTnQ7Zcx8cXd2nBrJiSwyZMh7BTXKgz --doc-key c1/private_key.enc --rev-key c1/revocation_key.enc --silent
 	# world3: updating DID Document
-	$OYDIDCMD delete did:oyd:zQmbehq1983ipEys6N1uAk1vYhMGtrU1oq7QWGiesZXFi3h --doc-key c1/private_key.b58 --rev-key c1/revocation_key.b58 --silent
+	$OYDIDCMD delete did:oyd:zQmbehq1983ipEys6N1uAk1vYhMGtrU1oq7QWGiesZXFi3h --doc-key c1/private_key.enc --rev-key c1/revocation_key.enc --silent
 	# world4: creating public DID Document with password
 	$OYDIDCMD delete did:oyd:zQmeMnYBBYvddAdgH6Ape2L4FzRty3y69grDZcQd5kR2tQH --doc-pwd pwd1 --rev-pwd pwd2 --silent
 	# world5: updating DID Document with same password
@@ -34,7 +34,7 @@ if $CLEAN; then
 fi
 
 # test handling local DID Document
-echo '{"hello": "world"}' | $OYDIDCMD create -l local --doc-key c1/private_key.b58 --rev-key c1/revocation_key.b58 --ts 1610839947
+echo '{"hello": "world"}' | $OYDIDCMD create -l local --doc-key c1/private_key.enc --rev-key c1/revocation_key.enc -z 1610839947
 if ! cmp -s zQmPfjgZhN.doc c1/did.doc ; then
 	echo "creating local failed"
 	rm zQmPfjgZhN*
@@ -51,7 +51,7 @@ rm tmp.doc
 rm zQmPfjgZhN*
 
 # test creating invalid DID Document
-retval=`echo '{' | $OYDIDCMD create -l local --doc-key c1/private_key.b58 --rev-key c1/revocation_key.b58`
+retval=`echo '{' | $OYDIDCMD create -l local --doc-key c1/private_key.enc --rev-key c1/revocation_key.enc`
 if [ "$retval" == "Error: empty or invalid payload" ]; then
 	echo "invalid input handled"
 else
@@ -60,7 +60,7 @@ else
 fi
 
 # test creating public DID Document
-echo '{"hello": "world2"}' | $OYDIDCMD create --doc-key c1/private_key.b58 --rev-key c1/revocation_key.b58 --ts 1610839947
+echo '{"hello": "world2"}' | $OYDIDCMD create --doc-key c1/private_key.enc --rev-key c1/revocation_key.enc -z 1610839947
 $OYDIDCMD read did:oyd:zQmZcUx2V9eScpAwaTnQ7Zcx8cXd2nBrJiSwyZMh7BTXKgz > tmp.doc
 if ! cmp -s tmp.doc c1/zQmZcUx2V9.doc ; then
 	echo "reading from public failed"
@@ -78,7 +78,7 @@ fi
 rm tmp.doc
 
 # test updating DID Document
-echo '{"hello": "world3"}' | $OYDIDCMD update did:oyd:zQmZcUx2V9eScpAwaTnQ7Zcx8cXd2nBrJiSwyZMh7BTXKgz --json-output --doc-key c1/private_key.b58 --rev-key c1/revocation_key.b58 --ts 1610839948 > tmp.doc
+echo '{"hello": "world3"}' | $OYDIDCMD update did:oyd:zQmZcUx2V9eScpAwaTnQ7Zcx8cXd2nBrJiSwyZMh7BTXKgz --json-output --doc-key c1/private_key.enc --rev-key c1/revocation_key.enc -z 1610839948 > tmp.doc
 if ! cmp -s tmp.doc c1/json-did.doc ; then
 	echo "output in JSON format failed"
 	rm tmp.doc
@@ -96,7 +96,7 @@ fi
 rm tmp.doc
 
 # test creating public DID Document with password
-echo '{"hello": "world4"}' | $OYDIDCMD create --doc-pwd pwd1 --rev-pwd pwd2 --ts 1610839947
+echo '{"hello": "world4"}' | $OYDIDCMD create --doc-pwd pwd1 --rev-pwd pwd2 -z 1610839947
 $OYDIDCMD read did:oyd:zQmeMnYBBYvddAdgH6Ape2L4FzRty3y69grDZcQd5kR2tQH > tmp.doc
 if ! cmp -s tmp.doc c1/pwd.doc ; then
 	echo "creating with password failed"
@@ -106,7 +106,7 @@ fi
 rm tmp.doc
 
 # test updating DID Document with password
-echo '{"hello": "world5"}' | $OYDIDCMD update did:oyd:zQmeMnYBBYvddAdgH6Ape2L4FzRty3y69grDZcQd5kR2tQH --doc-pwd pwd1 --rev-pwd pwd2 --ts 1610839948
+echo '{"hello": "world5"}' | $OYDIDCMD update did:oyd:zQmeMnYBBYvddAdgH6Ape2L4FzRty3y69grDZcQd5kR2tQH --doc-pwd pwd1 --rev-pwd pwd2 -z 1610839948
 $OYDIDCMD read did:oyd:zQmeMnYBBYvddAdgH6Ape2L4FzRty3y69grDZcQd5kR2tQH > tmp.doc
 if ! cmp -s tmp.doc c1/pwd2.doc ; then
 	echo "updating with password failed"
@@ -125,7 +125,7 @@ fi
 rm tmp.doc
 
 # test key rotation
-echo '{"hello": "world6"}' | $OYDIDCMD update did:oyd:zQmf6qRANG6XeKKcrbJ1tz2PZem5pndAG5as99dFaPaYvpi --doc-pwd pwd3 --rev-pwd pwd4 --ts 1610839949
+echo '{"hello": "world6"}' | $OYDIDCMD update did:oyd:zQmf6qRANG6XeKKcrbJ1tz2PZem5pndAG5as99dFaPaYvpi --doc-pwd pwd3 --rev-pwd pwd4 -z 1610839949
 $OYDIDCMD read --show-verification did:oyd:zQmeMnYBBYvddAdgH6Ape2L4FzRty3y69grDZcQd5kR2tQH > tmp.doc
 if ! cmp -s tmp.doc c1/verification2.doc ; then
 	echo "key rotation failed"
@@ -145,7 +145,7 @@ fi
 # $OYDIDCMD delete did:oyd:zQmeMnYBBYvddAdgH6Ape2L4FzRty3y69grDZcQd5kR2tQH --doc-pwd pwd1 --rev-pwd pwd2
 
 # test writing to non-default location
-echo '{"hello": "world7"}' | $OYDIDCMD create -l https://did2.data-container.net --doc-pwd pwd1 --rev-pwd pwd2 --ts 1610839947
+echo '{"hello": "world7"}' | $OYDIDCMD create -l https://did2.data-container.net --doc-pwd pwd1 --rev-pwd pwd2 -z 1610839947
 $OYDIDCMD read "did:oyd:zQmfNbBWMdLf32dTyPEDZd61t8Uw4t6czfPj1K9DyuXLqVF@https://did2.data-container.net" > tmp.doc
 if ! cmp -s tmp.doc c1/did2.doc ; then
 	echo "writing to non-default location failed"
@@ -163,7 +163,7 @@ rm tmp.doc
 $OYDIDCMD delete "did:oyd:zQmfNbBWMdLf32dTyPEDZd61t8Uw4t6czfPj1K9DyuXLqVF@https://did2.data-container.net" --doc-pwd pwd1 --rev-pwd pwd2
 
 # test clone
-$OYDIDCMD clone did:oyd:zQmbehq1983ipEys6N1uAk1vYhMGtrU1oq7QWGiesZXFi3h --doc-pwd pwd1 --rev-pwd pwd2 --ts 1610839948 -l https://did2.data-container.net
+$OYDIDCMD clone did:oyd:zQmbehq1983ipEys6N1uAk1vYhMGtrU1oq7QWGiesZXFi3h --doc-pwd pwd1 --rev-pwd pwd2 -z 1610839948 -l https://did2.data-container.net
 $OYDIDCMD read "did:oyd:zQmNnWFo7945khmUxRoUksdQAhzEAgkfBS8Hv6xCo2RsjtS@https://did2.data-container.net" > tmp.doc
 if ! cmp -s tmp.doc c1/did_clone.doc ; then
 	echo "cloning failed"

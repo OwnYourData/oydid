@@ -21,7 +21,7 @@ class Oydid
     # DIDComm Signed Message --------------------
     def self.dcsm(payload, private_key_encoded, options)
         error = ""
-        code, length, digest = decode(private_key_encoded).unpack('SCa*')
+        code, length, digest = multi_decode(private_key_encoded).first.unpack('SCa*')
         case Multicodecs[code].name
         when 'ed25519-priv'
             private_key = RbNaCl::Signatures::Ed25519::SigningKey.new(digest)
@@ -40,7 +40,7 @@ class Oydid
         result, msg = Oydid.read(pubkey_did, options)
         public_key_encoded = Oydid.w3c(result, options)["authentication"].first["publicKeyMultibase"]
         begin
-            code, length, digest = Oydid.decode(public_key_encoded).unpack('CCa*')
+            code, length, digest = multi_decode(public_key_encoded).first.unpack('CCa*')
             case Multicodecs[code].name
             when 'ed25519-pub'
                 public_key = RbNaCl::Signatures::Ed25519::VerifyKey.new(digest)
@@ -56,9 +56,9 @@ class Oydid
     end
 
     # encryption -----------------------------------
-    def self.msg_encrypt(payload, private_key_encoded, did)
+    def self.msg_encrypt(payload, private_key_encoded, did, options)
         error = ""
-        code, length, digest = decode(private_key_encoded).unpack('SCa*')
+        code, length, digest = multi_decode(private_key_encoded).first.unpack('SCa*')
         case Multicodecs[code].name
         when 'ed25519-priv'
             private_key = RbNaCl::Signatures::Ed25519::SigningKey.new(digest)
@@ -70,9 +70,9 @@ class Oydid
         return [token, error]
     end
 
-    def self.msg_decrypt(token, public_key_encoded)
+    def self.msg_decrypt(token, public_key_encoded, options)
         error = ""
-        code, length, digest = Oydid.decode(public_key_encoded).unpack('CCa*')
+        code, length, digest = Oydid.multi_decode(public_key_encoded).first.unpack('CCa*')
         case Multicodecs[code].name
         when 'ed25519-pub'
             public_key = RbNaCl::Signatures::Ed25519::VerifyKey.new(digest)
@@ -100,14 +100,14 @@ class Oydid
     end
 
     # DID Auth for data container with challenge ---
-    def self.token_from_challenge(host, pwd)
+    def self.token_from_challenge(host, pwd, options = {})
         sid = SecureRandom.hex(20).to_s
         retVal = HTTParty.post(host + "/oydid/init",
                     headers: { 'Content-Type' => 'application/json' },
                     body: { "session_id": sid }.to_json )
         challenge = retVal.parsed_response["challenge"]
-        signed_challenge = Oydid.sign(challenge, Oydid.generate_private_key(pwd).first).first
-        public_key = Oydid.public_key(Oydid.generate_private_key(pwd).first).first
+        signed_challenge = sign(challenge, Oydid.generate_private_key(pwd, options).first, options).first
+        public_key = public_key(generate_private_key(pwd, options).first, options).first
         retVal = HTTParty.post(host + "/oydid/token",
                     headers: { 'Content-Type' => 'application/json' },
                     body: {

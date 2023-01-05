@@ -7,9 +7,9 @@ class Oydid
         log.map do |item|
             i = item.dup
             i.delete("previous")
-            item["entry-hash"] = hash(canonical(item))
+            item["entry-hash"] = multi_hash(canonical(item), LOG_HASH_OPTIONS).first
             if item.transform_keys(&:to_s)["op"] == 1
-                item["sub-entry-hash"] = hash(canonical(i))
+                item["sub-entry-hash"] = multi_hash(canonical(i), LOG_HASH_OPTIONS).first
             end
             item
         end
@@ -79,11 +79,14 @@ class Oydid
             if el["op"].to_i == 0
                 terminate_indices << i
             end
-            log_hash << Oydid.hash(Oydid.canonical(el))
+            log_options = options.dup
+            el_hash = el["doc"].split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first
+            log_options[:digest] = Oydid.get_digest(el_hash).first
+            log_options[:encode] = Oydid.get_encoding(el_hash).first
+            log_hash << Oydid.multi_hash(Oydid.canonical(el), LOG_HASH_OPTIONS).first
             dag_log << dag.add_vertex(id: i)
             i += 1
         end unless logs.nil?
-
         if create_entries != 1
             return [nil, nil, nil, "wrong number of CREATE entries (" + create_entries.to_s + ") in log" ]
         end
@@ -238,7 +241,11 @@ class Oydid
                     log_location = DEFAULT_LOCATION
                 end
                 term = term.split(LOCATION_PREFIX).first
-                if hash(canonical(el)) != term
+                log_options = options.dup
+                el_hash = el["doc"].split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first
+                log_options[:digest] = Oydid.get_digest(el_hash).first
+                log_options[:encode] = Oydid.get_encoding(el_hash).first
+                if multi_hash(canonical(el), log_options).first != term
                     currentDID["error"] = 1
                     currentDID["message"] = "Log reference and record don't match"
                     if verification_output
@@ -267,7 +274,7 @@ class Oydid
                     if log_el["op"].to_i == 1 # TERMINATE
                         log_el_structure.delete("previous")
                     end
-                    if hash(canonical(log_el_structure)) == revoc_term
+                    if multi_hash(canonical(log_el_structure), log_options).first == revoc_term
                         revoc_term_found = true
                         revocation_record = log_el.dup
                         if verification_output
@@ -307,7 +314,7 @@ class Oydid
                     update_term_found = false
                     log_array.each do |log_el|
                         if log_el["op"].to_i == 3
-                            if log_el["previous"].include?(hash(canonical(revocation_record)))
+                            if log_el["previous"].include?(multi_hash(canonical(revocation_record), LOG_HASH_OPTIONS).first)
                                 update_term_found = true
                                 message = log_el["doc"].to_s
 

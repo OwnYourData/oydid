@@ -1,0 +1,49 @@
+@startuml
+start
+note
+  Write DID
+end note
+partition Invocation {
+  split
+    :CLI;
+  split again
+    :Library;
+  split again
+    :API;
+  end split
+}
+partition Preprocessing {
+    note
+        internal data format
+        ----
+        DID Identifier
+        DID Document
+        DID Keys
+        DID Logs
+    end note
+  :generate base data;
+}
+partition Store Data {
+if (write method) then (local storage)
+  :write to disc;
+  note left
+    files
+    ----
+     *.did - DID (full identifier)
+     *.doc - DID Document
+     *.log - DID Logs
+  end note
+else (online repository)
+  :validate input;
+  partition Transaction {
+  :write DID Document;
+  :write DID Logs;
+  }
+endif
+}
+:Response;
+note left
+DID Identifier
+end note
+stop
+@enduml

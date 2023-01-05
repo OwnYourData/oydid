@@ -30,15 +30,15 @@ export ADMIN_TOKEN=`curl -s -d grant_type=client_credentials -d client_id=$APP_K
 #     jq -r '.access_token'`
 # echo "Admin Token: $ADMIN_TOKEN"
 # echo "SC_URL: $SEMCON_URL"
-# $OYDIDCMD sc_init -l $SEMCON_URL --token $ADMIN_TOKEN --doc-key c2/private_key.b58 --rev-key c2/revocation_key.b58
+# $OYDIDCMD sc_init -l $SEMCON_URL --token $ADMIN_TOKEN --doc-key c2/private_key.enc --rev-key c2/revocation_key.enc
 
 # # create DID for Semantic Container
-SC_DID=`$OYDIDCMD sc_init -l $SEMCON_URL --token $ADMIN_TOKEN --doc-key c2/private_key.b58 --rev-key c2/revocation_key.b58 |
+SC_DID=`$OYDIDCMD sc_init -l $SEMCON_URL --token $ADMIN_TOKEN --doc-key c2/private_key.enc --rev-key c2/revocation_key.enc |
     jq -r '.did'`
 echo "DID: $SC_DID"
 
 # writing to Semantic Container
-TOKEN=`$OYDIDCMD sc_token $SC_DID --doc-key c2/private_key.b58 | \
+TOKEN=`$OYDIDCMD sc_token $SC_DID --doc-key c2/private_key.enc | \
     jq -r '.access_token'`
 echo '{"hello": "world"}' | \
     curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \

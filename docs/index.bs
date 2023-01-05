@@ -39,7 +39,8 @@ This specification is not a W3C Standard nor is it on the W3C Standards Track. L
 ## History ## {#history}
 
 * Version 0.3: 19 October 2021 (initial public release, [link](https://github.com/OwnYourData/oydid/blob/main/docs/did-spec_v03.md))
-* Version 0.4: 19 January 2022 (current version, [link](https://ownyourdata.github.io/oydid/did-method-oyd_v04.html))
+* Version 0.4: 19 January 2022 ([link](https://ownyourdata.github.io/oydid/did-method-oyd_v04.html))
+* Version 0.5: planned for Q1/2023 (current version)
 
 Introduction {#intro}
 ============
@@ -133,11 +134,12 @@ An example DID with all associated information and representations:
       "publicKeyBase58": "z6Mv1rQ3ZTsLwfV8neZ1zKp17NHeb1Xv3KK5EB4D8t5mxJ3V"
     }
   ],
-  "service": [
-    {
-      "foo": "bar"
-    }
-  ]
+  "service": [{
+    "id":"did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz#payload",
+    "type": "Custom", 
+    "serviceEndpoint": "https://oydid.ownyourdata.eu",
+    "foo": "bar"
+  }]
 }
 ```
 
@@ -214,6 +216,15 @@ Note: it is in the interest of the owner to publish revocation entries and make 
 
 Note: see section [[#verification]] for a detailed description of using the OYDID command line tool to output step-wise verification information for independent proof.
 
+### Public Key Identifier
+
+Inspired by [EBSI DID v2](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/EBSI+DID+Method) it is now also possible for the `did:oyd` method to use the document public key as identifier.
+
+<div class=example id=example_did_pubkey_identifier>
+Both DIDs resolve to the same DID Document:
+* with cryptographic hash value: `did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz`
+* with public key identifier: `did:oyd:z6MusWcRn7TWW3XAa96vrST5Fx8n3xndSEVEfMCQBDAMrQpP`
+</div>
 
 ## Update ## {#update}
 

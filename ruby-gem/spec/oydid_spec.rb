@@ -1,26 +1,108 @@
 require_relative 'spec_helper'
 
 describe "OYDID handling" do
-  # basic functions
-  Dir.glob(File.expand_path("../input/basic/*_enc.doc", __FILE__)).each do |input|
+  # basic functions - base58btc encoding
+  Dir.glob(File.expand_path("../input/basic/*_b58_enc.doc", __FILE__)).each do |input|
     it "encodes #{input.split('/').last}" do
       expected = File.read(input.sub('input', 'output'))
       data = File.read(input)
-      expect(Oydid.encode(data)).to eq expected
+      expect(Oydid.multi_encode(data, {}).first).to eq expected
     end
   end
+  # base16 encoding
+  Dir.glob(File.expand_path("../input/basic/*_b16_enc.doc", __FILE__)).each do |input|
+    it "encodes #{input.split('/').last}" do
+      expected = File.read(input.sub('input', 'output'))
+      data = File.read(input)
+      expect(Oydid.multi_encode(data, {encode: "base16"}).first).to eq expected
+    end
+  end
+  # base32 encoding
+  Dir.glob(File.expand_path("../input/basic/*_b32_enc.doc", __FILE__)).each do |input|
+    it "encodes #{input.split('/').last}" do
+      expected = File.read(input.sub('input', 'output'))
+      data = File.read(input)
+      expect(Oydid.multi_encode(data, {encode: "base32"}).first).to eq expected
+    end
+  end
+  # base64 encoding
+  Dir.glob(File.expand_path("../input/basic/*_b64_enc.doc", __FILE__)).each do |input|
+    it "encodes #{input.split('/').last}" do
+      expected = File.read(input.sub('input', 'output'))
+      data = File.read(input)
+      expect(Oydid.multi_encode(data, {encode: "base64"}).first).to eq expected
+    end
+  end
+  # invalid encoding
+  Dir.glob(File.expand_path("../input/basic/*_b17_enc.doc", __FILE__)).each do |input|
+    it "encodes #{input.split('/').last}" do
+      expected = File.read(input.sub('input', 'output'))
+      data = File.read(input)
+      expect(Oydid.multi_encode(data, {encode: "base17"}).last).to eq expected
+    end
+  end
+  # decoding
   Dir.glob(File.expand_path("../input/basic/*_dec.doc", __FILE__)).each do |input|
     it "decodes #{input.split('/').last}" do
       expected = File.read(input.sub('input', 'output'))
       data = File.read(input)
-      expect(Oydid.decode(data)).to eq expected
+      expect(Oydid.multi_decode(data).first.to_s).to eq expected
     end
   end
-  Dir.glob(File.expand_path("../input/basic/*_hash.doc", __FILE__)).each do |input|
+  # invalid decoding
+  Dir.glob(File.expand_path("../input/basic/*_b17_edec.doc", __FILE__)).each do |input|
+    it "decodes #{input.split('/').last}" do
+      expected = File.read(input.sub('input', 'output'))
+      data = File.read(input)
+      expect(Oydid.multi_decode(data).last.to_s).to eq expected
+    end
+  end
+  # multi_hash: sha2-256, b58
+  Dir.glob(File.expand_path("../input/basic/*_sha2-256_b58_hash.doc", __FILE__)).each do |input|
     it "hashes #{input.split('/').last}" do
       expected = File.read(input.sub('input', 'output'))
       data = File.read(input)
-      expect(Oydid.hash(data)).to eq expected
+      expect(Oydid.multi_hash(data, {}).first).to eq expected
+    end
+  end
+  # multi_hash: sha2-512, b58
+  Dir.glob(File.expand_path("../input/basic/*_sha2-512_b58_hash.doc", __FILE__)).each do |input|
+    it "hashes #{input.split('/').last}" do
+      expected = File.read(input.sub('input', 'output'))
+      data = File.read(input)
+      expect(Oydid.multi_hash(data, {digest: "sha2-512"}).first).to eq expected
+    end
+  end
+  # multi_hash: sha3-224, b64
+  Dir.glob(File.expand_path("../input/basic/*_sha3-224_b64_hash.doc", __FILE__)).each do |input|
+    it "hashes #{input.split('/').last}" do
+      expected = File.read(input.sub('input', 'output'))
+      data = File.read(input)
+      expect(Oydid.multi_hash(data, {digest: "sha3-224", encode: "base64"}).first).to eq expected
+    end
+  end
+  # multi_hash: blake2b-16, b16
+  Dir.glob(File.expand_path("../input/basic/*_blake2b-16_b16_hash.doc", __FILE__)).each do |input|
+    it "hashes #{input.split('/').last}" do
+      expected = File.read(input.sub('input', 'output'))
+      data = File.read(input)
+      expect(Oydid.multi_hash(data, {digest: "blake2b-16", encode: "base16"}).first).to eq expected
+    end
+  end
+  # multi_hash: blake2b-32, b32
+  Dir.glob(File.expand_path("../input/basic/*_blake2b-32_b32_hash.doc", __FILE__)).each do |input|
+    it "hashes #{input.split('/').last}" do
+      expected = File.read(input.sub('input', 'output'))
+      data = File.read(input)
+      expect(Oydid.multi_hash(data, {digest: "blake2b-32", encode: "base32"}).first).to eq expected
+    end
+  end
+  # multi_hash: blake2b-64, b58
+  Dir.glob(File.expand_path("../input/basic/*_blake2b-64_b58_hash.doc", __FILE__)).each do |input|
+    it "hashes #{input.split('/').last}" do
+      expected = File.read(input.sub('input', 'output'))
+      data = File.read(input)
+      expect(Oydid.multi_hash(data, {digest: "blake2b-64"}).first).to eq expected
     end
   end
   Dir.glob(File.expand_path("../input/basic/*.json", __FILE__)).each do |input|
@@ -41,33 +123,33 @@ describe "OYDID handling" do
     it "generates #{input.split('/').last}" do
       expected = File.read(input.sub('input', 'output'))
       data = File.read(input)
-      expect(Oydid.generate_private_key(data).first).to eq expected
+      expect(Oydid.generate_private_key(data, {}).first).to eq expected
     end
   end
   it "handles unknown key codec" do
     expected = "unknown key codec"
-    expect(Oydid.generate_private_key("", "asdf").last).to eq expected
+    expect(Oydid.generate_private_key("", "asdf", {}).last).to eq expected
   end
   it "handles unsupported key codec" do
     expected = "unsupported key codec"
-    expect(Oydid.generate_private_key("", "p256-pub").last).to eq expected
+    expect(Oydid.generate_private_key("", "p256-pub", {}).last).to eq expected
   end
   it "handles random key generation" do
     expected_length = 48
-    expect(Oydid.generate_private_key("").first.length).to eq expected_length
+    expect(Oydid.generate_private_key("", "ed25519-priv", {}).first.length).to eq expected_length
   end
   Dir.glob(File.expand_path("../input/basic/*_privkey.doc", __FILE__)).each do |input|
     it "public key from private key #{input.split('/').last}" do
       expected = JSON.parse(File.read(input.sub('input', 'output')))
       data = File.read(input)
-      expect(Oydid.public_key(data)).to eq expected
+      expect(Oydid.public_key(data, {})).to eq expected
     end
   end
   Dir.glob(File.expand_path("../input/basic/*_sign.doc", __FILE__)).each do |input|
     it "signing #{input.split('/').last}" do
       expected = JSON.parse(File.read(input.sub('input', 'output')))
       data = JSON.parse(File.read(input))
-      expect(Oydid.sign(data["message"], data["key"])).to eq expected
+      expect(Oydid.sign(data["message"], data["key"], {})).to eq expected
     end
   end
   Dir.glob(File.expand_path("../input/basic/*_verify.doc", __FILE__)).each do |input|
@@ -81,7 +163,7 @@ describe "OYDID handling" do
     it "reading private key from file #{input.split('/').last}" do
       expected = JSON.parse(File.read(input.sub('input', 'output')))
       data = File.read(input)
-      expect(Oydid.read_private_key(data)).to eq expected
+      expect(Oydid.read_private_key(data, {})).to eq expected
     end
   end
 

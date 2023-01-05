@@ -1,0 +1,2 @@
+Can not convert from ByteArray to string without encoding. Pass the resulting string encoding as the first argument of to_s.
+This does not default to UTF-8 or US-ASCII because that would hide issues until you have output that is NOT encoding as UTF-8 or US-ASCII and does not fit in those ranges.

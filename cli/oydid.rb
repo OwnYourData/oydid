@@ -9,7 +9,8 @@ require 'oydid'
 
 LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
-VERSION = "0.4.8"
+VERSION = "0.5.0"
+LOG_HASH_OPTIONS = {:digest => "sha2-256", :encode => "base58btc"}
 
 # internal functions -------------------------------
 
@@ -18,9 +19,14 @@ def delete(did, options)
     doc_location = options[:doc_location]
     if doc_location.to_s == ""
         if did.include?(LOCATION_PREFIX)
-            hash_split = did.split(LOCATION_PREFIX)
-            did = hash_split[0]
-            doc_location = hash_split[1]
+            tmp = did.split(LOCATION_PREFIX)
+            did = tmp[0]
+            doc_location = tmp[1]
+        end
+        if did.include?(CGI.escape LOCATION_PREFIX)
+            tmp = did.split(CGI.escape LOCATION_PREFIX)
+            did = tmp[0] 
+            doc_location = tmp[1]
         end
     end
     if doc_location.to_s == ""
@@ -39,10 +45,10 @@ def delete(did, options)
             end
             exit 1
         else
-            privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv')
+            privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
         end
     else
-        privateKey, msg = Oydid.read_private_key(options[:doc_key].to_s)
+        privateKey, msg = Oydid.read_private_key(options[:doc_key].to_s, options)
         if privateKey.nil?
             if options[:silent].nil? || !options[:silent]
                 if options[:json].nil? || !options[:json]
@@ -65,10 +71,10 @@ def delete(did, options)
             end
             exit 1
         else
-            revocationKey, msg = Oydid.generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv')
+            revocationKey, msg = Oydid.generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv', options)
         end
     else
-        revocationKey, msg = Oydid.read_private_key(options[:rev_key].to_s)
+        revocationKey, msg = Oydid.read_private_key(options[:rev_key].to_s, options)
         if revocationKey.nil?
             if options[:silent].nil? || !options[:silent]
                 if options[:json].nil? || !options[:json]
@@ -173,10 +179,10 @@ def sc_token(did, options)
             end
             exit 1
         else
-            privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv')
+            privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
         end
     else
-        privateKey, msg = Oydid.read_private_key(options[:doc_key].to_s)
+        privateKey, msg = Oydid.read_private_key(options[:doc_key].to_s, options)
         if privateKey.nil?
             if options[:silent].nil? || !options[:silent]
                 if options[:json].nil? || !options[:json]
@@ -201,7 +207,7 @@ def sc_token(did, options)
     if did_info["error"] != 0
         return [nil, did_info["message"].to_s]
     end
-    if did_info["doc"]["key"].split(":")[0].to_s != Oydid.public_key(privateKey).first
+    if did_info["doc"]["key"].split(":")[0].to_s != Oydid.public_key(privateKey, options).first
         if options[:silent].nil? || !options[:silent]
             puts "Error: private key does not match DID document"
             if options[:json].nil? || !options[:json]
@@ -220,7 +226,7 @@ def sc_token(did, options)
     response = HTTParty.post(init_url,
         headers: { 'Content-Type' => 'application/json' },
         body: { "session_id": sid, 
-                "public_key": Oydid.public_key(privateKey).first }.to_json ).parsed_response rescue {}
+                "public_key": Oydid.public_key(privateKey, options).first }.to_json ).parsed_response rescue {}
     if response["challenge"].nil?
         if options[:silent].nil? || !options[:silent]
             if options[:json].nil? || !options[:json]
@@ -238,7 +244,7 @@ def sc_token(did, options)
     response = HTTParty.post(token_url,
         headers: { 'Content-Type' => 'application/json' },
         body: { "session_id": sid, 
-                "signed_challenge": Oydid.sign(challenge, privateKey).first }.to_json).parsed_response rescue {}
+                "signed_challenge": Oydid.sign(challenge, privateKey, options).first }.to_json).parsed_response rescue {}
     puts response.to_json
 
 end
@@ -321,6 +327,8 @@ end
 
 def print_version()
     puts VERSION.to_s + " (oydid gem: v" + Gem.loaded_specs["oydid"].version.to_s + ")"
+    puts "supported digests: " + Oydid::SUPPORTED_DIGESTS.join(", ") + " (default: " + Oydid::DEFAULT_DIGEST + ")"
+    puts "supported encodings: " + Oydid::SUPPORTED_ENCODINGS.join(", ") + " (default: " + Oydid::DEFAULT_ENCODING + ")"
 end
 
 def print_help()
@@ -329,11 +337,22 @@ def print_help()
     puts "Usage: oydid [OPERATION] [OPTION]"
     puts ""
     puts "OPERATION"
+    puts " -- DID management --"
     puts "  create     - new DID, reads doc from STDIN"
     puts "  read       - output DID Document for given DID in option"
     puts "  update     - update DID Document, reads doc from STDIN and DID specified"
-    puts "               as option"
+    puts "               as option (if STDIN is empty payload is unchanged)"
     puts "  revoke     - revoke DID by publishing revocation entry"
+    puts ""
+    puts " -- Verifiable Credentials & Presentations --"
+    puts "  vc         - new VC, reads claim(s) from STDIN"
+    puts "  vc-read    - output VC for given identifier in option"
+    puts "  vc-push    - new VC and store to repo, reads claim(s) from STDIN"
+    puts "  vp         - new VP, reads VC(s) from STDIN"
+    puts "  vp-push    - new VP and store in repo, reads VC(s) from STDIN"
+    puts "  vp-verify  - read VP from STDIN and verify proof"
+    puts ""
+    puts " -- OYDID specific --"
     puts "  delete     - remove DID and all associated records (only for testing)"
     puts "  log        - print relevant log for given DID or log entry hash"
     puts "  logs       - print all available log entries for given DID or log hash"
@@ -347,6 +366,8 @@ def print_help()
     # puts "  challenge - publish challenge for given DID and revoke specified as"
     # puts "              options"
     puts "  confirm    - confirm specified clones or delegates for given DID"
+    puts ""
+    puts " -- DIDComm messaging --"
     puts "  message    - output plain DIDComm message, reads from STDIN"
     puts "  jws        - output signed DIDComm message, reads from STDIN"
     puts "  jws-verify - read JWS and verify signature"
@@ -363,6 +384,10 @@ def print_help()
     puts "                                     private key for signing documents"
     puts "     --doc-pwd DOCUMENT-PASSWORD   - password for private key for "
     puts "                                     signing documents"
+    puts "     --encode ENCODING-ALGORITHM   - specify encoding algorithm for"
+    puts "                                     identifier digest (default: base58btc)"
+    puts "     --digest HASH-ALGORITHM       - specify digest algorithm for"
+    puts "                                     identifier (default: sha2-256)"
     puts " -h, --help                        - dispay this help text"
     puts "     --json-output                 - write response as JSON object"
     puts " -l, --location LOCATION           - default URL to store/query DID data"
@@ -377,7 +402,7 @@ def print_help()
     puts "     --show-verification           - display raw data and steps for"
     puts "                                     verifying DID resolution process"
     puts "     --silent                      - suppress any output"
-    puts "     --timestamp TIMESTAMP         - timestamp in UNIX epoch to be used"
+    puts " -z  --timestamp TIMESTAMP         - timestamp in UNIX epoch to be used"
     puts "                                     (only for testing)"
     puts " -t, --token TOKEN                 - OAuth2 bearer token to access "
     puts "                                     Semantic Container"
@@ -391,6 +416,12 @@ end
 
 # main -------------------------------
 
+# trace = TracePoint.new(:call) { |tp| 
+#         if tp.path.include?("oydid-0.5.0") 
+#                 p [tp.path, tp.lineno, tp.event, tp.method_id] 
+#         end }
+# trace.enable
+
 # commandline options
 options = { }
 opt_parser = OptionParser.new do |opt|
@@ -403,7 +434,12 @@ opt_parser = OptionParser.new do |opt|
   options[:show_hash] = false
   options[:show_verification] = false
   options[:simulate] = false
+  options[:encode] = LOG_HASH_OPTIONS[:encode] # base58btc
+  options[:digest] = LOG_HASH_OPTIONS[:digest] # sha2-256
   opt.on("-l","--location LOCATION","default URL to store/query DID data") do |loc|
+    if !loc.start_with?("http")
+        loc = "https://" + loc
+    end
     options[:location] = loc
   end
   opt.on("-t","--trace","show trace information when reading DID") do |trc|
@@ -423,6 +459,12 @@ opt_parser = OptionParser.new do |opt|
   end
   opt.on("--json-output") do |j|
     options[:json] = true
+  end
+  opt.on("--digest HASH-ALGORITHM") do |digest|
+    options[:digest] = digest
+  end
+  opt.on("--encode ENCODING-ALGORITHM") do |encode|
+    options[:encode] = encode
   end
   opt.on("--doc-key DOCUMENT-KEY-FILE") do |dk|
     options[:doc_key] = dk
@@ -469,9 +511,19 @@ opt_parser = OptionParser.new do |opt|
   opt.on("-t", "--token TOKEN", "token to access Semantic Container") do |t|
     options[:token] = t
   end
-  opt.on("--ts TIMESTAMP") do |ts|
+  opt.on("-z", "--timestamp TIMESTAMP") do |ts|
     options[:ts] = ts.to_i
   end
+
+  # VC options
+  opt.on("--issuer ISSUER") do |key|
+    options[:issuer] = key.to_s
+  end
+  opt.on("--holder HOLDER") do |key|
+    options[:holder] = key.to_s
+  end
+  
+  # auxiliary options
   opt.on("-h", "--help") do |h|
     print_help()
     exit(0)
@@ -513,21 +565,53 @@ end
 
 case operation.to_s
 # JSON input
-when "create", "update", 
+when "create", # "update", 
      "fromW3C", "toW3C",
-     "message", "jws", "encrypt-message", "sign-message"
+     "message", "jws", "encrypt-message", "sign-message",
+     "vc", "vc-push", "vp", "vp-push", "vp-verify"
+    input_content = []
+    ARGF.each_line { |line| input_content << line }
+    content = JSON.parse(input_content.join("")) rescue nil
+    if content.nil?
+        if input_content.collect{|e| e.strip}.join("") != ""
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "Error: invalid payload"
+                else
+                    puts '{"error": "invalid payload"}'
+                end
+            end
+            exit(-1)
+        end
+    end
+when "update"
     content = []
     ARGF.each_line { |line| content << line }
     content = JSON.parse(content.join("")) rescue nil
     if content.nil?
-        if options[:silent].nil? || !options[:silent]
-            if options[:json].nil? || !options[:json]
-                puts "Error: empty or invalid payload"
-            else
-                puts '{"error": "empty or invalid payload"}'
+        result, msg = Oydid.read(input_did, options)
+        if result.nil?
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "Error: cannot resolve DID (on updating DID)"
+                else
+                    puts '{"error": "cannot resolve DID (on updating DID)"}'
+                end
             end
+            exit (-1)
         end
-        exit(-1)
+        if result["error"] == 0
+            content = result["doc"]["doc"]
+        else
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "Error: " + result["message"].to_s
+                else
+                    puts '{"error": "' + result["message"].to_s + '"}'
+                end
+            end
+            exit(-1)
+        end
     end
 # JWT input
 when "decrypt-jwt", "verify-jws", "verify-signed-message"
@@ -556,7 +640,17 @@ end
 case operation.to_s
 when "create"
     if options[:simulate]
-        did, didDocument, revoc_log, l1, l2, r1, privateKey, revocationKey, did_old, log_old, msg = Oydid.generate_base(content, "", "create", options)
+        did_doc, did_key, did_log, msg = Oydid.generate_base(content, "", "create", options)
+        did = did_doc[:did]
+        didDocument = did_doc[:didDocument]
+        l1 = did_log[:l1]
+        l2 = did_log[:l2]
+        r1 = did_log[:r1]
+
+        # did, didDocument, revoc_log, l1, l2, r1, privateKey, revocationKey, did_old, log_old, msg = Oydid.generate_base(content, "", "create", options)
+        # did_doc = [did, didDocument, did_old]
+        # did_log = [revoc_log, l1, l2, r1, log_old]
+        # did_key = [privateKey, revocationKey]
         if did.nil?
             if msg.to_s != ""
                 if options[:silent].nil? || !options[:silent]
@@ -601,7 +695,16 @@ when "create"
     end
 when "update"
     if options[:simulate]
-        did, didDocument, revoc_log, l1, l2, r1, privateKey, revocationKey, did_old, log_old, msg = Oydid.generate_base(content, input_did, "update", options)
+        did_doc, did_key, did_log, msg = Oydid.generate_base(content, input_did, "update", options)
+        did = did_doc[:did]
+        didDocument = did_doc[:didDocument]
+        did_old = did_doc[:did_old]
+        revoc_log = did_log[:revoc_log]
+        l1 = did_log[:l1]
+        l2 = did_log[:l2]
+        r1 = did_log[:r1]
+        log_old = did_log[:log_old]
+        # did, didDocument, revoc_log, l1, l2, r1, privateKey, revocationKey, did_old, log_old, msg = Oydid.generate_base(content, input_did, "update", options)
         if did.nil?
             if msg.to_s != ""
                 if options[:silent].nil? || !options[:silent]
@@ -624,6 +727,10 @@ when "update"
         retVal["log_revoke"] = r1
         puts retVal.to_json
     else
+        didHash = input_did.split(LOCATION_PREFIX)[0] rescue input_did
+        didHash = didHash.delete_prefix("did:oyd:")
+        # options[:digest] = Oydid.get_digest(didHash).first
+        # options[:encode] = Oydid.get_encoding(didHash).first
         retVal, msg = Oydid.update(content, input_did, options)
         if retVal.nil?
             if msg.to_s != ""
@@ -647,6 +754,10 @@ when "update"
         end
     end
 when "read"
+    # didIdentifier = input_did.split(LOCATION_PREFIX)[0] rescue input_did
+    # didIdentifier = didIdentifier.delete_prefix("did:oyd:")
+    # options[:digest] = Oydid.get_digest(didIdentifier).first
+    # options[:encode] = Oydid.get_encoding(didIdentifier).first
     result, msg = Oydid.read(input_did, options)
     if result.nil?
         if options[:silent].nil? || !options[:silent]
@@ -734,7 +845,18 @@ when "fromW3C"
         end
         exit(-1)
     end
-    retVal, msg = Oydid.retrieve_document_raw(content["id"].to_s, Oydid.get_location(content["id"].to_s), "", options)
+    did = content["id"].to_s
+    if did.include?(LOCATION_PREFIX)
+        tmp = did.split(LOCATION_PREFIX)
+        did = tmp[0]
+        doc_location = tmp[1]
+    end
+    if did.include?(CGI.escape LOCATION_PREFIX)
+        tmp = did.split(CGI.escape LOCATION_PREFIX)
+        did = tmp[0] 
+        doc_location = tmp[1]
+    end
+    retVal, msg = Oydid.retrieve_document_raw(did, "", doc_location, options)
     if retVal.nil?
         if options[:silent].nil? || !options[:silent]
             if options[:json].nil? || !options[:json]
@@ -758,7 +880,7 @@ when "toW3C"
         end
         exit(-1)
     end
-    did = Oydid.hash(Oydid.canonical(content.to_json_c14n))
+    did = Oydid.multi_hash(Oydid.canonical(content.to_json_c14n), options).first
     did_info = {}
     did_info["did"] = Oydid.percent_encode(did)
     did_info["doc"] = content
@@ -868,6 +990,10 @@ when "revoke"
         options[:old_rev_pwd] = options[:rev_pwd]
     end
     did = input_did.delete_prefix("did:oyd:")
+    didHash = input_did.split(LOCATION_PREFIX)[0] rescue input_did
+    didHash = didHash.delete_prefix("did:oyd:")
+    options[:digest] = Oydid.get_digest(didHash).first
+    options[:encode] = Oydid.get_encoding(didHash).first    
     if options[:simulate]
         result, msg = Oydid.revoke_base(did, options)
         if result.nil?
@@ -912,6 +1038,10 @@ when "revoke"
     end
 
 when "delete"
+    didHash = input_did.split(LOCATION_PREFIX)[0] rescue input_did
+    didHash = didHash.delete_prefix("did:oyd:")
+    options[:digest] = Oydid.get_digest(didHash).first
+    options[:encode] = Oydid.get_encoding(didHash).first    
     did, msg = delete(input_did, options)
     if did.nil?
         if msg.to_s != ""
@@ -940,7 +1070,7 @@ when "message"
     puts JSON.pretty_generate(didcomm_message)
 when "jws"
     did10 = options[:sign_did].to_s.delete_prefix("did:oyd:")[0,10]
-    f = File.open(did10 + "_private_key.b58")
+    f = File.open(did10 + "_private_key.enc")
     private_key_encoded = f.read
     f.close
     didcomm_signed_message, err_msg = Oydid.dcsm(content, private_key_encoded, options)
@@ -965,16 +1095,16 @@ when "verify-jws"
 when "encrypt-message"
     from_did = options[:didcomm_from_did].to_s
     did10 = from_did.delete_prefix("did:oyd:")[0,10]
-    f = File.open(did10 + "_private_key.b58")
+    f = File.open(did10 + "_private_key.enc")
     key_encoded = f.read
     f.close
-    msg_encrypted, msg = Oydid.msg_encrypt(content, key_encoded, from_did)
+    msg_encrypted, msg = Oydid.msg_encrypt(content, key_encoded, from_did, options)
     puts msg_encrypted.to_s
 when "decrypt-jwt"
     from_did = options[:didcomm_from_did].to_s
     result, msg = Oydid.read(from_did, options)
     public_key_encoded = result["doc"]["key"].split(':').first
-    msg_decrypted, msg = Oydid.msg_decrypt(content, public_key_encoded)
+    msg_decrypted, msg = Oydid.msg_decrypt(content, public_key_encoded, options)
     puts JSON.pretty_generate(msg_decrypted.first)
 when "sign-message"
     msg_signed, msg = Oydid.msg_sign(content, options[:hmac_secret].to_s)
@@ -1009,6 +1139,113 @@ when "delegate", "challenge", "confirm"
     else
         puts '{"warning": "function not yet available"}'
     end
+when "vc", "vc-push"
+    # get private key from issuer
+    did_issuer = options[:issuer]
+    if options[:doc_enc].nil?
+        did10_issuer = did_issuer.delete_prefix("did:oyd:")[0,10]
+        options[:issuer_privateKey] = Oydid.read_private_storage(did10_issuer + "_private_key.enc")
+    else
+        options[:issuer_privateKey] = options[:doc_enc].to_s
+    end
+    vc, msg = Oydid.create_vc(content, options)
+
+    if operation == "vc-push"
+        retVal, msg = Oydid.publish_vc(vc, options)
+        if retVal.nil?
+            if options[:json].nil? || !options[:json]
+                puts "Error: " + msg
+            else
+                puts '{"error": "' + msg + '"}'
+            end
+            exit(-1)
+        else
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "created " + retVal.to_s
+                else
+                    puts JSON.pretty_generate(vc)
+                end
+            end
+        end
+    else
+        puts JSON.pretty_generate(vc)
+    end
+
+when "vc-read", "read-vc"
+    vc, msg = Oydid.read_vc(input_did, options)
+    if vc.nil?
+        if options[:json].nil? || !options[:json]
+            puts "Error: " + msg
+        else
+            puts '{"error": "' + msg + '"}'
+        end
+        exit(-1)
+    else
+        puts JSON.pretty_generate(vc)
+    end
+
+when "vp", "vp-push"
+    did_holder = options[:holder]
+    if options[:doc_enc].nil?
+        did10_holder = did_holder.delete_prefix("did:oyd:")[0,10]
+        options[:holder_privateKey] = Oydid.read_private_storage(did10_holder + "_private_key.enc")
+    else
+        options[:holder_privateKey] = options[:doc_enc].to_s
+    end
+    vp, msg = Oydid.create_vp(content, options)
+
+    if operation == "vp-push"
+        retVal, msg = Oydid.publish_vp(vp, options)
+        if retVal.nil?
+            if options[:json].nil? || !options[:json]
+                puts "Error: " + msg
+            else
+                puts '{"error": "' + msg + '"}'
+            end
+            exit(-1)
+        else
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "created " + retVal.to_s
+                else
+                    puts JSON.pretty_generate(vp)
+                end
+            end
+        end
+    else
+        puts JSON.pretty_generate(vp)
+    end
+
+when "vp-read", "read-vp"
+    vp, msg = Oydid.read_vp(input_did, options)
+    if vp.nil?
+        if options[:json].nil? || !options[:json]
+            puts "Error: " + msg
+        else
+            puts '{"error": "' + msg + '"}'
+        end
+        exit(-1)
+    else
+        puts JSON.pretty_generate(vp)
+    end
+
+when "vp-verify"
+    result, msg = Oydid.verify_vp(content, options)
+    if result.nil?
+        if options[:json].nil? || !options[:json]
+            puts "invalid proof: " + msg
+        else
+            puts '{"error": "' + msg + '"}'
+        end
+    else
+        if options[:json].nil? || !options[:json]
+            puts "valid proof for " + result[:identifier].to_s
+        else
+            puts '{"VerifiablePresentation":"' + result[:identifier].to_s + '", "valid": true}'
+        end
+    end
+
 else
     print_help()
 end

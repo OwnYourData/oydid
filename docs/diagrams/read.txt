@@ -1,0 +1,40 @@
+@startuml
+start
+note
+  Read DID
+end note
+partition Invocation {
+  note
+    Input
+    ----
+    did:oyd:
+    Identifier or Public Key
+    @ (URL encoded: %40)
+    location
+  end note
+
+  split
+    :CLI;
+  split again
+    :Library;
+  split again
+    :API;
+  end split
+}
+:get Location;
+note right
+  default location: https://oydid.ownyourdata.eu
+end note
+:retrieve DID Document from
+repository at location via GET;
+
+:retrieve DID Log from
+repository at location via GET;
+
+:build DAG from DID Log;
+
+:get current & validated
+DID Document based on DAG;
+
+stop
+@enduml
