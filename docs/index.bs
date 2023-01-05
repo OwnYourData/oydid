@@ -221,9 +221,10 @@ Note: see section [[#verification]] for a detailed description of using the OYDI
 Inspired by [EBSI DID v2](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/EBSI+DID+Method) it is now also possible for the `did:oyd` method to use the document public key as identifier.
 
 <div class=example id=example_did_pubkey_identifier>
-Both DIDs resolve to the same DID Document:
-* with cryptographic hash value: `did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz`
-* with public key identifier: `did:oyd:z6MusWcRn7TWW3XAa96vrST5Fx8n3xndSEVEfMCQBDAMrQpP`
+  Both DIDs resolve to the same DID Document:
+  
+  * with cryptographic hash value: `did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz`
+  * with public key identifier: `did:oyd:z6MusWcRn7TWW3XAa96vrST5Fx8n3xndSEVEfMCQBDAMrQpP`
 </div>
 
 ## Update ## {#update}
