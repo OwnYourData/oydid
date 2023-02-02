@@ -720,6 +720,122 @@ class Oydid
     end
 
    def self.w3c(did_info, options)
+        did = percent_encode(did_info["did"])
+        if !did.start_with?("did:oyd:")
+            did = "did:oyd:" + did
+        end
+
+        didDoc = did_info.transform_keys(&:to_s)["doc"]
+        pubDocKey = didDoc["key"].split(":")[0] rescue ""
+        pubRevKey = didDoc["key"].split(":")[1] rescue ""
+
+        wd = {}
+        if didDoc["doc"].is_a?(Hash) 
+            if didDoc["doc"]["@context"].nil?
+                wd["@context"] = ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/suites/ed25519-2020/v1"]
+            else
+                if didDoc["doc"]["@context"].is_a?(Array)
+                    wd["@context"] = ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/suites/ed25519-2020/v1"] + didDoc["doc"]["@context"]
+                else
+                    wd["@context"] = ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/suites/ed25519-2020/v1", didDoc["doc"]["@context"]]
+                end
+                didDoc["doc"].delete("@context")
+            end
+        else
+            wd["@context"] = ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/suites/ed25519-2020/v1"]
+        end
+        wd["id"] = percent_encode(did)
+        wd["verificationMethod"] = [{
+            "id": did + "#key-doc",
+            "type": "Ed25519VerificationKey2020",
+            "controller": did,
+            "publicKeyMultibase": pubDocKey
+        },{
+            "id": did + "#key-rev",
+            "type": "Ed25519VerificationKey2020",
+            "controller": did,
+            "publicKeyMultibase": pubRevKey
+        }]
+
+        equivalentIds = []
+        did_info["log"].each do |log|
+            if log["op"] == 2 || log["op"] == 3
+                eid = percent_encode("did:oyd:" + log["doc"])
+                if eid != did
+                    equivalentIds << eid
+                end
+            end
+        end unless did_info["log"].nil?
+        if equivalentIds.length > 0
+            wd[:alsoKnownAs] = equivalentIds
+        end
+
+        if didDoc["doc"].is_a?(Hash) && !didDoc["doc"]["service"].nil?
+            location = options[:location]
+            if location.nil?
+                location = get_location(did_info["did"].to_s)
+            end
+            wd = wd.merge(didDoc["doc"])
+            wdf = wd["service"].first
+            wdf = { "id": did + "#payload",
+                    "type": "Custom",
+                    "serviceEndpoint": location }.merge(wdf)
+            wd["service"] = [wdf] + wd["service"].drop(1) 
+        else
+            payload = nil
+            if didDoc["doc"].is_a?(Hash)
+                didDoc = didDoc["doc"]
+                if didDoc["authentication"].to_s != ""
+                    wd["authentication"] = didDoc["authentication"]
+                    didDoc.delete("authentication")
+                end
+                if didDoc["assertionMethod"].to_s != ""
+                    wd["assertionMethod"] = didDoc["assertionMethod"]
+                    didDoc.delete("assertionMethod")
+                end
+                if didDoc["keyAgreement"].to_s != ""
+                    wd["keyAgreement"] = didDoc["keyAgreement"]
+                    didDoc.delete("keyAgreement")
+                end
+                if didDoc["capabilityInvocation"].to_s != ""
+                    wd["capabilityInvocation"] = didDoc["capabilityInvocation"]
+                    didDoc.delete("capabilityInvocation")
+                end
+                if didDoc["capabilityDelegation"].to_s != ""
+                    wd["capabilityDelegation"] = didDoc["capabilityDelegation"]
+                    didDoc.delete("capabilityDelegation")
+                end
+                payload = didDoc
+            else
+                payload = didDoc["doc"]
+            end
+            if !payload.nil?
+                location = options[:location]
+                if location.nil?
+                    location = get_location(did_info["did"].to_s)
+                end
+                if payload.is_a?(Array) &&
+                        payload.length == 1 &&
+                        payload.first.is_a?(Hash) &&
+                        !payload.first["id"].nil? &&
+                        !payload.first["type"].nil? &&
+                        !payload.first["serviceEndpoint"].nil?
+                    wd["service"] = payload
+                else
+                    wd["service"] = [{
+                        "id": did + "#payload",
+                        "type": "Custom",
+                        "serviceEndpoint": location,
+                        "payload": payload
+                    }]
+                end
+            end
+        end
+        return wd
+    end
+
+
+   def self.w3c_legacy(did_info, options)
         did = did_info["did"]
         if !did.start_with?("did:oyd:")
             did = "did:oyd:" + did

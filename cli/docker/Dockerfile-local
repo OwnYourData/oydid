@@ -4,8 +4,7 @@ MAINTAINER "Christoph Fabianek" christoph@ownyourdata.eu
 RUN addgroup -S user && \
     adduser -S user -G user && \
     apk add --no-cache libsodium-dev git make gcc musl-dev jq bash curl && \
-    gem install httparty ed25519 multibases multihashes multicodecs optparse rbnacl dag uri oydid && \
-    gem install json-canonicalization -v 0.2.1 && \
+    gem install httparty ed25519 multibases multihashes multicodecs optparse rbnacl dag uri json-canonicalization oydid && \
     gem install securerandom -v 0.1.1 && \
     apk del make gcc musl-dev && \
     apk add --update --no-cache python3 && \
@@ -20,6 +19,8 @@ COPY docker/welcome.txt /tmp/welcome.txt
 COPY docker/etc/profile /etc/profile
 RUN chmod 755 /usr/local/bin/oydid && \
     gem install /tmp/*.gem && \
+    gem update && \
+    gem cleanup && \
     sed -e "s/\${oydid}/`oydid --version | head -n 1`/" -e "s/\${jq}/`jq --version`/" /tmp/welcome.txt > /etc/motd && \
     mkdir -p /usr/src/pytest
 COPY --chown=user:user pytest /usr/src/pytest

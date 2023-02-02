@@ -19,7 +19,9 @@ Rails.application.routes.draw do
     match 'presentations',        to: 'credentials#publish_vp', via: 'post'
 
     # Uniresolver endpoint
-    match '1.0/identifiers/:did', to: 'dids#resolve',           via: 'get', constraints: {did: /.*/}
+    match 'new/identifiers/:did',    to: 'dids#resolve',        via: 'get', constraints: {did: /.*/}
+    match '1.0/identifiers/:did',    to: 'dids#resolve',        via: 'get', constraints: {did: /.*/}
+    match 'legacy/identifiers/:did', to: 'dids#legacy_resolve', via: 'get', constraints: {did: /.*/}
 
     # Uniregistrar endpoints
     match '1.0/create',     to: 'dids#uniregistrar_create',     via: 'post'

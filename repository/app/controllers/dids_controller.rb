@@ -240,6 +240,27 @@ class DidsController < ApplicationController
         end
     end
 
+    def legacy_resolve
+        options = {}
+        did = params[:did]
+        didLocation = did.split(LOCATION_PREFIX)[1] rescue ""
+        didHash = did.split(LOCATION_PREFIX)[0] rescue did
+        didHash = didHash.delete_prefix("did:oyd:")
+        options[:digest] = Oydid.get_digest(didHash).first
+        options[:encode] = Oydid.get_encoding(didHash).first
+        result = resolve_did(did, options)
+        if result["error"] != 0
+            render json: {"error": result["message"].to_s}.to_json,
+                   status: result["error"]
+        else
+            w3c_did = Oydid.w3c_legacy(result, options)
+            render plain: w3c_did.to_json,
+                   mime_type: Mime::Type.lookup("application/ld+json"),
+                   content_type: 'application/ld+json',
+                   status: 200
+        end
+    end
+
     # Uniregistrar functions ====================
 
     # input

@@ -7,6 +7,8 @@ import subprocess
 from pathlib import Path
 
 service = "https://oydid-resolver.data-container.net"
+oydidcmd = os.getenv('OYDIDCMD') or "oydid"
+os.environ["OYDIDCMD"] = oydidcmd
 
 def test_service():
     response = requests.get(service + "/version")

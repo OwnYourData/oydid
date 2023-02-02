@@ -10,6 +10,8 @@ from pathlib import Path
 # export OYDIDCMD='../oydid.rb'; pytest
 
 service = "https://oydid-registrar.data-container.net"
+oydidcmd = os.getenv('OYDIDCMD') or "oydid"
+os.environ["OYDIDCMD"] = oydidcmd
 
 def test_service():
     response = requests.get(service + "/version")
@@ -24,6 +26,7 @@ def test_service():
 # doc: https://pypi.org/project/pytest-subprocess/
 cwd = os.getcwd()
 @pytest.mark.parametrize('input',  glob.glob(cwd+'/01_input/*.doc'))
+# def test_01_simple(input):
 def test_01_simple(fp, input):
     fp.allow_unregistered(True)
     with open(input) as f:

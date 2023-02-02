@@ -1,0 +1,19 @@
+{
+  "@context": [{
+    "publicAccess": "https://schema.org/publicAccess",
+    "additionalType": "https://schema.org/additionalType",
+    "datePublished": "https://schema.org/datePublished",
+    "rating": "https://schema.org/Rating",
+    "commentCount": "https://schema.org/commentCount"
+  }],
+  "publicAccess": true,
+  "additionalType": null,
+  "datePublished": "2022-01-03T15:45:36Z",
+  "rating": 4.5,
+  "commentCount": 2,
+  "service": [{
+    "payload": {
+      "demo": "data types"
+    }
+  }]
+}
