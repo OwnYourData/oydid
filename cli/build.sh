@@ -57,5 +57,5 @@ else
 fi
 
 if $DOCKER_UPDATE; then
-    docker push $REPOSITORY/$CONTAINER
+    docker push $REPOSITORY/$CONTAINER:$TAG
 fi

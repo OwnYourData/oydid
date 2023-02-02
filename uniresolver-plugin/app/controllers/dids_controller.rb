@@ -8,7 +8,7 @@ class DidsController < ApplicationController
     respond_to :html, only: []
     respond_to :xml, only: []
 
-    def resolve
+    def uniresolver_resolve
         options = {}
         did = params[:did]
         didLocation = did.split(LOCATION_PREFIX)[1] rescue ""
@@ -58,6 +58,30 @@ class DidsController < ApplicationController
                mime_type: Mime::Type.lookup("application/ld+json"),
                content_type: 'application/ld+json',
                status: 200
+    end
+
+    def resolve
+        render plain: {"status": "in progress", "did": params[:did].to_s}.to_json,
+               mime_type: Mime::Type.lookup("application/ld+json"),
+               content_type: 'application/ld+json',
+               status: 200
+
+    end
+
+    def resolve_representation
+        render plain: {"status": "in progress", "did": params[:did].to_s}.to_json,
+               mime_type: Mime::Type.lookup("application/ld+json"),
+               content_type: 'application/ld+json',
+               status: 200
+
+    end
+
+    def dereference
+        render plain: {"status": "in progress", "did": params[:did].to_s}.to_json,
+               mime_type: Mime::Type.lookup("application/ld+json"),
+               content_type: 'application/ld+json',
+               status: 200
+
     end
 
 end

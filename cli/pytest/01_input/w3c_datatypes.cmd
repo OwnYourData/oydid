@@ -1,0 +1,1 @@
+$OYDIDCMD read --w3c-did did:oyd:zQmbuLcCVYuuLoVGyd3CLXupFAYdBbdXNz4XwqeqLehAaGz

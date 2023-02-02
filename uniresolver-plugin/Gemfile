@@ -14,9 +14,9 @@ gem 'dag'
 gem 'multibases'
 gem 'multihashes'
 gem 'multicodecs'
-gem 'json-canonicalization', '~> 0.2.1'
+gem 'json-canonicalization', '~> 0.3.0'
+gem 'oydid', '~> 0.5.3'
 gem 'bootsnap'
-gem 'oydid'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

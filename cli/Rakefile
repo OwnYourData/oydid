@@ -3,7 +3,7 @@ $:.unshift(File.expand_path(File.join(File.dirname(__FILE__), 'lib')))
 require 'rubygems'
 
 namespace :test do
-  test_script = "cd /usr/src/pytest; date > report.txt; pytest -qx --show-capture=no %s >> report.txt; if [ $? -ne 0 ]; then cat report.txt | jq --raw-input --slurp '{text: .}' | curl -X POST -H 'Content-type: application/json' -d @- $SLACK_WEBHOOK; fi"
+  test_script = "date > report.txt; pytest -qx --show-capture=no /usr/src/pytest/%s >> report.txt; if [ $? -ne 0 ]; then cat report.txt | jq --raw-input --slurp '{text: .}' | curl -X POST -H 'Content-type: application/json' -d @- $SLACK_WEBHOOK; fi"
 
   desc "Run Uniresolver tests"
   task :uniresolver do

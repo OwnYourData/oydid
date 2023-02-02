@@ -29,7 +29,7 @@ Gem::Specification.new do |gem|
     gem.add_dependency 'jwt',                   '~> 2.4.1'
     gem.add_dependency 'rbnacl',                '~> 7.1.1'
     gem.add_dependency 'ed25519',               '~> 1.3.0'
-    gem.add_dependency 'httparty',              '~> 0.20.0'
+    gem.add_dependency 'httparty',              '~> 0.21'
     gem.add_dependency 'multibases',            '~> 0.3.2'
     gem.add_dependency 'multihashes',           '~> 0.2.0'
     gem.add_dependency 'multicodecs',           '~> 0.2.1'
