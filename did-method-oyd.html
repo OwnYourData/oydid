@@ -6,9 +6,9 @@
   <meta content="w3c/CG-DRAFT" name="w3c-status">
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
-  <meta content="Bikeshed version 26e85e599, updated Thu Dec 8 15:29:31 2022 -0800" name="generator">
+  <meta content="Bikeshed version 859efb4bd, updated Fri Jan 27 16:04:01 2023 -0800" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="04e516c37263f2b4812bc98e2cd1b4d35c7c455f" name="document-revision">
+  <meta content="42203c74f61c09f9271ad5124a70e7031a9e0e46" name="document-revision">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -536,7 +536,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">OYD DID Method</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2023-01-05">5 January 2023</time></p>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2023-02-02">2 February 2023</time></p>
    <details open>
     <summary>More details about this document</summary>
     <div data-fill-with="spec-metadata">
@@ -552,7 +552,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     </div>
    </details>
    <div data-fill-with="warning"></div>
-   <p class="copyright" data-fill-with="copyright"><a href="https://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a> © 2023 <a href="https://www.w3.org/"><abbr title="World Wide Web Consortium">W3C</abbr></a><sup>®</sup> (<a href="https://www.csail.mit.edu/"><abbr title="Massachusetts Institute of Technology">MIT</abbr></a>, <a href="https://www.ercim.eu/"><abbr title="European Research Consortium for Informatics and Mathematics">ERCIM</abbr></a>, <a href="https://www.keio.ac.jp/">Keio</a>, <a href="https://ev.buaa.edu.cn/">Beihang</a>). W3C <a href="https://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>, <a href="https://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and <a href="https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document" rel="license">permissive document license</a> rules apply. </p>
+   <p class="copyright" data-fill-with="copyright"><a href="https://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a> © 2023 <a href="https://www.w3.org/">World Wide Web Consortium</a>. <abbr title="World Wide Web Consortium">W3C</abbr><sup>®</sup> <a href="https://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>, <a href="https://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and <a href="https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document" rel="license">permissive document license</a> rules apply. </p>
    <hr title="Separator for header">
   </div>
   <div class="p-summary" data-fill-with="abstract">
@@ -830,8 +830,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     <li data-md>
      <p>OYDID repository finds no information of such a revocation entry and therefore the resolver can return DID v2 as the latest document</p>
    </ol>
-   <p class="note" role="note"><span>Note:</span> it is in the interest of the owner to publish revocation entries and make those easily accessible to ensure that even outdated DID identifier resolve to the latest DID document</p>
-   <p class="note" role="note"><span>Note:</span> see section <a href="#verification">§ 4.2 Verification Steps</a> for a detailed description of using the OYDID command line tool to output step-wise verification information for independent proof.</p>
+   <p class="note" role="note"><span class="marker">Note:</span> it is in the interest of the owner to publish revocation entries and make those easily accessible to ensure that even outdated DID identifier resolve to the latest DID document</p>
+   <p class="note" role="note"><span class="marker">Note:</span> see section <a href="#verification">§ 4.2 Verification Steps</a> for a detailed description of using the OYDID command line tool to output step-wise verification information for independent proof.</p>
    <h4 class="heading settled" data-level="3.2.1" id="pubkey_identifier"><span class="secno">3.2.1. </span><span class="content">Public Key Identifier</span><a class="self-link" href="#pubkey_identifier"></a></h4>
    <p>Inspired by <a href="https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/EBSI+DID+Method">EBSI DID v2</a> it is now also possible for the <code>did:oyd</code> method to use the document public key as identifier.</p>
    <div class="example" id="example_did_pubkey_identifier">
@@ -921,7 +921,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <p><strong>Log Record Retrieval:</strong> hash and signature verification in an untrusted repository guarantee imutability and it is up to the DID owner to ensure that DID documents and log records are publicly available</p>
    </ol>
    <p>The following sub-sections describes those verification methods in detail.</p>
-   <p class="note" role="note"><span>Note:</span> Use the <code>--show-verification</code> flag in the [<code>oydid</code> command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification. <em><a href="#example_verification">EXAMPLE 4</a></em> is the output of such a verification.</p>
+   <p class="note" role="note"><span class="marker">Note:</span> Use the <code>--show-verification</code> flag in the [<code>oydid</code> command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification. <em><a href="#example_verification">EXAMPLE 4</a></em> is the output of such a verification.</p>
    <div class="example" id="example_verification">
     <a class="self-link" href="#example_verification"></a> Output of command<br> <code>oydid read --show-verification did:oyd:zQmYhESMRSvN9BkrCf7YcBfxNzigVphyBUbFMfJpEm1fdPF</code> 
 <pre>identifier: zQmYhESMRSvN9BkrCf7YcBfxNzigVphyBUbFMfJpEm1fdPF
@@ -1071,7 +1071,7 @@ Revocation reference in log record: zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS
      <p>calculate the hash value for a record according to <a href="#calculate_hash">§ 4.2.1 Hash value calculation</a> and compare it to the reference</p>
    </ol>
    <p>✅ This verification step passes if a reference can be established.</p>
-   <p class="note" role="note"><span>Note:</span> For TERMINATE log records the reference to a REVOKE record indicates if there are updates available. Being unable to find a REVOKE record with a given hash indicates that the DID resolve process successfully completes.</p>
+   <p class="note" role="note"><span class="marker">Note:</span> For TERMINATE log records the reference to a REVOKE record indicates if there are updates available. Being unable to find a REVOKE record with a given hash indicates that the DID resolve process successfully completes.</p>
    <h2 class="heading settled" data-level="5" id="test"><span class="secno">5. </span><span class="content">Test Vectors</span><a class="self-link" href="#test"></a></h2>
    <h3 class="heading settled" data-level="5.1" id="samples"><span class="secno">5.1. </span><span class="content">Samples</span><a class="self-link" href="#samples"></a></h3>
    <p>This section provides samples of typical OYDID DIDs.</p>
@@ -1087,7 +1087,7 @@ Revocation reference in log record: zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS
    <div class="example" id="sample_external">
     <a class="self-link" href="#sample_external"></a> A DID created at a non-default location: 
     <p><code>did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W@did2.data-container.net</code></p>
-    <p class="note" role="note"><span>Note:</span> a W3C conform representation is the percent-encoded <code>@</code><br><code>did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W%40did2.data-container.net</code></p>
+    <p class="note" role="note"><span class="marker">Note:</span> a W3C conform representation is the percent-encoded <code>@</code><br><code>did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W%40did2.data-container.net</code></p>
    </div>
    <h3 class="heading settled" data-level="5.2" id="cli"><span class="secno">5.2. </span><span class="content">Command line tool</span><a class="self-link" href="#cli"></a></h3>
    <p><em>Prerequisite:</em> install the <code>oydid</code> command from <a href="https://github.com/OwnYourData/oydid/tree/main/cli">https://github.com/OwnYourData/oydid/tree/main/cli</a> or
@@ -1107,7 +1107,7 @@ use the following Docker command to run the OYDID command line tool without inst
       <p>→ show DID document using old DID</p>
 <pre class="language-bash highlight">oydid read zQmdXNRiMWEYTiYF58a9BaiUkfB2xWUgL7G7ozyCCNPqjKV
 </pre>
-      <p class="note" role="note"><span>Note:</span> you can omit <code>did:oyd</code> when using the command line tool</p>
+      <p class="note" role="note"><span class="marker">Note:</span> you can omit <code>did:oyd</code> when using the command line tool</p>
      <li data-md>
       <p><code>did:oyd:zQmQMvhHrccgcP2XzE2rM4E8MDx9P8D5FWPdDF1DTPikF4F</code> (deactivated DID)</p>
       <p>→ DID cannot be resolved</p>
@@ -1119,7 +1119,7 @@ use the following Docker command to run the OYDID command line tool without inst
 </pre>
     </ul>
    </div>
-   <p class="note" role="note"><span>Note:</span> find more examples and usage scenarios in the OYDID Tutorial at <a href="https://github.com/OwnYourData/oydid/tree/main/tutorial">https://github.com/OwnYourData/oydid/tree/main/tutorial</a></p>
+   <p class="note" role="note"><span class="marker">Note:</span> find more examples and usage scenarios in the OYDID Tutorial at <a href="https://github.com/OwnYourData/oydid/tree/main/tutorial">https://github.com/OwnYourData/oydid/tree/main/tutorial</a></p>
    <h2 class="heading settled" data-level="6" id="security_privacy"><span class="secno">6. </span><span class="content">Security and Privacy Considerations</span><a class="self-link" href="#security_privacy"></a></h2>
    <p>There are a number of security and privacy considerations that implementers will want to take into consideration upon working with this specification.</p>
    <h3 class="heading settled" data-level="6.1" id="security"><span class="secno">6.1. </span><span class="content">Security Aspects</span><a class="self-link" href="#security"></a></h3>
