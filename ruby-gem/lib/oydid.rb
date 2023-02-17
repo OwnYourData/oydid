@@ -201,7 +201,18 @@ class Oydid
                 end
             end
         else # mode == "update"  => read information
+            # if a location is provided this is only relevant for writing the DID
+            update_location = options[:location]
+            update_doc_location = options[:doc_location]
+            update_log_location = options[:log_location]
+            options[:location] = nil
+            options[:doc_location] = nil
+            options[:log_location] = nil
             did_info, msg = read(did, options)
+            options[:location] = options[:location]
+            options[:doc_location] = options[:doc_location]
+            options[:log_location] = options[:log_location]
+
             if did_info.nil?
                 return [nil, nil, nil, "cannot resolve DID (on updating DID)"]
             end
@@ -314,6 +325,13 @@ class Oydid
         pubRevoKey = public_key(revocationKey, options).first
         did_key = publicKey + ":" + pubRevoKey
 
+        # check if pubKeys matches with existing DID Document
+        if mode == "update"
+            if did_key_old.to_s != did_info["doc"]["key"].to_s
+                return [nil, nil, nil, "keys from original DID don't match"]
+            end
+        end
+
         # build new revocation document
         subDid = {"doc": did_doc, "key": did_key}.to_json
         retVal = multi_hash(canonical(subDid), LOG_HASH_OPTIONS)
@@ -406,7 +424,6 @@ class Oydid
             :privateKey => privateKey,
             :revocationKey => revocationKey
         }
-
         return [did_doc, did_key, did_log, ""]
         # return [did, didDocument, revoc_log, l1, l2, r1, privateKey, revocationKey, did_old, log_old, ""]
     end
@@ -455,6 +472,9 @@ class Oydid
 
     def self.write(content, did, mode, options)
         did_doc, did_key, did_log, msg = generate_base(content, did, mode, options)
+        if msg != ""
+            return [nil, msg]
+        end
         did = did_doc[:did]
         didDocument = did_doc[:didDocument]
         did_old = did_doc[:did_old]
@@ -467,9 +487,6 @@ class Oydid
         revocationKey = did_key[:revocationKey]
         # did, didDocument, revoc_log, l1, l2, r1, privateKey, revocationKey, did_old, log_old, msg = generate_base(content, did, mode, options)
 
-        if msg != ""
-            return [nil, msg]
-        end
         did_hash = did.delete_prefix("did:oyd:")
         did10 = did_hash[0,10]
         did_old_hash = did_old.delete_prefix("did:oyd:") rescue nil

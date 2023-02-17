@@ -9,7 +9,7 @@ require 'oydid'
 
 LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 LOG_HASH_OPTIONS = {:digest => "sha2-256", :encode => "base58btc"}
 
 # internal functions -------------------------------
@@ -346,14 +346,14 @@ def print_help()
     puts ""
     puts " -- Verifiable Credentials & Presentations --"
     puts "  vc         - new VC, reads claim(s) from STDIN"
-    puts "  vc-read    - output VC for given identifier in option"
+    puts "  vc-proof   - create only proof for claim(s) from STDIN"
+    puts "  vc-read    - output VC for given identifier"
     puts "  vc-push    - new VC and store to repo, reads claim(s) from STDIN"
     puts "  vp         - new VP, reads VC(s) from STDIN"
     puts "  vp-push    - new VP and store in repo, reads VC(s) from STDIN"
     puts "  vp-verify  - read VP from STDIN and verify proof"
     puts ""
     puts " -- OYDID specific --"
-    puts "  delete     - remove DID and all associated records (only for testing)"
     puts "  log        - print relevant log for given DID or log entry hash"
     puts "  logs       - print all available log entries for given DID or log hash"
     puts "  dag        - print graph for given DID"
@@ -366,6 +366,7 @@ def print_help()
     # puts "  challenge - publish challenge for given DID and revoke specified as"
     # puts "              options"
     puts "  confirm    - confirm specified clones or delegates for given DID"
+    puts "  delete     - remove DID and all associated records (only for testing)"
     puts ""
     puts " -- DIDComm messaging --"
     puts "  message    - output plain DIDComm message, reads from STDIN"
@@ -505,7 +506,7 @@ opt_parser = OptionParser.new do |opt|
   opt.on("--simulate") do |simulate|
     options[:simulate] = true
   end
-  opt.on("--return-secrets") do |rs|
+  opt.on("-s", "--return-secrets") do |rs|
     options[:return_secrets] = true
   end
   opt.on("-t", "--token TOKEN", "token to access Semantic Container") do |t|
@@ -566,9 +567,9 @@ end
 case operation.to_s
 # JSON input
 when "create", # "update", 
-     "fromW3C", "toW3C",
+     "fromW3C", "toW3C", "dri",
      "message", "jws", "encrypt-message", "sign-message",
-     "vc", "vc-push", "vp", "vp-push", "vp-verify"
+     "vc", "vc-proof", "vc-push", "vp", "vp-push", "vp-verify"
     input_content = []
     ARGF.each_line { |line| input_content << line }
     content = JSON.parse(input_content.join("")) rescue nil
@@ -696,16 +697,7 @@ when "create"
 when "update"
     if options[:simulate]
         did_doc, did_key, did_log, msg = Oydid.generate_base(content, input_did, "update", options)
-        did = did_doc[:did]
-        didDocument = did_doc[:didDocument]
-        did_old = did_doc[:did_old]
-        revoc_log = did_log[:revoc_log]
-        l1 = did_log[:l1]
-        l2 = did_log[:l2]
-        r1 = did_log[:r1]
-        log_old = did_log[:log_old]
-        # did, didDocument, revoc_log, l1, l2, r1, privateKey, revocationKey, did_old, log_old, msg = Oydid.generate_base(content, input_did, "update", options)
-        if did.nil?
+        if did_doc.nil?
             if msg.to_s != ""
                 if options[:silent].nil? || !options[:silent]
                     if options[:json].nil? || !options[:json]
@@ -717,6 +709,15 @@ when "update"
             end
             exit(-1)
         end
+        did = did_doc[:did]
+        didDocument = did_doc[:didDocument]
+        did_old = did_doc[:did_old]
+        revoc_log = did_log[:revoc_log]
+        l1 = did_log[:l1]
+        l2 = did_log[:l2]
+        r1 = did_log[:r1]
+        log_old = did_log[:log_old]
+        # did, didDocument, revoc_log, l1, l2, r1, privateKey, revocationKey, did_old, log_old, msg = Oydid.generate_base(content, input_did, "update", options)
         retVal = {}
         retVal["did"] = Oydid.percent_encode(did.to_s)
         retVal["did_old"] = Oydid.percent_encode(input_did.to_s)
@@ -1139,14 +1140,20 @@ when "delegate", "challenge", "confirm"
     else
         puts '{"warning": "function not yet available"}'
     end
+
+# Verifiable Credentials & Presentations Functions =============
 when "vc", "vc-push"
     # get private key from issuer
     did_issuer = options[:issuer]
-    if options[:doc_enc].nil?
-        did10_issuer = did_issuer.delete_prefix("did:oyd:")[0,10]
-        options[:issuer_privateKey] = Oydid.read_private_storage(did10_issuer + "_private_key.enc")
+    if options[:doc_pwd].nil?
+        if options[:doc_enc].nil?
+            did10_issuer = did_issuer.delete_prefix("did:oyd:")[0,10] rescue ""
+            options[:issuer_privateKey] = Oydid.read_private_storage(did10_issuer + "_private_key.enc")
+        else
+            options[:issuer_privateKey] = options[:doc_enc].to_s
+        end
     else
-        options[:issuer_privateKey] = options[:doc_enc].to_s
+        options[:issuer_privateKey] = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options).first
     end
     vc, msg = Oydid.create_vc(content, options)
 
@@ -1172,7 +1179,33 @@ when "vc", "vc-push"
         puts JSON.pretty_generate(vc)
     end
 
+when "vc-proof"
+    did_issuer = options[:issuer]
+    if options[:doc_pwd].nil?
+        if options[:doc_enc].nil?
+            did10_issuer = did_issuer.delete_prefix("did:oyd:")[0,10]
+            options[:issuer_privateKey] = Oydid.read_private_storage(did10_issuer + "_private_key.enc")
+        else
+            options[:issuer_privateKey] = options[:doc_enc].to_s
+        end
+    else
+        options[:issuer_privateKey] = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options).first
+    end
+    proof, msg = Oydid.create_vc_proof(content, options)
+    puts JSON.pretty_generate(proof)
+
 when "vc-read", "read-vc"
+    did_holder = options[:holder]
+    if options[:doc_pwd].nil?
+        if options[:doc_enc].nil?
+            did10_holder = did_holder.delete_prefix("did:oyd:")[0,10]
+            options[:holder_privateKey] = Oydid.read_private_storage(did10_issuer + "_private_key.enc")
+        else
+            options[:holder_privateKey] = options[:doc_enc].to_s
+        end
+    else
+        options[:holder_privateKey] = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options).first
+    end
     vc, msg = Oydid.read_vc(input_did, options)
     if vc.nil?
         if options[:json].nil? || !options[:json]
@@ -1187,11 +1220,15 @@ when "vc-read", "read-vc"
 
 when "vp", "vp-push"
     did_holder = options[:holder]
-    if options[:doc_enc].nil?
-        did10_holder = did_holder.delete_prefix("did:oyd:")[0,10]
-        options[:holder_privateKey] = Oydid.read_private_storage(did10_holder + "_private_key.enc")
+    if options[:doc_pwd].nil?
+        if options[:doc_enc].nil?
+            did10_holder = did_holder.delete_prefix("did:oyd:")[0,10]
+            options[:holder_privateKey] = Oydid.read_private_storage(did10_holder + "_private_key.enc")
+        else
+            options[:holder_privateKey] = options[:doc_enc].to_s
+        end
     else
-        options[:holder_privateKey] = options[:doc_enc].to_s
+        options[:holder_privateKey] = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options).first
     end
     vp, msg = Oydid.create_vp(content, options)
 
@@ -1246,6 +1283,10 @@ when "vp-verify"
         end
     end
 
+# internal helper
+when "dri"
+    result = Oydid.hash(Oydid.canonical(content.to_json))
+    puts result.to_s
 else
     print_help()
 end

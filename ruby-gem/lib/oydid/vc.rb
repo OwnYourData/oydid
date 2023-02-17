@@ -19,7 +19,7 @@ class Oydid
             exit
         end
 
-        private_key = options[:doc_enc].to_s rescue nil
+        private_key = options[:holder_privateKey].to_s rescue nil
         if private_key.to_s == ""
             msg = "missing private document key information"
             return [nil, msg]
@@ -69,29 +69,70 @@ class Oydid
     def self.create_vc(content, options)
         vercred = {}
         # set the context, which establishes the special terms used
-        vercred["@context"] = ["https://www.w3.org/2018/credentials/v1"]
-        vercred["type"] = ["VerifiableCredential"]
-        vercred["issuer"] = options[:issuer]
+        if content["@context"].nil?
+            vercred["@context"] = ["https://www.w3.org/ns/credentials/v2"]
+        else
+            vercred["@context"] = content["@context"]
+        end
+        if vercred["@context"].to_s == "" || vercred["@context"].to_s == "{}" || vercred["@context"].to_s == "[]"
+            return [nil, "invalid '@context'"]
+        end
+        if content["type"].nil?
+            vercred["type"] = ["VerifiableCredential"]
+        else
+            vercred["type"] = content["type"]
+        end
+        if vercred["type"].to_s == "" || vercred["type"].to_s == "{}" || vercred["type"].to_s == "[]"
+            return [nil, "invalid 'type'"]
+        end
+        if content["issuer"].nil?
+            vercred["issuer"] = options[:issuer]
+        else
+            vercred["issuer"] = content["issuer"]
+        end
+        if vercred["issuer"].to_s == "" || vercred["issuer"].to_s == "{}" || vercred["issuer"].to_s == "[]"
+            return [nil, "invalid 'issuer'"]
+        end
         if options[:ts].nil?
             vercred["issuanceDate"] = Time.now.utc.iso8601
         else
             vercred["issuanceDate"] = Time.at(options[:ts]).utc.iso8601
         end
-        vercred["credentialSubject"] = {"id": options[:holder]}.merge(content)
-
-        proof = {}
-        proof["type"] = "Ed25519Signature2020"
-        proof["verificationMethod"] = options[:issuer].to_s
-        proof["proofPurpose"] = "assertionMethod"
-
-        # private_key = generate_private_key(options[:issuer_privateKey], "ed25519-priv", []).first
-        proof["proofValue"] = sign(content.to_json_c14n, options[:issuer_privateKey], []).first
-
-        vercred["proof"] = proof
+        if content["credentialSubject"].nil?
+            vercred["credentialSubject"] = {"id": options[:holder]}.merge(content)
+        else
+            vercred["credentialSubject"] = content["credentialSubject"]
+        end
+        if vercred["credentialSubject"].to_s == "" || vercred["credentialSubject"].to_s == "{}" || vercred["credentialSubject"].to_s == "[]"
+            return [nil, "invalid 'credentialSubject'"]
+        end
+        if content["proof"].nil?
+            proof = {}
+            proof["type"] = "Ed25519Signature2020"
+            proof["verificationMethod"] = options[:issuer].to_s
+            proof["proofPurpose"] = "assertionMethod"
+            proof["proofValue"] = sign(vercred["credentialSubject"].to_json_c14n, options[:issuer_privateKey], []).first
+            vercred["proof"] = proof
+        else
+            vercred["proof"] = content["proof"]
+        end
+        if vercred["proof"].to_s == "" || vercred["proof"].to_s == "{}" || vercred["proof"].to_s == "[]"
+            return [nil, "invalid 'proof'"]
+        end
 
         # specify the identifier of the credential
         vercred["identifier"] = hash(vercred.to_json)
         return [vercred, ""]
+    end
+
+    def self.create_vc_proof(content, options)
+        proof = {}
+        proof["type"] = "Ed25519Signature2020"
+        proof["verificationMethod"] = options[:issuer].to_s
+        proof["proofPurpose"] = "assertionMethod"
+        proof["proofValue"] = sign(content.to_json_c14n, options[:issuer_privateKey], []).first
+
+        return [proof, ""]
     end
 
     def self.publish_vc(vc, options)
@@ -101,8 +142,11 @@ class Oydid
             return [nil, "invalid format (missing identifier"]
             exit
         end
-
-        cs = vc["credentialSubject"].transform_keys(&:to_s) rescue nil
+        if vc["credentialSubject"].is_a?(Array)
+            cs = vc["credentialSubject"].last.transform_keys(&:to_s) rescue nil
+        else
+            cs = vc["credentialSubject"].transform_keys(&:to_s) rescue nil
+        end
         holder = cs["id"] rescue nil
         if holder.nil?
             return [nil, "invalid format (missing holder)"]
@@ -155,7 +199,7 @@ class Oydid
     def self.create_vp(content, options)
         verpres = {}
         # set the context, which establishes the special terms used
-        verpres["@context"] = ["https://www.w3.org/2018/credentials/v1"]
+        verpres["@context"] = ["https://www.w3.org/ns/credentials/v2"]
         verpres["type"] = ["VerifiablePresentation"]
         verpres["verifiableCredential"] = [content].flatten
 

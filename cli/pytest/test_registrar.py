@@ -21,7 +21,7 @@ def test_service():
 
 # doc: https://pypi.org/project/pytest-subprocess/
 cwd = os.getcwd()
-@pytest.mark.parametrize('input',  glob.glob(cwd+'/03_input/*.doc'))
+@pytest.mark.parametrize('input',  sorted(glob.glob(cwd+'/03_input/*.doc')))
 def test_03_registrar(fp, input):
     fp.allow_unregistered(True)
     with open(input) as f:

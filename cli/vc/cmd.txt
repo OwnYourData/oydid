@@ -19,3 +19,8 @@ oydid read-vc zQmQtcGZZDTgNSLCJ6K7a7Snrh1MonERydSfSGqg6FiDGH9 -l http://localhos
     oydid vp-push --holder did:oyd:zQmVkzZvue2rHSPRgJFQ4WW6FoBHPNdomA2vZkTqsBmWy9c \
         --doc-enc z1S5akd2nQN5X32sgD7icJPhCUfchiVU6CuB1Ckhvh9dgLas \
         -z 2 -l http://localhost:3000
+
+echo '{"memberOf": {"id": "did:oyd:zQm...", "name": "UL"}}' | \
+    oydid vc-push --issuer did:oyd:zQm... \
+        --doc-enc z1S5hFe2PfGbC7uvSdKpuLWV3kHhtmU4K3wuCobZ1zHp7Evd \
+        --holder did:oyd:z6MuxoSiWjRBDRrWyJojdRdWeYUNu2ha7ijbdNwTUjubAdv1
