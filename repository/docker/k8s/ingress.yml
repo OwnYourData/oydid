@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: oydid
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    certmanager.io/issuer: "{{YOUR CERT-MANAGER}}"
+spec:
+  tls:
+  - hosts:
+    - {{YOUR OYDID REPOSITORY HOSTNAME}}
+    secretName: oydid-tls
+  rules:
+  - host: {{YOUR OYDID REPOSITORY HOSTNAME}}
+    http:
+      paths:
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: oydid
+            port:
+              number: 80

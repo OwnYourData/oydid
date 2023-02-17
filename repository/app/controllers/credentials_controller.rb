@@ -23,7 +23,12 @@ class CredentialsController < ApplicationController
                        status: 401
                 return
             end
-            holder = cs.transform_keys(&:to_s)["id"]
+            if cs.is_a?(Array)
+                cs = cs.last.transform_keys(&:to_s) rescue nil
+            else
+                cs = cs.transform_keys(&:to_s) rescue nil
+            end
+            holder = cs["id"] rescue nil
             pubKey, msg = Oydid.getPubKeyFromDID(holder)
             if pubKey == @at.public_key.to_s
                 render json: @cred.vc,
