@@ -793,11 +793,17 @@ class Oydid
                 location = get_location(did_info["did"].to_s)
             end
             wd = wd.merge(didDoc["doc"])
-            wdf = wd["service"].first
-            wdf = { "id": did + "#payload",
-                    "type": "Custom",
-                    "serviceEndpoint": location }.merge(wdf)
-            wd["service"] = [wdf] + wd["service"].drop(1) 
+            if wd["service"] != []
+                if wd["service"].is_a?(Array)
+                    wdf = wd["service"].first
+                else
+                    wdf = wd["service"]
+                end
+                wdf = { "id": did + "#payload",
+                        "type": "Custom",
+                        "serviceEndpoint": location }.merge(wdf)
+                wd["service"] = [wdf] + wd["service"].drop(1) 
+            end
         else
             payload = nil
             if didDoc["doc"].is_a?(Hash)
