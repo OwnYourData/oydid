@@ -1,6 +1,6 @@
 # Own Your Decentralized IDentifier (OYDID)
 
-OYDID provides a self-sustained environment for managing digital identifiers (DIDs). The `did:oyd` method links the identifier cryptographically to the DID Document and through also cryptographically linked provenance information in a public log it ensures resolving to the latest valid version of the DID Document.
+OYDID provides a self-sustained environment for managing decentralised identifiers (DIDs). The `did:oyd` method links the identifier cryptographically to the DID Document and through also cryptographically linked provenance information in a public log it ensures resolving to the latest valid version of the DID Document.
 
 ## Resources
 * Read about the concept and examples: [OYDIDintro.pdf](https://github.com/OwnYourData/oydid/raw/main/docs/OYDIDintro.pdf)    
