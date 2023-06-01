@@ -29,3 +29,23 @@ $OYDIDCMD read --show-verification did:oyd:z5y8Uej6i4L7o9fbc7w4Wjrbt%40did2.data
 $OYDIDCMD delete did:oyd:z5y8Uej6i4L7o9fbc7w4Wjrbt%40did2.data-container.net --doc-pwd pwd1 --rev-pwd pwd2 --location did2.data-container.net
 
 $OYDIDCMD delete did:oyd:z5yEpGrAnNYXPNf8UK4rA5yZS%40did2.data-container.net --doc-pwd pwd3 --rev-pwd pwd4 --location did2.data-container.net
+
+
+### pytests
+$ cat 06_input/01_create_delegate.doc | $OYDIDCMD create --doc-pwd pwd1 --rev-pwd pwd2 -z 1 -s && $OYDIDCMD delegate --doc-pwd pwd3 -z 2 -s did:oyd:zQmSGdgg9jqBRZ6swpet9UK6bWxQfMoG9aQrqsmJpP4wA2A
+created did:oyd:zQmSGdgg9jqBRZ6swpet9UK6bWxQfMoG9aQrqsmJpP4wA2A
+delegate log record zQmQk6t9uYdARmwXERHpbGSTLJf9YmyQzMv36rMfJpZYs58
+
+$ $OYDIDCMD pubkeys did:oyd:zQmSGdgg9jqBRZ6swpet9UK6bWxQfMoG9aQrqsmJpP4wA2A
+authorized public keys: z6MuvWooepYBxXLdYggPjxfEZCW3DqDhapLCnYDxnQjkoShA
+
+$ cat 06_input/03_confirm_doc_delegate.doc | $OYDIDCMD confirm --old-doc-pwd pwd1 --old-rev-pwd pwd2 --doc-pwd pwd1 --rev-pwd pwd2 -z 3 -s did:oyd:zQmSGdgg9jqBRZ6swpet9UK6bWxQfMoG9aQrqsmJpP4wA2A
+updated did:oyd:zQmZDcGjnqmpTWuoszJsN5yDAKyCqYLzFom44FrbFuaZHsV (with 1 confirmation log entries)
+
+$ $OYDIDCMD delegate --rev-pwd pwd4 -z 4 -s did:oyd:zQmZDcGjnqmpTWuoszJsN5yDAKyCqYLzFom44FrbFuaZHsV
+delegate log record zQmYaxY9h1JKDJjZYHGCZhZf1AeGcprW5DKduBkQmeUz3Ng
+
+$ echo '["zQmQk6t9uYdARmwXERHpbGSTLJf9YmyQzMv36rMfJpZYs58", "zQmYaxY9h1JKDJjZYHGCZhZf1AeGcprW5DKduBkQmeUz3Ng"]' | $OYDIDCMD confirm --old-doc-pwd pwd1 --old-rev-pwd pwd2 --doc-pwd pwd1 --rev-pwd pwd2 -z 5 -s did:oyd:zQmZDcGjnqmpTWuoszJsN5yDAKyCqYLzFom44FrbFuaZHsV
+updated did:oyd:zQmVPv8DbLJNxsTpNDrMjEiMUREVh9AMX7M4cPtgecimXFs (with 2 confirmation log entries)
+
+$ echo '[1]' | $OYDIDCMD update did:oyd:zQmVPv8DbLJNxsTpNDrMjEiMUREVh9AMX7M4cPtgecimXFs --old-doc-pwd pwd3 --old-rev-pwd pwd4 --doc-pwd pwd5 --rev-pwd pwd6 -z 6 -s

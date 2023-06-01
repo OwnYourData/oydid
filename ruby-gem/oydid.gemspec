@@ -25,7 +25,7 @@ Gem::Specification.new do |gem|
 
     gem.required_ruby_version = '>= 2.6.9'
     gem.requirements          = []
-    gem.add_dependency 'dag',                   '~> 0.0.9'
+    gem.add_dependency 'simple_dag',            '~> 0.0.1'
     gem.add_dependency 'jwt',                   '~> 2.4.1'
     gem.add_dependency 'rbnacl',                '~> 7.1.1'
     gem.add_dependency 'ed25519',               '~> 1.3.0'

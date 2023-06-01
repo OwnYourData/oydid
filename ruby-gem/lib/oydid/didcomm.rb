@@ -102,12 +102,12 @@ class Oydid
     # DID Auth for data container with challenge ---
     def self.token_from_challenge(host, pwd, options = {})
         sid = SecureRandom.hex(20).to_s
+        public_key = public_key(generate_private_key(pwd, options).first, options).first
         retVal = HTTParty.post(host + "/oydid/init",
                     headers: { 'Content-Type' => 'application/json' },
-                    body: { "session_id": sid }.to_json )
+                    body: { "session_id": sid, "public_key": public_key }.to_json )
         challenge = retVal.parsed_response["challenge"]
         signed_challenge = sign(challenge, Oydid.generate_private_key(pwd, options).first, options).first
-        public_key = public_key(generate_private_key(pwd, options).first, options).first
         retVal = HTTParty.post(host + "/oydid/token",
                     headers: { 'Content-Type' => 'application/json' },
                     body: {

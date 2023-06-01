@@ -1,4 +1,4 @@
-FROM ruby:2.5.9-alpine
+FROM ruby:2.6.9-alpine
 MAINTAINER "Christoph Fabianek" christoph@ownyourdata.eu
 
 RUN addgroup -S user && \

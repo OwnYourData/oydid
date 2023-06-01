@@ -1,0 +1,1 @@
+$OYDIDCMD create --doc-pwd pwd1 --rev-pwd pwd2 -z 1 -s && $OYDIDCMD delegate --doc-pwd pwd3 -z 2 -s did:oyd:zQmSGdgg9jqBRZ6swpet9UK6bWxQfMoG9aQrqsmJpP4wA2A

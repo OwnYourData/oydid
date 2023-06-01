@@ -1,0 +1,1 @@
+$OYDIDCMD update did:oyd:zQmVPv8DbLJNxsTpNDrMjEiMUREVh9AMX7M4cPtgecimXFs --old-doc-pwd pwd3 --old-rev-pwd pwd4 --doc-pwd pwd5 --rev-pwd pwd6 -z 6 -s

@@ -31,8 +31,23 @@ class DidsController < ApplicationController
             return
         end
 
+        didResolutionMetadata = {}
+        if !ENV["UNIRESOLVER_DEBUG"].nil?
+            didResolutionMetadata = {
+              "contentType": "application/did+ld+json",
+              "pattern": "^(did:oyd:.+)$",
+              "driverUrl": "https://oydid-resolver.data-container.net/1.0/identifiers/$1",
+              "duration": 1,
+              "did": {
+                "didString": did,
+                "methodSpecificId": didHash,
+                "method": "oyd"
+              }
+            }
+        end
+
         retVal = {
-            "didResolutionMetadata":{},
+            "didResolutionMetadata": didResolutionMetadata,
             "didDocument": Oydid.w3c(result, {}),
             "didDocumentMetadata": {
                 "did": Oydid.percent_encode("did:oyd:" + result["did"].to_s),

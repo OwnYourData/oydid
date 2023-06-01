@@ -9,7 +9,7 @@ require 'oydid'
 
 LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
-VERSION = "0.5.1"
+VERSION = "0.5.2"
 LOG_HASH_OPTIONS = {:digest => "sha2-256", :encode => "base58btc"}
 
 # internal functions -------------------------------
@@ -220,13 +220,15 @@ def sc_token(did, options)
     end
 
     # authenticate against container
-    init_url = doc_location + "/api/oydid/init"
+    init_url = doc_location + "/oydid/init"
+    if !init_url.start_with?("http")
+        init_url = "https://" + init_url
+    end
     sid = SecureRandom.hex(20).to_s
-
+    request_body = { "session_id": sid, "public_key": Oydid.public_key(privateKey, options).first }
     response = HTTParty.post(init_url,
         headers: { 'Content-Type' => 'application/json' },
-        body: { "session_id": sid, 
-                "public_key": Oydid.public_key(privateKey, options).first }.to_json ).parsed_response rescue {}
+        body: request_body.to_json ).parsed_response rescue {}
     if response["challenge"].nil?
         if options[:silent].nil? || !options[:silent]
             if options[:json].nil? || !options[:json]
@@ -240,11 +242,14 @@ def sc_token(did, options)
     challenge = response["challenge"].to_s
 
     # sign challenge and request token
-    token_url = doc_location + "/api/oydid/token"
+    token_url = doc_location + "/oydid/token"
+    if !token_url.start_with?("http")
+        token_url = "https://" + token_url
+    end
+    request_body = { "session_id": sid, "signed_challenge": Oydid.sign(challenge, privateKey, options).first }
     response = HTTParty.post(token_url,
         headers: { 'Content-Type' => 'application/json' },
-        body: { "session_id": sid, 
-                "signed_challenge": Oydid.sign(challenge, privateKey, options).first }.to_json).parsed_response rescue {}
+        body: request_body.to_json).parsed_response rescue {}
     puts response.to_json
 
 end
@@ -354,19 +359,20 @@ def print_help()
     puts "  vp-verify  - read VP from STDIN and verify proof"
     puts ""
     puts " -- OYDID specific --"
-    puts "  log        - print relevant log for given DID or log entry hash"
-    puts "  logs       - print all available log entries for given DID or log hash"
-    puts "  dag        - print graph for given DID"
-    puts "  fromW3C    - read W3C-conform DID document and convert to OYDID format"
-    puts "  toW3C      - read OYDID internal document and convert to W3C-conform"
-    puts "               DID document"
     puts "  clone      - clone DID to new location"
+    puts "  confirm    - confirm specified clones or delegate logs for given DID"
+    puts "  dag        - print graph for given DID"
     puts "  delegate   - add log entry with additional keys for validating signatures"
     puts "               of document or revocation entries"
+    puts "  delete     - remove DID and all associated records"
+    puts "  fromW3C    - read W3C-conform DID document and convert to OYDID format"
+    puts "  log        - print relevant log for given DID or log entry hash"
+    puts "  logs       - print all available log entries for given DID or log hash"
+    puts "  pubkeys    - list all authorized public keys for specified DID"
+    puts "  toW3C      - read OYDID internal document and convert to W3C-conform"
+    puts "               DID document"
     # puts "  challenge - publish challenge for given DID and revoke specified as"
     # puts "              options"
-    puts "  confirm    - confirm specified clones or delegates for given DID"
-    puts "  delete     - remove DID and all associated records (only for testing)"
     puts ""
     puts " -- DIDComm messaging --"
     puts "  message    - output plain DIDComm message, reads from STDIN"
@@ -392,6 +398,7 @@ def print_help()
     puts " -h, --help                        - dispay this help text"
     puts "     --json-output                 - write response as JSON object"
     puts " -l, --location LOCATION           - default URL to store/query DID data"
+    puts "     --revocation                  - request revocation pubkeys"
     puts "     --rev-key REVOCATION-KEY      - filename with Multibase encoded "
     puts "                                     private key for signing a revocation"
     puts "     --rev-pwd REVOCATION-PASSWORD - password for private key for signing"
@@ -454,6 +461,10 @@ opt_parser = OptionParser.new do |opt|
   end
   opt.on("--show-verification") do |s|
     options[:show_verification] = true
+  end
+  options[:pubkey_type] = "doc"
+  opt.on("--revocation") do |s|
+    options[:pubkey_type] = "rev"
   end
   opt.on("--w3c-did") do |w3c|
     options[:w3cdid] = true
@@ -566,10 +577,11 @@ end
 
 case operation.to_s
 # JSON input
-when "create", # "update", 
-     "fromW3C", "toW3C", "dri",
+when "create", "confirm", 
+     "fromW3C", "toW3C",
      "message", "jws", "encrypt-message", "sign-message",
-     "vc", "vc-proof", "vc-push", "vp", "vp-push", "vp-verify"
+     "vc", "vc-proof", "vc-push", "vp", "vp-push", "vp-verify",
+     "dri", "encrypt", "decrypt"
     input_content = []
     ARGF.each_line { |line| input_content << line }
     content = JSON.parse(input_content.join("")) rescue nil
@@ -637,6 +649,8 @@ end
 if options[:log_location].nil?
     options[:log_location] = options[:location]
 end
+
+# TODO!!! check necessary input arguments
 
 case operation.to_s
 when "create"
@@ -755,10 +769,6 @@ when "update"
         end
     end
 when "read"
-    # didIdentifier = input_did.split(LOCATION_PREFIX)[0] rescue input_did
-    # didIdentifier = didIdentifier.delete_prefix("did:oyd:")
-    # options[:digest] = Oydid.get_digest(didIdentifier).first
-    # options[:encode] = Oydid.get_encoding(didIdentifier).first
     result, msg = Oydid.read(input_did, options)
     if result.nil?
         if options[:silent].nil? || !options[:silent]
@@ -821,6 +831,146 @@ when "clone"
                 puts "cloned " + Oydid.percent_encode(retVal["did"].to_s)
             else
                 puts '{"did": "' + Oydid.percent_encode(retVal["did"].to_s) + '", "operation": "clone"}'
+            end
+        end
+    end
+when "delegate"
+    retVal, msg = Oydid.delegate(input_did, options)
+    if retVal.nil?
+        if msg.to_s != ""
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "Error: " + msg.to_s
+                else
+                    puts '{"error": "' + msg + '"}'
+                end
+            end
+        end
+        exit(-1)
+    else
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "delegate log record " + retVal[:log].to_s
+            else
+                puts '{"log": "' + retVal[:log].to_s + '", "operation": "delegate"}'
+            end
+        end
+    end
+when "confirm"
+    # content is array of log hashes
+    if !content.is_a?(Array)
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: input is not an array of log hashes"
+            else
+                puts '{"error": "input is not an array of log hashes"}'
+            end
+        end
+        exit(-1)
+    end
+    result, msg = Oydid.read(input_did, options)
+    if result.nil?
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                if msg.to_s == ""
+                    puts "Error: cannot resolve DID (on confirm)"
+                else
+                    puts "Error: cannot resolve DID (on confirm: " + msg.to_s + ")"
+                end
+            else
+                if msg.to_s == ""
+                    puts '{"error": "cannot resolve DID (on confirm)"}'
+                else
+                    puts '{"error": "cannot resolve DID (on confirm: " + msg.to_s + ")"}'
+                end
+            end
+        end
+        exit (-1)
+    end
+    did_doc = result["doc"]
+    options[:confirm_logs] = content
+
+    # confirm is update with :confirm_logs
+    # + encrypted revoc record for revocation delegate keys
+    if options[:simulate]
+        did_doc, did_key, did_log, msg = Oydid.generate_base(did_doc["doc"], input_did, "update", options)
+        if did_doc.nil?
+            if msg.to_s != ""
+                if options[:silent].nil? || !options[:silent]
+                    if options[:json].nil? || !options[:json]
+                        puts "Error: " + msg.to_s
+                    else
+                        puts '{"error": "' + msg + '"}'
+                    end
+                end
+            end
+            exit(-1)
+        end
+        did = did_doc[:did]
+        didDocument = did_doc[:didDocument]
+        did_old = did_doc[:did_old]
+        revoc_log = did_log[:revoc_log]
+        l1 = did_log[:l1]
+        l2 = did_log[:l2]
+        r1 = did_log[:r1]
+        log_old = did_log[:log_old]
+        r1_encrypted = did_log[:r1_encrypted]
+        retVal = {}
+        retVal["did"] = Oydid.percent_encode(did.to_s)
+        retVal["did_old"] = Oydid.percent_encode(input_did.to_s)
+        retVal["doc"] = didDocument
+        retVal["log_revoke_old"] = revoc_log
+        retVal["log_update"] = l1
+        retVal["log_terminate"] = l2
+        retVal["log_revoke"] = r1
+        if !r1_encrypted.nil?
+            retVal["log_revoke_encrypted"] = r1_encrypted
+        end
+        puts retVal.to_json
+    else
+        didHash = input_did.split(LOCATION_PREFIX)[0] rescue input_did
+        didHash = didHash.delete_prefix("did:oyd:")
+        retVal, msg = Oydid.update(did_doc["doc"], input_did, options)
+        if retVal.nil?
+            if msg.to_s != ""
+                if options[:silent].nil? || !options[:silent]
+                    if options[:json].nil? || !options[:json]
+                        puts "Error: " + msg.to_s
+                    else
+                        puts '{"error": "' + msg + '"}'
+                    end
+                end
+            end
+            exit(-1)
+        else
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "updated " + Oydid.percent_encode(retVal["did"].to_s) + " (with " + options[:confirm_logs].length.to_s + " confirmation log entries)"
+                else
+                    puts '{"did": "' + Oydid.percent_encode(retVal["did"].to_s) + '", "operation": "confirm"}'
+                end
+            end
+        end
+    end
+when "pubkeys"
+    retVal, msg = Oydid.getDelegatedPubKeysFromDID(input_did, options[:pubkey_type])
+    if retVal.nil?
+        if msg.to_s != ""
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "Error: " + msg.to_s
+                else
+                    puts '{"error": "' + msg + '"}'
+                end
+            end
+        end
+        exit(-1)
+    else
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "authorized public keys: " + retVal.join(", ")
+            else
+                puts retVal.to_json
             end
         end
     end
@@ -921,12 +1071,19 @@ when "log", "logs"
                 log_hash = retVal[0]
                 log_location = retVal[1]
             end
+            if input_did.include?(CGI.escape LOCATION_PREFIX)
+                retVal = input_did.split(CGI.escape LOCATION_PREFIX)
+                log_hash = retVal[0]
+                log_location = retVal[1]
+            end
         else
             log_location = options[:log_location]
         end
         if log_location.to_s == ""
             log_location = DEFAULT_LOCATION
         end
+        log_location = log_location.gsub("%3A",":")
+        log_location = log_location.gsub("%2F%2F","//")
         if !(log_location == "" || log_location == "local")
             if !log_location.start_with?("http")
                 log_location = "https://" + log_location
@@ -1030,9 +1187,12 @@ when "revoke"
         else
             if options[:silent].nil? || !options[:silent]
                 if options[:json].nil? || !options[:json]
-                    puts "revoked " + Oydid.percent_encode(did.to_s)
+                    if !did.start_with?("did:oyd:")
+                        did = "did:oyd:" + Oydid.percent_encode(did.to_s)
+                    end
+                    puts "revoked " + did
                 else
-                    puts '{"did": "did:oyd:"' + Oydid.percent_encode(did.to_s) + '", "operation": "revoke"}'
+                    puts '{"did": "did:oyd:"' + did + '", "operation": "revoke"}'
                 end
             end
         end
@@ -1134,7 +1294,7 @@ when "sc_token"
 when "sc_create"
     sc_create(content, input_did, options)
 
-when "delegate", "challenge", "confirm"
+when "challenge"
     if options[:json].nil? || !options[:json]
         puts "Warning: function not yet available"
     else
@@ -1287,6 +1447,22 @@ when "vp-verify"
 when "dri"
     result = Oydid.hash(Oydid.canonical(content.to_json))
     puts result.to_s
+when "keygen"
+    privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
+    signgingPublicKey, msg = Oydid.public_key(privateKey, {}, 'ed25519-pub')
+    encryptionPublicKey, msg = Oydid.public_key(privateKey, {}, 'x25519-pub')
+    puts "private key: " + privateKey.to_s
+    puts "signing public key: " + signgingPublicKey.to_s
+    puts "encryption public key: " + encryptionPublicKey.to_s
+when "encrypt"
+    privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
+    publicKey, msg = Oydid.public_key(privateKey, {}, 'x25519-pub')
+    result, msg = Oydid.encrypt(content.to_json, publicKey, {})
+    puts result.to_json
+when "decrypt"
+    privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
+    message, err = Oydid.decrypt(content.to_json, privateKey, options)
+    puts message.to_s
 else
     print_help()
 end

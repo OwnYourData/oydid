@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 # frozen_string_literal: true
 
-require 'dag'
+require 'simple_dag'
 require 'jwt'
 require 'rbnacl'
 require 'ed25519'
@@ -27,6 +27,11 @@ class Oydid
 
     # expected DID format: did:oyd:123
     def self.read(did, options)
+
+        if did.to_s == ""
+            return [nil, "missing DID"]
+        end
+
         # setup
         currentDID = {
             "did": did,
@@ -115,15 +120,12 @@ class Oydid
             if options[:trace]
                 puts " .. DAG with " + dag.vertices.length.to_s + " vertices and " + dag.edges.length.to_s + " edges, CREATE index: " + create_index.to_s
             end
-            ordered_log_array = dag2array(dag, log_array, create_index, [], options)
-            ordered_log_array << log_array[terminate_index]
+
+            result = dag2array(dag, log_array, create_index, [], options)
+            ordered_log_array = dag2array_terminate(dag, log_array, terminate_index, result, options)
             currentDID["log"] = ordered_log_array
-            if options[:trace]
-                if options[:silent].nil? || !options[:silent]
-                    puts "    vertex " + terminate_index.to_s + " at " + log_array[terminate_index]["ts"].to_s + " op: " + log_array[terminate_index]["op"].to_s + " doc: " + log_array[terminate_index]["doc"].to_s
-                end
-            end
-            currentDID["log"] = ordered_log_array
+            # !!! ugly hack to get access to all delegation keys required in dag_update
+            currentDID["full_log"] = log_array
             if options[:trace]
                 if options[:silent].nil? || !options[:silent]
                     dag.edges.each do |e|
@@ -150,7 +152,7 @@ class Oydid
     end
 
     def self.simulate_did(content, did, mode, options)
-        did_doc, did_key, did_log, msg = Oydid.generate_base(content, did, mode, options)
+        did_doc, did_key, did_log, msg = generate_base(content, did, mode, options)
         user_did = did_doc[:did]
         return [user_did, msg]
     end
@@ -169,50 +171,38 @@ class Oydid
         revoc_log = nil
         doc_location = options[:location]
         if options[:ts].nil?
-            ts = Time.now.to_i
+            ts = Time.now.utc.to_i
         else
             ts = options[:ts]
         end
 
+        # key management
+        tmp_did_hash = did.delete_prefix("did:oyd:") rescue ""
+        tmp_did10 = tmp_did_hash[0,10] + "_private_key.enc" rescue ""
+        privateKey, msg = getPrivateKey(options[:doc_enc], options[:doc_pwd], options[:doc_key], tmp_did10, options)
+        if privateKey.nil?
+            privateKey, msg = generate_private_key("", 'ed25519-priv', options)
+            if privateKey.nil?
+                return [nil, nil, nil, "private document key not found"]
+            end
+        end
+        tmp_did10 = tmp_did_hash[0,10] + "_revocation_key.enc" rescue ""
+        revocationKey, msg = getPrivateKey(options[:rev_enc], options[:rev_pwd], options[:rev_key], tmp_did10, options)
+        if revocationKey.nil?
+            revocationKey, msg = generate_private_key("", 'ed25519-priv', options)
+            if revocationKey.nil?
+                return [nil, nil, nil, "private revocation key not found"]
+            end
+        end
+
+        # mode-specific handling
         if mode == "create" || mode == "clone"
             operation_mode = 2 # CREATE
-            if options[:doc_key].nil?
-                if options[:doc_enc].nil?
-                    privateKey, msg = generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
-                else
-                    privateKey, msg = decode_private_key(options[:doc_enc].to_s, options)
-                end
-            else
-                privateKey, msg = read_private_key(options[:doc_key].to_s, options)
-                if privateKey.nil?
-                    return [nil, nil, nil, "private document key not found"]
-                end
-            end
-            if options[:rev_key].nil?
-                if options[:rev_enc].nil?
-                    revocationKey, msg = generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv', options)
-                else
-                    revocationKey, msg = decode_private_key(options[:rev_enc].to_s, options)
-                end
-            else
-                revocationKey, msg = read_private_key(options[:rev_key].to_s, options)
-                if revocationKey.nil?
-                    return [nil, nil, nil, "private revocation key not found"]
-                end
-            end
-        else # mode == "update"  => read information
-            # if a location is provided this is only relevant for writing the DID
-            update_location = options[:location]
-            update_doc_location = options[:doc_location]
-            update_log_location = options[:log_location]
-            options[:location] = nil
-            options[:doc_location] = nil
-            options[:log_location] = nil
-            did_info, msg = read(did, options)
-            options[:location] = options[:location]
-            options[:doc_location] = options[:doc_location]
-            options[:log_location] = options[:log_location]
 
+        else # mode == "update"  => read information first
+            operation_mode = 3 # UPDATE
+
+            did_info, msg = read(did, options)
             if did_info.nil?
                 return [nil, nil, nil, "cannot resolve DID (on updating DID)"]
             end
@@ -230,90 +220,64 @@ class Oydid
                     doc_location = hash_split[1]
                 end
             end
-            operation_mode = 3 # UPDATE
-
-            # collect relevant information from previous did
             did_old = did.dup
             did10_old = did10.dup
             log_old = did_info["log"]
-            if options[:old_doc_key].nil?
-                if options[:old_doc_enc].nil?
-                    if options[:old_doc_pwd].nil?
-                        privateKey_old = read_private_storage(did10_old + "_private_key.enc")
-                    else
-                        privateKey_old, msg = generate_private_key(options[:old_doc_pwd].to_s, 'ed25519-priv', options)
-                    end
-                else
-                    privateKey_old, msg = decode_private_key(options[:old_doc_enc].to_s, options)
-                end
-            else
-                privateKey_old, msg = read_private_key(options[:old_doc_key].to_s, options)
-            end
 
-            if privateKey_old.nil?
-                return [nil, nil, nil, "invalid or missing old private document key"]
-            end
-            if options[:old_rev_key].nil?
-                if options[:old_rev_enc].nil?
-                    if options[:old_rev_pwd].nil?
-                        revocationKey_old = read_private_storage(did10_old + "_revocation_key.enc")
-                    else
-                        revocationKey_old, msg = generate_private_key(options[:old_rev_pwd].to_s, 'ed25519-priv', options)
-                    end
-                else
-                    revocationKey_old, msg = decode_private_key(options[:old_rev_enc].to_s, options)
-                end
-            else
-                revocationKey_old, msg = read_private_key(options[:old_rev_key].to_s, options)
-            end
-            if revocationKey_old.nil?
-                return [nil, nil, nil, "invalid or missing old private revocation key"]
-            end
-            # key management
-            if options[:doc_key].nil?
-                if options[:doc_enc].nil?
-                    privateKey, msg = generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
-                else
-                    privateKey, msg = decode_private_key(options[:doc_enc].to_s, options)
-                end
-            else
-                privateKey, msg = read_private_key(options[:doc_key].to_s, options)
-            end
-            # if options[:rev_key].nil? && options[:rev_pwd].nil? && options[:rev_enc].nil?
-            #     revocationLog = read_private_storage(did10 + "_revocation.json")
-            #     if revocationLog.nil?
-            #         return [nil, nil, nil, "invalid or missing old revocation log"]
-            #     end
-            # else
-                if options[:rev_key].nil?
-                    if options[:rev_enc].nil?
-                        if options[:rev_pwd].nil?
-                            revocationKey, msg = generate_private_key("", 'ed25519-priv', options)
-                        else
-                            revocationKey, msg = generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv', options)
-                        end
-                    else
-                        revocationKey, msg = decode_private_key(options[:rev_enc].to_s, options)
-                    end
-                else
-                    revocationKey, msg = read_private_key(options[:rev_key].to_s, options)
-                end
+            # check if provided old keys are native DID keys or delegates ==================
+            tmp_old_did10 = did10_old + "_private_key.enc" rescue ""
+            old_privateKey, msg = getPrivateKey(options[:old_doc_enc], options[:old_doc_pwd], options[:old_doc_key], tmp_old_did10, options)
+            tmp_old_did10 = did10_old + "_revocation_key.enc" rescue ""
+            old_revocationKey, msg = getPrivateKey(options[:old_rev_enc], options[:old_rev_pwd], options[:old_rev_key], tmp_did10, options)
+            old_publicDocKey = public_key(old_privateKey, {}).first
+            old_publicRevKey = public_key(old_revocationKey, {}).first
+            old_did_key = old_publicDocKey + ":" + old_publicRevKey
+
+            # compare old keys with existing DID Document & generate revocation record
+            if old_did_key.to_s == did_info["doc"]["key"].to_s
+                # provided keys are native DID keys ------------------
 
                 # re-build revocation document
-                did_old_doc = did_info["doc"]["doc"]
-                ts_old = did_info["log"].last["ts"]
-                publicKey_old = public_key(privateKey_old, options).first
-                pubRevoKey_old = public_key(revocationKey_old, options).first
-                did_key_old = publicKey_old + ":" + pubRevoKey_old
-                subDid = {"doc": did_old_doc, "key": did_key_old}.to_json
-                subDidHash = multi_hash(canonical(subDid), LOG_HASH_OPTIONS).first
-                signedSubDidHash = sign(subDidHash, revocationKey_old, options).first
+                old_did_doc = did_info["doc"]["doc"]
+                old_ts = did_info["log"].last["ts"]
+                old_subDid = {"doc": old_did_doc, "key": old_did_key}.to_json
+                old_subDidHash = multi_hash(canonical(old_subDid), LOG_HASH_OPTIONS).first
+                old_signedSubDidHash = sign(old_subDidHash, old_revocationKey, LOG_HASH_OPTIONS).first
                 revocationLog = { 
-                    "ts": ts_old,
+                    "ts": old_ts,
                     "op": 1, # REVOKE
-                    "doc": subDidHash,
-                    "sig": signedSubDidHash }.transform_keys(&:to_s).to_json
-            # end
+                    "doc": old_subDidHash,
+                    "sig": old_signedSubDidHash }.transform_keys(&:to_s).to_json
+            else
+                # proviced keys are either delegates or invalid ------
+                # * check validity of key-doc delegate
+                pubKeys, msg = getDelegatedPubKeysFromDID(did, "doc")
+                if !pubKeys.include?(old_publicDocKey)
+                    return [nil, nil, nil, "invalid or missing old private document key"]
+                end
+
+                # * check validity of key-rev delegate
+                pubKeys, msg = getDelegatedPubKeysFromDID(did, "rev")
+                if !pubKeys.include?(old_publicRevKey)
+                    return [nil, nil, nil, "invalid or missing old private revocation key"]
+                end
+
+                # retrieve revocationLog from previous in key-rev delegate
+                revoc_log = nil
+                log_old.each do |item|
+                    if !item["encrypted-revocation-log"].nil?
+                        revoc_log = item["encrypted-revocation-log"]
+                    end
+                end
+                if revoc_log.nil?
+                    return [nil, nil, nil, "cannot retrieve revocation log"]
+                end
+                revocationLog, msg = decrypt(revoc_log.to_json, old_revocationKey.to_s)
+                if revocationLog.nil?
+                    return [nil, nil, nil, "cannot decrypt revocation log entry: " + msg]
+                end
+            end # compare old keys with existing DID Document
+
             revoc_log = JSON.parse(revocationLog)
             revoc_log["previous"] = [
                 multi_hash(canonical(log_old[did_info["doc_log_id"].to_i]), LOG_HASH_OPTIONS).first, 
@@ -324,13 +288,6 @@ class Oydid
         publicKey = public_key(privateKey, options).first
         pubRevoKey = public_key(revocationKey, options).first
         did_key = publicKey + ":" + pubRevoKey
-
-        # check if pubKeys matches with existing DID Document
-        if mode == "update"
-            if did_key_old.to_s != did_info["doc"]["key"].to_s
-                return [nil, nil, nil, "keys from original DID don't match"]
-            end
-        end
 
         # build new revocation document
         subDid = {"doc": did_doc, "key": did_key}.to_json
@@ -350,11 +307,16 @@ class Oydid
         if !doc_location.nil?
             l2_doc += LOCATION_PREFIX + doc_location.to_s
         end
+        if options[:confirm_logs].nil?
+            previous_array = []
+        else
+            previous_array = options[:confirm_logs]
+        end
         l2 = { "ts": ts,
                "op": 0, # TERMINATE
                "doc": l2_doc,
                "sig": sign(l2_doc, privateKey, options).first,
-               "previous": [] }.transform_keys(&:to_s)
+               "previous": previous_array }.transform_keys(&:to_s)
 
         # build actual DID document
         log_str = multi_hash(canonical(l2), LOG_HASH_OPTIONS).first
@@ -389,13 +351,27 @@ class Oydid
         end
 
         # build creation log entry
+        log_revoke_encrypted_array = nil
         if operation_mode == 3 # UPDATE
             l1 = { "ts": ts,
                    "op": operation_mode, # UPDATE
                    "doc": l1_doc,
-                   "sig": sign(l1_doc, privateKey_old, options).first,
+                   "sig": sign(l1_doc, old_privateKey, options).first,
                    "previous": prev_hash }.transform_keys(&:to_s)
-        else        
+            options[:confirm_logs].each do |el|
+                # read each log entry to check if it is a revocation delegation
+                log_item, msg = retrieve_log_item(el, doc_location, options)
+                if log_item["doc"][0..3] == "rev:"
+                    cipher, msg = encrypt(r1.to_json, log_item["encryption-key"], {})
+                    cipher[:log] = el.to_s
+                    if log_revoke_encrypted_array.nil?
+                        log_revoke_encrypted_array = [cipher]
+                    else
+                        log_revoke_encrypted_array << cipher
+                    end
+                end
+            end unless options[:confirm_logs].nil?
+        else
             l1 = { "ts": ts,
                    "op": operation_mode, # CREATE
                    "doc": l1_doc,
@@ -407,7 +383,6 @@ class Oydid
         # did_doc = [did, didDocument, did_old]
         # did_log = [revoc_log, l1, l2, r1, log_old]
         # did_key = [privateKey, revocationKey]
-
         did_doc = {
             :did => did,
             :didDocument => didDocument,
@@ -420,6 +395,10 @@ class Oydid
             :r1 => r1,
             :log_old => log_old
         }
+        if !log_revoke_encrypted_array.nil?
+            did_log[:r1_encrypted] = log_revoke_encrypted_array
+        end
+
         did_key = {
             :privateKey => privateKey,
             :revocationKey => revocationKey
@@ -482,6 +461,7 @@ class Oydid
         l1 = did_log[:l1]
         l2 = did_log[:l2]
         r1 = did_log[:r1]
+        r1_encrypted = did_log[:r1_encrypted]
         log_old = did_log[:log_old]
         privateKey = did_key[:privateKey]
         revocationKey = did_key[:revocationKey]
@@ -504,7 +484,7 @@ class Oydid
         end
         case doc_location.to_s
         when /^http/
-            logs = [revoc_log, l1, l2].flatten.compact
+            logs = [revoc_log, l1, l2, r1_encrypted].flatten.compact
         else
             logs = [log_old, revoc_log, l1, l2].flatten.compact
             if !did_old.nil?
@@ -540,11 +520,88 @@ class Oydid
         end
     end
 
+    def self.write_log(did, log, options = {})
+        # validate log
+        if !log.is_a?(Hash)
+            return [nil, "invalid log input"]
+        end
+        log = log.transform_keys(&:to_s)
+        if log["ts"].nil?
+            return [nil, "missing timestamp in log"]
+        end
+        if log["op"].nil?
+           return [nil, "missing operation in log"]
+        end 
+        if log["doc"].nil?
+           return [nil, "missing doc entry in log"]
+        end 
+        if log["sig"].nil?
+           return [nil, "missing signature in log"]
+        end
+
+        # validate did
+        if did.include?(LOCATION_PREFIX)
+            tmp = did.split(LOCATION_PREFIX)
+            did = tmp[0]
+            source_location = tmp[1]
+            log_location = tmp[1]
+        end
+        if did.include?(CGI.escape LOCATION_PREFIX)
+            tmp = did.split(CGI.escape LOCATION_PREFIX)
+            did = tmp[0] 
+            source_location = tmp[1]
+            log_location = tmp[1]
+        end
+
+        if source_location.to_s == ""
+            if options[:doc_location].nil?
+                source_location = DEFAULT_LOCATION
+            else
+                source_location = options[:doc_location]
+            end
+            if options[:log_location].nil?
+                log_location = DEFAULT_LOCATION
+            else
+                log_location = options[:log_location]
+            end
+        end
+        options[:doc_location] = source_location
+        options[:log_location] = log_location
+        source_did, msg = read(did, options)
+        if source_did.nil?
+            return [nil, "cannot resolve DID (on writing logs)"]
+        end
+        if source_did["error"] != 0
+            return [nil, source_did["message"].to_s]
+        end
+        if source_did["doc_log_id"].nil?
+            return [nil, "cannot parse DID log"]
+        end
+
+        # write log
+        source_location = source_location.gsub("%3A",":")
+        source_location = source_location.gsub("%2F%2F","//")
+        retVal = HTTParty.post(source_location + "/log/" + did,
+            headers: { 'Content-Type' => 'application/json' },
+            body: {"log": log}.to_json )
+        code = retVal.code rescue 500
+        if code != 200
+            err_msg = retVal.parsed_response["error"].to_s rescue "invalid response from " + source_location.to_s + "/log"
+            return ["", err_msg]
+        end
+        log_hash = retVal.parsed_response["log"] rescue ""
+        if log_hash == ""
+            err_msg = "missing log hash from " + source_location.to_s + "/log"
+            return ["", err_msg]
+        end
+        return [log_hash, nil]
+    end
+
     def self.revoke_base(did, options)
         did_orig = did.dup
         doc_location = options[:doc_location]
         if options[:ts].nil?
-            ts = Time.now.to_i
+            ts = Time.now.utc.to_i
         else
             ts = options[:ts]
         end
@@ -606,38 +663,111 @@ class Oydid
         end
 
         if options[:rev_key].nil? && options[:rev_pwd].nil? && options[:rev_enc].nil?
-            revocationKey, msg = read_private_key(did10 + "_revocation_key.enc", options)
+            # revocationKey, msg = read_private_key(did10 + "_revocation_key.enc", options)
             revocationLog = read_private_storage(did10 + "_revocation.json")
         else
-            if options[:rev_pwd].nil?
-                if options[:rev_enc].nil?
-                    revocationKey, msg = read_private_key(options[:rev_key].to_s, options)
+
+            # check if provided old keys are native DID keys or delegates ==================
+            if options[:doc_key].nil?
+                if options[:doc_enc].nil?
+                    old_privateKey, msg = generate_private_key(options[:old_doc_pwd].to_s, 'ed25519-priv', options)
                 else
-                    revocationKey, msg = decode_private_key(options[:rev_enc].to_s, options)
+                    old_privateKey, msg = decode_private_key(options[:old_doc_enc].to_s, options)
                 end
             else
-                revocationKey, msg = generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv', options)
+                old_privateKey, msg = read_private_key(options[:old_doc_key].to_s, options)
             end
-            # re-build revocation document
-            did_old_doc = did_info["doc"]["doc"]
-            ts_old = did_info["log"].last["ts"]
-            publicKey_old = public_key(privateKey_old, options).first
-            pubRevoKey_old = public_key(revocationKey_old, options).first
-            did_key_old = publicKey_old + ":" + pubRevoKey_old
-            subDid = {"doc": did_old_doc, "key": did_key_old}.to_json
-            subDidHash = multi_hash(canonical(subDid), LOG_HASH_OPTIONS).first
-            signedSubDidHash = sign(subDidHash, revocationKey_old, options).first
-            revocationLog = { 
-                "ts": ts_old,
-                "op": 1, # REVOKE
-                "doc": subDidHash,
-                "sig": signedSubDidHash }.transform_keys(&:to_s).to_json
+            if options[:rev_key].nil?
+                if options[:rev_enc].nil?
+                    old_revocationKey, msg = generate_private_key(options[:old_rev_pwd].to_s, 'ed25519-priv', options)
+                else
+                    old_revocationKey, msg = decode_private_key(options[:old_rev_enc].to_s, options)
+                end
+            else
+                old_revocationKey, msg = read_private_key(options[:old_rev_key].to_s, options)
+            end
+            old_publicDocKey = public_key(old_privateKey, {}).first
+            old_publicRevKey = public_key(old_revocationKey, {}).first
+            old_did_key = old_publicDocKey + ":" + old_publicRevKey
+
+            # compare old keys with existing DID Document & generate revocation record
+            if old_did_key.to_s == did_info["doc"]["key"].to_s
+                # provided keys are native DID keys ------------------
+
+                # re-build revocation document
+                old_did_doc = did_info["doc"]["doc"]
+                old_ts = did_info["log"].last["ts"]
+                old_subDid = {"doc": old_did_doc, "key": old_did_key}.to_json
+                old_subDidHash = multi_hash(canonical(old_subDid), LOG_HASH_OPTIONS).first
+                old_signedSubDidHash = sign(old_subDidHash, old_revocationKey, LOG_HASH_OPTIONS).first
+                revocationLog = { 
+                    "ts": old_ts,
+                    "op": 1, # REVOKE
+                    "doc": old_subDidHash,
+                    "sig": old_signedSubDidHash }.transform_keys(&:to_s).to_json
+            else
+                # proviced keys are either delegates or invalid ------
+                # * check validity of key-doc delegate
+                pubKeys, msg = getDelegatedPubKeysFromDID(did, "doc")
+                if !pubKeys.include?(old_publicDocKey)
+                    return [nil, "invalid or missing private document key"]
+                end
+
+                # * check validity of key-rev delegate
+                pubKeys, msg = getDelegatedPubKeysFromDID(did, "rev")
+                if !pubKeys.include?(old_publicRevKey)
+                    return [nil, "invalid or missing private revocation key"]
+                end
+
+                # retrieve revocationLog from previous in key-rev delegate
+                revoc_log = nil
+                log_old.each do |item|
+                    if !item["encrypted-revocation-log"].nil?
+                        revoc_log = item["encrypted-revocation-log"]
+                    end
+                end
+                if revoc_log.nil?
+                    return [nil, "cannot retrieve revocation log"]
+                end
+                revocationLog, msg = decrypt(revoc_log.to_json, old_revocationKey.to_s)
+                if revocationLog.nil?
+                    return [nil, "cannot decrypt revocation log entry: " + msg]
+                end
+            end # compare old keys with existing DID Document
+
+            # if options[:rev_pwd].nil?
+            #     if options[:rev_enc].nil?
+            #         revocationKey, msg = read_private_key(options[:rev_key].to_s, options)
+            #     else
+            #         revocationKey, msg = decode_private_key(options[:rev_enc].to_s, options)
+            #     end
+            # else
+            #     revocationKey, msg = generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv', options)
+            # end
+            # # re-build revocation document
+            # did_old_doc = did_info["doc"]["doc"]
+            # ts_old = did_info["log"].last["ts"]
+            # publicKey_old = public_key(privateKey_old, options).first
+            # pubRevoKey_old = public_key(revocationKey_old, options).first
+            # did_key_old = publicKey_old + ":" + pubRevoKey_old
+            # subDid = {"doc": did_old_doc, "key": did_key_old}.to_json
+            # subDidHash = multi_hash(canonical(subDid), LOG_HASH_OPTIONS).first
+            # signedSubDidHash = sign(subDidHash, revocationKey_old, options).first
+            # revocationLog = { 
+            #     "ts": ts_old,
+            #     "op": 1, # REVOKE
+            #     "doc": subDidHash,
+            #     "sig": signedSubDidHash }.transform_keys(&:to_s).to_json
         end
 
         if revocationLog.nil?
             return [nil, "private revocation key not found"]
         end
 
+        # check if REVOCATION hash matches hash in TERMINATION
+        if did_info["log"][did_info["termination_log_id"]]["doc"] != multi_hash(canonical(revocationLog), LOG_HASH_OPTIONS).first
+            return [nil, "invalid revocation information"]
+        end
         revoc_log = JSON.parse(revocationLog)
         revoc_log["previous"] = [
             multi_hash(canonical(log_old[did_info["doc_log_id"].to_i]), LOG_HASH_OPTIONS).first, 
@@ -736,7 +866,67 @@ class Oydid
         return [retVal, msg]
     end
 
-   def self.w3c(did_info, options)
+    def self.delegate(did, options)
+        # check location
+        location = options[:doc_location]
+        if location.to_s == ""
+            location = DEFAULT_LOCATION
+        end
+        if did.include?(LOCATION_PREFIX)
+            tmp = did.split(LOCATION_PREFIX)
+            did = tmp[0]
+            location = tmp[1]
+        end
+        if did.include?(CGI.escape LOCATION_PREFIX)
+            tmp = did.split(CGI.escape LOCATION_PREFIX)
+            did = tmp[0] 
+            location = tmp[1]
+        end
+        options[:doc_location] = location
+        options[:log_location] = location
+
+        if options[:ts].nil?
+            ts = Time.now.utc.to_i
+        else
+            ts = options[:ts]
+        end
+
+        # build log record
+        log = {}
+        log["ts"] = ts
+        log["op"] = 5 # DELEGATE
+        pwd = false
+        doc_privateKey, msg = getPrivateKey(options[:doc_enc], options[:doc_pwd], options[:doc_key], "", options)
+        rev_privateKey, msg = getPrivateKey(options[:rev_enc], options[:rev_pwd], options[:rev_key], "", options)
+        if !doc_privateKey.nil?
+            pwd="doc"
+            privateKey = doc_privateKey
+        end
+        if !rev_privateKey.nil?
+            pwd="rev"
+            privateKey = rev_privateKey
+        end
+        if !pwd || privateKey.to_s == ""
+            return [nil, "missing or invalid delegate key"]
+        end
+        log["doc"] = pwd + ":" + public_key(privateKey, options).first.to_s
+        log["sig"] = sign(privateKey, privateKey, options).first
+        log["previous"] = [did] # DID in previous cannot be resolved in the DAG but guarantees unique log hash
+
+        # revocation delegate keys need to specify a public key for encrypting the revocation record
+        if pwd == "rev"
+            publicEncryptionKey, msg = public_key(privateKey, {}, 'x25519-pub')
+            log["encryption-key"] = publicEncryptionKey
+        end
+        log_hash, msg = write_log(did, log, options)
+        if log_hash.nil?
+            return [nil, msg]
+        else
+            return [{"log": log_hash}, ""]
+        end
+    end
+
+    def self.w3c(did_info, options)
         did = percent_encode(did_info["did"])
         if !did.start_with?("did:oyd:")
             did = "did:oyd:" + did
@@ -745,6 +935,22 @@ class Oydid
         didDoc = did_info.transform_keys(&:to_s)["doc"]
         pubDocKey = didDoc["key"].split(":")[0] rescue ""
         pubRevKey = didDoc["key"].split(":")[1] rescue ""
+        delegateDocKeys = getDelegatedPubKeysFromDID(did, "doc").first - [pubDocKey] rescue []
+        if delegateDocKeys.is_a?(String)
+            if delegateDocKeys == pubDocKey
+                delegateDocKeys = nil
+            else
+                delegateDocKeys = [delegateDocKeys]
+            end
+        end
+        delegateRevKeys = getDelegatedPubKeysFromDID(did, "rev").first - [pubRevKey] rescue []
+        if delegateRevKeys.is_a?(String)
+            if delegateRevKeys == pubRevKey
+                delegateRevKeys = nil
+            else
+                delegateRevKeys = [delegateRevKeys]
+            end
+        end
 
         wd = {}
         if didDoc["doc"].is_a?(Hash) 
@@ -752,9 +958,9 @@ class Oydid
                 wd["@context"] = ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/suites/ed25519-2020/v1"]
             else
                 if didDoc["doc"]["@context"].is_a?(Array)
-                    wd["@context"] = ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/suites/ed25519-2020/v1"] + didDoc["doc"]["@context"]
+                    wd["@context"] = (["https://www.w3.org/ns/did/v1", "https://w3id.org/security/suites/ed25519-2020/v1"] + didDoc["doc"]["@context"]).uniq
                 else
-                    wd["@context"] = ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/suites/ed25519-2020/v1", didDoc["doc"]["@context"]]
+                    wd["@context"] = (["https://www.w3.org/ns/did/v1", "https://w3id.org/security/suites/ed25519-2020/v1", didDoc["doc"]["@context"]]).uniq
                 end
                 didDoc["doc"].delete("@context")
             end
@@ -773,6 +979,36 @@ class Oydid
             "controller": did,
             "publicKeyMultibase": pubRevKey
         }]
+        if !delegateDocKeys.nil? && delegateDocKeys.count > 0
+            i = 0
+            wd["capabilityDelegation"] = []
+            delegateDocKeys.each do |key|
+                i += 1
+                delegaton_object = {
+                    "id": did + "#key-delegate-doc-" + i.to_s,
+                    "type": "Ed25519VerificationKey2020",
+                    "controller": did,
+                    "publicKeyMultibase": key
+                }
+                wd["capabilityDelegation"] << delegaton_object
+            end
+        end
+        if !delegateRevKeys.nil? && delegateRevKeys.count > 0
+            i = 0
+            if wd["capabilityDelegation"].nil?
+                wd["capabilityDelegation"] = []
+            end
+            delegateRevKeys.each do |key|
+                i += 1
+                delegaton_object = {
+                    "id": did + "#key-delegate-rev-" + i.to_s,
+                    "type": "Ed25519VerificationKey2020",
+                    "controller": did,
+                    "publicKeyMultibase": key
+                }
+                wd["capabilityDelegation"] << delegaton_object
+            end
+        end
 
         equivalentIds = []
         did_info["log"].each do |log|
@@ -807,28 +1043,30 @@ class Oydid
         else
             payload = nil
             if didDoc["doc"].is_a?(Hash)
-                didDoc = didDoc["doc"]
-                if didDoc["authentication"].to_s != ""
-                    wd["authentication"] = didDoc["authentication"]
-                    didDoc.delete("authentication")
+                if didDoc["doc"] != {}
+                    didDoc = didDoc["doc"]
+                    if didDoc["authentication"].to_s != ""
+                        wd["authentication"] = didDoc["authentication"]
+                        didDoc.delete("authentication")
+                    end
+                    if didDoc["assertionMethod"].to_s != ""
+                        wd["assertionMethod"] = didDoc["assertionMethod"]
+                        didDoc.delete("assertionMethod")
+                    end
+                    if didDoc["keyAgreement"].to_s != ""
+                        wd["keyAgreement"] = didDoc["keyAgreement"]
+                        didDoc.delete("keyAgreement")
+                    end
+                    if didDoc["capabilityInvocation"].to_s != ""
+                        wd["capabilityInvocation"] = didDoc["capabilityInvocation"]
+                        didDoc.delete("capabilityInvocation")
+                    end
+                    if didDoc["capabilityDelegation"].to_s != ""
+                        wd["capabilityDelegation"] = didDoc["capabilityDelegation"]
+                        didDoc.delete("capabilityDelegation")
+                    end
+                    payload = didDoc
                 end
-                if didDoc["assertionMethod"].to_s != ""
-                    wd["assertionMethod"] = didDoc["assertionMethod"]
-                    didDoc.delete("assertionMethod")
-                end
-                if didDoc["keyAgreement"].to_s != ""
-                    wd["keyAgreement"] = didDoc["keyAgreement"]
-                    didDoc.delete("keyAgreement")
-                end
-                if didDoc["capabilityInvocation"].to_s != ""
-                    wd["capabilityInvocation"] = didDoc["capabilityInvocation"]
-                    didDoc.delete("capabilityInvocation")
-                end
-                if didDoc["capabilityDelegation"].to_s != ""
-                    wd["capabilityDelegation"] = didDoc["capabilityDelegation"]
-                    didDoc.delete("capabilityDelegation")
-                end
-                payload = didDoc
             else
                 payload = didDoc["doc"]
             end
@@ -858,7 +1096,7 @@ class Oydid
     end
 
 
-   def self.w3c_legacy(did_info, options)
+    def self.w3c_legacy(did_info, options)
         did = did_info["did"]
         if !did.start_with?("did:oyd:")
             did = "did:oyd:" + did

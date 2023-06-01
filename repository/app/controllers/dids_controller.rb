@@ -20,14 +20,10 @@ class DidsController < ApplicationController
         end
 
         did = params[:did]
-        # didHash = did.split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first rescue did
-        # didHash = didHash.delete_prefix("did:oyd:")
-        # options[:digest] = Oydid.get_digest(didHash).first
-        # options[:encode] = Oydid.get_encoding(didHash).first
         
         result = resolve_did(did, options)
         if result["error"] != 0
-            puts "Error: " + result["message"].to_s
+            # puts "Error: " + result["message"].to_s
             render json: {"error": result["message"].to_s}.to_json,
                    status: 500
         else
@@ -97,12 +93,6 @@ class DidsController < ApplicationController
                    status: 412
             return
         end
-        # allow "doc": null
-        # if didDoc["doc"].nil?
-        #     render json: {"error": "missing 'doc' key in did-document"},
-        #            status: 412
-        #     return
-        # end
         if didDoc["key"].nil?
             render json: {"error": "missing 'key' key in did-document"},
                    status: 412
@@ -139,16 +129,35 @@ class DidsController < ApplicationController
             return
         end
         log_entry_hash = ""
+        new_logs = []
+        update_logs = []
         logs.each do |item|
             case item["op"]
             when 0 # TERMINATE
                 log_entry_hash = Oydid.multi_hash(Oydid.canonical(item), LOG_HASH_OPTIONS).first
+                new_logs << item
+            when 1 # REVOKE
+                new_logs << item
             when 2, 3 # CREATE or UPDATE
                 # check with didPubKey validity of signature
                 if !Oydid.verify(item["doc"], item["sig"], didPubKey)
                     render json: {"error": "invalid signature in log with op=" + item["op"].to_s},
                            status: 400
+                    return
                 end
+                new_logs << item
+            else
+                if item.slice(:value, :nonce, :log).to_json != item.to_json
+                    render json: {"error": "invalid log format (" + item.to_json + ")"},
+                           status: 400
+                    return
+                end
+                if Log.find_by_oyd_hash(item["log"]).nil?
+                    render json: {"error": "no log entry with hash '" + item["log"].to_s + "'"},
+                           status: 400
+                    return
+                end
+                update_logs << item
             end
         end
         if log_entry_hash != ""
@@ -165,21 +174,31 @@ class DidsController < ApplicationController
         if @did.nil?
             Did.new(did: didHash, doc: didDocument.to_json, public_key: didPubKey).save
         end
-        logs.each do |item|
+        new_logs.each do |item|
             if item["op"] == 1 # REVOKE
                 my_hash = Oydid.multi_hash(Oydid.canonical(item.except("previous")), LOG_HASH_OPTIONS).first
-                @log = Log.find_by_oyd_hash(my_hash)
+                @log = Log.find_by_oyd_hash(my_hash) rescue nil
                 if @log.nil?
-                    Log.new(did: didHash, item: item.to_json, oyd_hash: my_hash, ts: Time.now.to_i).save
+                    Log.new(did: didHash, item: item.to_json, oyd_hash: my_hash, ts: Time.now.utc.to_i).save
                 end
             else
-                my_hash = Oydid.multi_hash(Oydid.canonical(item), LOG_HASH_OPTIONS).first
-                @log = Log.find_by_oyd_hash(my_hash)
+                my_hash = Oydid.multi_hash(Oydid.canonical(item.slice("ts","op","doc","sig","previous")), LOG_HASH_OPTIONS).first
+                @log = Log.find_by_oyd_hash(my_hash) rescue nil
                 if @log.nil?
-                    Log.new(did: didHash, item: item.to_json, oyd_hash: my_hash, ts: Time.now.to_i).save
+                    Log.new(did: didHash, item: item.to_json, oyd_hash: my_hash, ts: Time.now.utc.to_i).save
                 end
             end
         end
+        update_logs.each do |item|
+            @log = Log.find_by_oyd_hash(item["log"])
+            if !@log.nil?
+                payload = JSON.parse(@log.item) rescue nil
+                if !payload.nil?
+                    payload["encrypted-revocation-log"] = item.slice(:value, :nonce)
+                    @log.update_attributes(item: payload.to_json)
+                end
+            end
+        end unless update_logs.count == 0
 
         render plain: "",
                stauts: 200

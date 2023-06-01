@@ -54,7 +54,11 @@ class Oydid
     end
 
     def self.get_digest(message)
-        retVal = Multihashes.decode Oydid.multi_decode(message).first
+        decoded_message, error = Oydid.multi_decode(message)
+        if decoded_message.nil?
+            return [nil, error]
+        end
+        retVal = Multihashes.decode decoded_message
         if retVal[:hash_function].to_s != ""
             return [retVal[:hash_function].to_s, ""]
         end
@@ -144,6 +148,29 @@ class Oydid
         end
     end
 
+    def self.getPrivateKey(enc, pwd, dsk, dfl, options)
+        if enc.to_s == "" # usually read from options[:doc_enc]
+            if pwd.to_s == "" # usually read from options[:doc_pwd]
+                if dsk.to_s == "" # usually read from options[:doc_key]
+                    if dfl.to_s == "" # default file name for key
+                        return [nil, "no reference"]
+                    else
+                        privateKey, msg = read_private_key(dfl.to_s, options)
+                    end
+                else
+                    privateKey, msg = read_private_key(dsk.to_s, options)
+                end
+            else
+                privateKey, msg = generate_private_key(pwd, 'ed25519-priv', options)
+            end
+        else
+            privateKey, msg = decode_private_key(enc.to_s, options)
+        end
+        return [privateKey, msg]
+    end
+
+    # if the identifier is already the public key there is no validation if it is a valid key
+    # (this is a privacy-preserving feature)
     def self.getPubKeyFromDID(did)
         identifier = did.split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first rescue did
         identifier = identifier.delete_prefix("did:oyd:")
@@ -164,6 +191,52 @@ class Oydid
         else
             return [identifier, ""]
         end
+    end
+
+    # available key_types
+    # * doc - document key
+    # * rev - revocation key
+    def self.getDelegatedPubKeysFromDID(did, key_type = "doc")
+        # retrieve DID
+        did_document, msg = read(did, {})
+        keys, msg = getDelegatedPubKeysFromFullDidDocument(did_document, key_type)
+        if keys.nil?
+            return [nil, msg]
+        else
+            return [keys, ""]
+        end
+    end
+
+    def self.getDelegatedPubKeysFromFullDidDocument(did_document, key_type = "doc")
+        # get current public key
+        case key_type
+        when "doc"
+            keys = [did_document["doc"]["key"].split(":").first] rescue nil
+        when "rev"
+            keys = [did_document["doc"]["key"].split(":").last] rescue nil
+        else
+            return [nil, "invalid key type: " + key_type]
+        end
+        if keys.nil?
+            return [nil, "cannot retrieve current key"]
+        end
+
+        # travers through log and get active delegation public keys
+        log = did_document["log"]
+        log.each do |item|
+            if item["op"] == 5 # DELEGATE
+                # !!!OPEN: check if log entry is confirmed / referenced in a termination entry
+                item_keys = item["doc"]
+                if key_type == "doc" && item_keys[0..3] == "doc:"
+                    keys << item_keys[4-item_keys.length..]
+                elsif key_type == "rev" && item_keys[0..3] == "rev:"
+                    keys << item_keys[4-item_keys.length..]
+                end
+            end
+        end unless log.nil?
+
+        # return array
+        return [keys.uniq, ""]
     end
 
     def self.sign(message, private_key, options)
@@ -203,7 +276,7 @@ class Oydid
         end
     end
 
-    def self.encrypt(message, public_key, options)
+    def self.encrypt(message, public_key, options = {})
         begin
             code, length, digest = multi_decode(public_key).first.unpack('CCa*')
             case Multicodecs[code].name
@@ -229,7 +302,7 @@ class Oydid
         end
     end
 
-    def self.decrypt(message, private_key, options)
+    def self.decrypt(message, private_key, options = {})
         begin
             cipher = [JSON.parse(message)["value"]].pack('H*')
             nonce = [JSON.parse(message)["nonce"]].pack('H*')
@@ -333,7 +406,10 @@ class Oydid
             doc_location = doc_location.sub("%3A%2F%2F","://").sub("%3A", ":")
             retVal = HTTParty.get(doc_location + "/doc/" + doc_identifier)
             if retVal.code != 200
-                msg = retVal.parsed_response("error").to_s rescue "invalid response from " + doc_location.to_s + "/doc/" + doc_identifier.to_s
+                msg = retVal.parsed_response["error"].to_s rescue ""
+                if msg.to_s == ""
+                    msg = "invalid response from " + doc_location.to_s + "/doc/" + doc_identifier.to_s
+                end
                 return [nil, msg]
             end
             if options.transform_keys(&:to_s)["trace"]

@@ -1,0 +1,1 @@
+curl -s -H "Content-Type: application/json" -d @- -X POST "https://uniregistrar.io/1.0/create?method=oyd" | jq -c 'del(.jobId, .didRegistrationMetadata)'

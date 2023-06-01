@@ -1,0 +1,17 @@
+{
+    "identifier": "did:oyd:zQmRnu4SmdPxRd6SHRFxA7yaVMLsBcsNQ7fsmMvMXFsLKec",
+    "options": {
+        "ts": 2
+    },
+    "secret": {
+        "old_doc_pwd": "pwd1",
+        "old_rev_pwd": "pwd2",
+        "doc_pwd": "pwd3",
+        "rev_pwd": "pwd4"
+    },
+    "didDocument": {
+        "service": [{
+            "state": "new"
+        }]
+    }
+}

@@ -1,0 +1,1 @@
+did=`echo '' | oydid create --doc-pwd pwd1 --rev-pwd pwd2 -s --json-output | jq -r '.did'` && oydid revoke --doc-pwd pwd3 --rev-pwd pwd4 -s $did | cat

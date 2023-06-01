@@ -1,0 +1,11 @@
+Functions from a Storage Provider
+- find by ID and return nil if not found
+  objects_controller.rb:34,74,129,178,249,302,380,434 @col = Store.find(col_id) rescue nil
+- get meta/data for found record
+  objects_controller.rb:80,186,255,290,386,440 meta = @store.meta
+- find by DRI
+  objects_controller.rb:55,150,415 @store = Store.find_by_dri(dri)
+- create record and return ID
+  objects_controller.rb:57 @store = Store.new(item: data.to_json, meta: meta.to_json, dri: dri, key: "object_" + col_id.to_s)
+- update record
+  objects_controller.rb:160,218,232,470 @store.save
