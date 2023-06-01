@@ -19,6 +19,13 @@ def test_service():
     response_body = response.json()
     assert response_body["service"] == "oydid repository"
 
+# test groups
+# 01 - general tests for CLI
+# 02 - uniresolver tests
+# 03 - uniregistrar.data-container.net tests
+# 04 - digest agility tests <- CURRENT
+# 05 - uniregistrar.io tests
+
 cwd = os.getcwd()
 @pytest.mark.parametrize('input',  sorted(glob.glob(cwd+'/04_input/*.doc')))
 def test_04_digest_a(fp, input):

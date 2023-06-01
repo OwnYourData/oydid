@@ -40,7 +40,7 @@ This specification is not a W3C Standard nor is it on the W3C Standards Track. L
 
 * Version 0.3: 19 October 2021 (initial public release, [link](https://github.com/OwnYourData/oydid/blob/main/docs/did-spec_v03.md))
 * Version 0.4: 19 January 2022 ([link](https://ownyourdata.github.io/oydid/did-method-oyd_v04.html))
-* Version 0.5: planned for Q1/2023 (current version)
+* Version 0.5: 30 May 2023 (current version)
 
 Introduction {#intro}
 ============

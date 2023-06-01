@@ -4,3 +4,353 @@ Processing by ApplicationController#missing as */*
 Completed 404 Not Found in 0ms (Views: 0.3ms)
 
 
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for 127.0.0.1 at 2023-03-17 10:34:58 +0100
+Processing by DidsController#uniresolver_resolve as */*
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 698ms (Views: 0.2ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 10:35:31 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 0ms (Views: 0.2ms)
+
+
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 10:35:31 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for ::1 at 2023-03-17 10:35:34 +0100
+Processing by DidsController#uniresolver_resolve as 
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 540ms (Views: 0.3ms)
+
+
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for ::1 at 2023-03-17 10:42:25 +0100
+Processing by DidsController#uniresolver_resolve as 
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 788ms (Views: 0.2ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 10:42:32 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 2ms (Views: 1.2ms)
+
+
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 10:42:32 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.2ms)
+
+
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for 127.0.0.1 at 2023-03-17 10:42:39 +0100
+Processing by DidsController#uniresolver_resolve as */*
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 545ms (Views: 0.1ms)
+
+
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for 127.0.0.1 at 2023-03-17 10:43:05 +0100
+Processing by DidsController#uniresolver_resolve as */*
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 561ms (Views: 0.2ms)
+
+
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for ::1 at 2023-03-17 10:43:22 +0100
+Processing by DidsController#uniresolver_resolve as 
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 567ms (Views: 0.3ms)
+
+
+Started GET "/1.0/identifiers/did%3Asov%3AWRfXPg8dantKVubE3HX8pw" for ::1 at 2023-03-17 10:43:26 +0100
+Processing by DidsController#uniresolver_resolve as 
+  Parameters: {"did"=>"did:sov:WRfXPg8dantKVubE3HX8pw"}
+Completed 500 Internal Server Error in 8ms
+
+
+
+NoMethodError - undefined method `unpack' for nil:NilClass:
+  app/controllers/dids_controller.rb:17:in `uniresolver_resolve'
+
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for ::1 at 2023-03-17 10:43:30 +0100
+Processing by DidsController#uniresolver_resolve as 
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 512ms (Views: 0.3ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 10:45:15 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 0ms (Views: 0.3ms)
+
+
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 10:45:15 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 1ms (Views: 0.1ms)
+
+
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 10:45:30 +0100
+Started GET "/1.0/methods" for ::1 at 2023-03-17 10:45:30 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Completed 404 Not Found in 4ms (Views: 4.0ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 10:45:36 +0100
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 10:45:36 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 1ms (Views: 0.5ms)
+
+
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 1ms (Views: 0.2ms)
+
+
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for ::1 at 2023-03-17 10:45:43 +0100
+Processing by DidsController#uniresolver_resolve as 
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 618ms (Views: 0.3ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 10:46:54 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 1ms (Views: 0.7ms)
+
+
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 10:46:54 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for ::1 at 2023-03-17 10:47:02 +0100
+Processing by DidsController#uniresolver_resolve as 
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 611ms (Views: 0.1ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 10:47:53 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 0ms (Views: 0.2ms)
+
+
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 10:47:53 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.2ms)
+
+
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 10:47:57 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 10:47:57 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for ::1 at 2023-03-17 10:48:03 +0100
+Processing by DidsController#uniresolver_resolve as 
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 600ms (Views: 0.3ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 10:49:30 +0100
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 10:49:30 +0100
+Processing by ApplicationController#missing as HTML
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for ::1 at 2023-03-17 10:49:34 +0100
+Processing by DidsController#uniresolver_resolve as 
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 571ms (Views: 0.2ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 10:49:56 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 1ms (Views: 0.2ms)
+
+
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 10:49:56 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for ::1 at 2023-03-17 10:50:29 +0100
+Processing by DidsController#uniresolver_resolve as 
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 978ms (Views: 0.3ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 10:50:43 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 10:50:43 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for ::1 at 2023-03-17 10:50:48 +0100
+Processing by DidsController#uniresolver_resolve as 
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 786ms (Views: 0.3ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 10:54:16 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 10:54:16 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 10:55:04 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 10:55:04 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 10:59:31 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 1ms (Views: 0.1ms)
+
+
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 10:59:31 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for ::1 at 2023-03-17 11:10:57 +0100
+Processing by DidsController#uniresolver_resolve as 
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 691ms (Views: 0.3ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 11:39:36 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 11:39:36 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Completed 404 Not Found in 1ms (Views: 0.4ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 11:52:00 +0100
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 11:52:00 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.0ms)
+
+
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 11:52:16 +0100
+Started GET "/1.0/methods" for ::1 at 2023-03-17 11:52:16 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 11:52:17 +0100
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 11:52:17 +0100
+Processing by ApplicationController#missing as HTML
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 0ms (Views: 0.0ms)
+
+
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/identifiers/did%3Aoyd%3AzQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" for ::1 at 2023-03-17 11:52:27 +0100
+Processing by DidsController#uniresolver_resolve as 
+  Parameters: {"did"=>"did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"}
+Completed 200 OK in 722ms (Views: 0.3ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 16:33:21 +0100
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 16:33:21 +0100
+Processing by ApplicationController#missing as HTML
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Completed 404 Not Found in 0ms (Views: 0.0ms)
+
+
+Started GET "/1.0/methods" for ::1 at 2023-03-17 16:33:23 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/methods"}
+Completed 404 Not Found in 0ms (Views: 0.2ms)
+
+
+Started GET "/1.0/testIdentifiers" for ::1 at 2023-03-17 16:33:23 +0100
+Processing by ApplicationController#missing as HTML
+  Parameters: {"not_found"=>"1.0/testIdentifiers"}
+Completed 404 Not Found in 0ms (Views: 0.1ms)
+
+
+Started GET "/1.0/identifiers/did:key:z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6" for 127.0.0.1 at 2023-03-19 17:24:31 +0100
+Processing by DidsController#uniresolver_resolve as */*
+  Parameters: {"did"=>"did:key:z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6"}
+Completed 500 Internal Server Error in 1ms
+
+
+
+NoMethodError - undefined method `unpack' for nil:NilClass:
+  app/controllers/dids_controller.rb:17:in `uniresolver_resolve'
+

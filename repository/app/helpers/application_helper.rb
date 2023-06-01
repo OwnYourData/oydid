@@ -56,9 +56,26 @@ module ApplicationHelper
             return currentDID
         end
 
-        ordered_log_array = Oydid.dag2array(dag, log_array, create_index, [], options)
-        ordered_log_array << log_array[terminate_index]
-        currentDID["log"] = ordered_log_array
+        result = Oydid.dag2array(dag, log_array, create_index, [], options)
+        ordered_log_array = Oydid.dag2array_terminate(dag, log_array, terminate_index, result, options)
+        currentDID["log"] = ordered_log_array.flatten.uniq.compact.dup
+#         full_log_array = ordered_log_array.dup
+#         i = 0
+#         ordered_log_array.each do |log|
+#             original_log_array = ordered_log_array.dup
+#             op = log["op"] rescue -1
+#             if op == 0 # TERMINATE
+# puts "I: " + i.to_s
+#                 result_array = Oydid.dag2array_terminate(dag, original_log_array, i, full_log_array, options)
+# puts "Result"
+# puts JSON.pretty_generate(result_array)
+#                 full_log_array = [full_log_array, result].flatten.uniq.compact
+#             end
+#             i += 1
+#         end
+#         currentDID["full_log"] = full_log_array
+        # !!! ugly hack
+        currentDID["full_log"] = log_array
         currentDID = dag_update(currentDID, options)
         return currentDID
     end
@@ -171,15 +188,26 @@ module ApplicationHelper
                             if log_el["previous"].include?(Oydid.multi_hash(Oydid.canonical(revocation_record), options).first)
                                 update_term_found = true
                                 message = log_el["doc"].to_s
-
                                 signature = log_el["sig"]
-                                public_key = current_public_doc_key.to_s
-                                signature_verification = Oydid.verify(message, signature, public_key).first
+                                # public_key = current_public_doc_key.to_s
+                                extend_currentDID = currentDID.dup
+                                extend_currentDID["log"] = extend_currentDID["full_log"]
+                                # !!!TODO: check for delegates only at certain point in time
+                                pubKeys, msg = Oydid.getDelegatedPubKeysFromFullDidDocument(extend_currentDID, "doc")
+                                signature_verification = false
+                                used_pubkey = ""
+                                pubKeys.each do |key|
+                                    if Oydid.verify(message, signature, key).first
+                                        signature_verification = true
+                                        used_pubkey = key
+                                        break
+                                    end
+                                end
                                 if signature_verification
                                     if verification_output
                                         currentDID["verification"] += "found UPDATE log record:" + "\n"
                                         currentDID["verification"] += JSON.pretty_generate(log_el) + "\n"
-                                        currentDID["verification"] += "✅ public key from last DID Document: " + current_public_doc_key.to_s + "\n"
+                                        currentDID["verification"] += "✅ public key: " + used_pubkey.to_s + "\n"
                                         currentDID["verification"] += "verifies 'doc' reference of new DID Document: " + log_el["doc"].to_s + "\n"
                                         currentDID["verification"] += log_el["sig"].to_s + "\n"
                                         currentDID["verification"] += "of next DID Document (Details: https://ownyourdata.github.io/oydid/#verify_signature)" + "\n"
@@ -195,7 +223,7 @@ module ApplicationHelper
                                             currentDID["message"] = "cannot retrieve " + next_doc_did.to_s
                                             return currentDID
                                         end
-                                        if public_key == next_doc["key"].split(":").first
+                                        if pubKeys.include?(next_doc["key"].split(":").first)
                                             currentDID["verification"] += "⚠️  no key rotation in updated DID Document" + "\n"
                                         end
                                         currentDID["verification"] += "\n"
@@ -212,8 +240,8 @@ module ApplicationHelper
                                         new_doc = local_retrieve_document(new_did_hash)
                                         currentDID["verification"] += "found UPDATE log record:" + "\n"
                                         currentDID["verification"] += JSON.pretty_generate(log_el) + "\n"
-                                        currentDID["verification"] += "⛔ public key from last DID Document: " + current_public_doc_key.to_s + "\n"
-                                        currentDID["verification"] += "does not verify 'doc' reference of new DID Document: " + log_el["doc"].to_s + "\n"
+                                        currentDID["verification"] += "⛔ none of available public keys (" + pubKeys.join(", ") + ")\n"
+                                        currentDID["verification"] += "verify 'doc' reference of new DID Document: " + log_el["doc"].to_s + "\n"
                                         currentDID["verification"] += log_el["sig"].to_s + "\n"
                                         currentDID["verification"] += "next DID Document (Details: https://ownyourdata.github.io/oydid/#verify_signature)" + "\n"
                                         currentDID["verification"] += JSON.pretty_generate(new_doc) + "\n\n"
@@ -239,6 +267,8 @@ module ApplicationHelper
                 end
             when 1 # revocation log entry
                 # do nothing
+            when 5 # DELEGATE
+                # do nothing
             else
                 currentDID["error"] = 2
                 currentDID["message"] = "FATAL ERROR: op code '" + el["op"].to_s + "' not implemented"
@@ -247,7 +277,6 @@ module ApplicationHelper
             end
             i += 1
         end unless currentDID["log"].nil?
-
         return currentDID
     end
 
@@ -283,7 +312,7 @@ module ApplicationHelper
         new_entries = []
         logs.each do |log|
             if log["op"] == 0 # TERMINATE
-                @log = Log.find_by_oyd_hash(remove_location(log["doc"]))
+                @log = Log.find_by_oyd_hash(remove_location(log["doc"])) rescue nil
                 if !@log.nil?
                     tmp = Log.where(did: @log.did).pluck(:item).map { |i| JSON.parse(i) } rescue []
                     tmp.delete(log)
@@ -299,9 +328,9 @@ module ApplicationHelper
         new_dids = []
         new_entries = []
         logs.each do |log|
-            if log["previous"] != []
+            if !log["previous"].nil? && log["previous"] != []
                 log["previous"].each do |entry|
-                    @log = Log.find_by_oyd_hash(entry)
+                    @log = Log.find_by_oyd_hash(entry) rescue nil
                     if !@log.nil?
                         if !done.include?(@log.did)
                             new_dids << @log.did

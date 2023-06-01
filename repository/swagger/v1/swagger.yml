@@ -72,6 +72,21 @@ paths:
       responses:
         "200":
           description: success
+  /log/{id}/item:
+    get:
+      summary: retriev specific log record
+      tags:
+        - Log
+      parameters:
+          - name: id
+            in: path
+            required: true
+            description: hash value of log record
+            schema:
+              type: string
+      responses:
+        "200":
+          description: success
   /log/{did}:
     post:
       summary: add new log entry

@@ -7,9 +7,8 @@ import subprocess
 from pathlib import Path
 
 # run in pytest/
-# export OYDIDCMD='../oydid.rb'; pytest
 
-service = "https://oydid-registrar.data-container.net"
+service = "https://oydid.ownyourdata.eu"
 oydidcmd = os.getenv('OYDIDCMD') or "oydid"
 os.environ["OYDIDCMD"] = oydidcmd
 
@@ -20,12 +19,13 @@ def test_service():
 # test groups
 # 01 - general tests for CLI
 # 02 - uniresolver tests
-# 03 - uniregistrar tests
+# 03 - uniregistrar.data-container.net tests
 # 04 - digest agility tests
+# 05 - uniregistrar.io tests
 
 # doc: https://pypi.org/project/pytest-subprocess/
 cwd = os.getcwd()
-@pytest.mark.parametrize('input',  glob.glob(cwd+'/01_input/*.doc'))
+@pytest.mark.parametrize('input',  sorted(glob.glob(cwd+'/01_input/*.doc')))
 # def test_01_simple(input):
 def test_01_simple(fp, input):
     fp.allow_unregistered(True)

@@ -2165,3 +2165,43 @@ Processing by DidsController#create as */*
 Completed 200 OK in 16487ms (Views: 0.4ms)
 
 
+Started POST "/1.0/create" for 127.0.0.1 at 2023-03-19 19:22:25 +0100
+DEPRECATION WARNING: Non-URL-safe CSRF tokens are deprecated. Use 6.1 defaults or above. (called from <main> at /Users/christoph/dev/oydid/uni-registrar-driver-did-oyd/app/controllers/application_controller.rb:1)
+Processing by DidsController#create as */*
+  Parameters: {"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"1", "rev_pwd"=>"2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1"}, "did"=>{"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"1", "rev_pwd"=>"2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1"}}}
+Completed 200 OK in 190ms (Views: 0.1ms | Allocations: 15323)
+
+
+Started POST "/1.0/create" for 127.0.0.1 at 2023-03-19 19:25:05 +0100
+DEPRECATION WARNING: Non-URL-safe CSRF tokens are deprecated. Use 6.1 defaults or above. (called from <main> at /Users/christoph/dev/oydid/uni-registrar-driver-did-oyd/app/controllers/application_controller.rb:1)
+Processing by DidsController#create as */*
+  Parameters: {"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"1", "rev_pwd"=>"2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1"}, "did"=>{"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"1", "rev_pwd"=>"2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1"}}}
+Completed 200 OK in 130ms (Views: 0.3ms | Allocations: 14037)
+
+
+Started POST "/1.0/create" for 127.0.0.1 at 2023-03-19 19:30:56 +0100
+DEPRECATION WARNING: Non-URL-safe CSRF tokens are deprecated. Use 6.1 defaults or above. (called from <main> at /Users/christoph/dev/oydid/uni-registrar-driver-did-oyd/app/controllers/application_controller.rb:1)
+Processing by DidsController#create as */*
+  Parameters: {"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"1", "rev_pwd"=>"2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1"}, "did"=>{"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"1", "rev_pwd"=>"2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1"}}}
+Completed 200 OK in 178ms (Views: 0.4ms | Allocations: 14112)
+
+
+Started POST "/1.0/create" for 127.0.0.1 at 2023-03-19 22:17:10 +0100
+DEPRECATION WARNING: Non-URL-safe CSRF tokens are deprecated. Use 6.1 defaults or above. (called from <main> at /Users/christoph/dev/oydid/uni-registrar-driver-did-oyd/app/controllers/application_controller.rb:1)
+Processing by DidsController#create as */*
+  Parameters: {"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"1", "rev_pwd"=>"2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1"}, "did"=>{"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"1", "rev_pwd"=>"2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1"}}}
+Completed 200 OK in 101ms (Views: 0.2ms | Allocations: 13976)
+
+
+Started POST "/1.0/create" for 127.0.0.1 at 2023-03-19 22:17:24 +0100
+Processing by DidsController#create as */*
+  Parameters: {"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"1", "rev_pwd"=>"2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1"}, "did"=>{"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"1", "rev_pwd"=>"2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1"}}}
+Completed 200 OK in 100ms (Views: 0.1ms | Allocations: 10941)
+
+
+Started POST "/1.0/create" for 127.0.0.1 at 2023-03-19 22:17:35 +0100
+Processing by DidsController#create as */*
+  Parameters: {"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"1", "rev_pwd"=>"2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1"}, "did"=>{"options"=>{"ts"=>1}, "secret"=>{"doc_pwd"=>"1", "rev_pwd"=>"2"}, "didDocument"=>{"@context"=>"https://www.w3.org/ns/did/v1"}}}
+Completed 200 OK in 96ms (Views: 0.1ms | Allocations: 10909)
+
+

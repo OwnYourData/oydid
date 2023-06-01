@@ -1,4 +1,4 @@
-FROM ruby:2.5.9
+FROM ruby:3.1.3
 MAINTAINER "Christoph Fabianek" christoph@ownyourdata.eu
 
 WORKDIR /usr/src/app
@@ -11,9 +11,7 @@ RUN mkdir -p $RAILS_ROOT/tmp/pids && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY Gemfile $WORKDIR
-RUN gem install bundler:1.17.3 && \
-	gem update --system 3.2.3 && \
-	bundle install && \
+RUN bundle install && \
 	bundle update
 
 ENV LANG=C.UTF-8

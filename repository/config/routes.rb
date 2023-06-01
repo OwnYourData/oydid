@@ -8,6 +8,7 @@ Rails.application.routes.draw do
     match 'did/:did',             to: 'dids#show',              via: 'get', constraints: {did: /.*/}
     match 'did',                  to: 'dids#create',            via: 'post'
     match 'doc',                  to: 'dids#create',            via: 'post'
+    match 'log/:id/item',         to: 'logs#show_item',         via: 'get', constraints: {id: /.*/}
     match 'log/:id',              to: 'logs#show',              via: 'get', constraints: {id: /.*/}
     match 'log/:did',             to: 'logs#create',            via: 'post', constraints: {did: /.*/}
     match 'doc/:did',             to: 'dids#delete',            via: 'delete', constraints: {did: /.*/}
@@ -19,9 +20,7 @@ Rails.application.routes.draw do
     match 'presentations',        to: 'credentials#publish_vp', via: 'post'
 
     # Uniresolver endpoint
-    match 'new/identifiers/:did',    to: 'dids#resolve',        via: 'get', constraints: {did: /.*/}
     match '1.0/identifiers/:did',    to: 'dids#resolve',        via: 'get', constraints: {did: /.*/}
-    match 'legacy/identifiers/:did', to: 'dids#legacy_resolve', via: 'get', constraints: {did: /.*/}
 
     # Uniregistrar endpoints
     match '1.0/create',     to: 'dids#uniregistrar_create',     via: 'post'

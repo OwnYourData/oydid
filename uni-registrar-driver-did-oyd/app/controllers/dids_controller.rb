@@ -122,6 +122,7 @@ class DidsController < ApplicationController
                 end
             end
         end
+        
         if !preprocessed
             status, msg = Oydid.create(doc, options)
         end

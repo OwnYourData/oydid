@@ -29,8 +29,8 @@ class CredentialsController < ApplicationController
                 cs = cs.transform_keys(&:to_s) rescue nil
             end
             holder = cs["id"] rescue nil
-            pubKey, msg = Oydid.getPubKeyFromDID(holder)
-            if pubKey == @at.public_key.to_s
+            pubKeys, msg = Oydid.getDelegatedPubKeysFromDID(holder)
+            if @at.public_key.to_s.in?(pubKeys)
                 render json: @cred.vc,
                        status: 200
             else

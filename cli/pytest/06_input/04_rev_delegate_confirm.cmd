@@ -1,0 +1,1 @@
+$OYDIDCMD delegate --rev-pwd pwd4 -z 4 -s did:oyd:zQmZDcGjnqmpTWuoszJsN5yDAKyCqYLzFom44FrbFuaZHsV && echo '["zQmQk6t9uYdARmwXERHpbGSTLJf9YmyQzMv36rMfJpZYs58", "zQmYaxY9h1JKDJjZYHGCZhZf1AeGcprW5DKduBkQmeUz3Ng"]' | $OYDIDCMD confirm --old-doc-pwd pwd1 --old-rev-pwd pwd2 --doc-pwd pwd1 --rev-pwd pwd2 -z 5 -s did:oyd:zQmZDcGjnqmpTWuoszJsN5yDAKyCqYLzFom44FrbFuaZHsV

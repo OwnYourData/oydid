@@ -1,0 +1,1 @@
+$OYDIDCMD confirm --old-doc-pwd pwd1 --old-rev-pwd pwd2 --doc-pwd pwd1 --rev-pwd pwd2 -z 3 -s did:oyd:zQmSGdgg9jqBRZ6swpet9UK6bWxQfMoG9aQrqsmJpP4wA2A

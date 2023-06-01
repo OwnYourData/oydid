@@ -23,3 +23,68 @@ oydid read did:oyd:z6MuvWooepYBxXLdYggPjxfEZCW3DqDhapLCnYDxnQjkoShA%40http%3A%2F
 
 
 echo '[0]' | oydid create --doc-pwd pwd1 --rev-pwd pwd2 -z 1 -l https://did2.data-container.net
+
+# delegation ====
+
+docker run -d --name did_repo -e DID_DB=local -e DEFAULT_VC_OAUTH_APP="oydid-vc" -p 3000:3000 oydeu/oydid-base:arm64v8
+
+# in container:
+Doorkeeper::Application.create!({name: 'oydid-vc', redirect_uri: 'urn:ietf:wg:oauth:2.0:oob', scopes: 'read'})
+
+echo '' | oydid create -l http://localhost:3000 -s --doc-pwd pwd1 --rev-pwd pwd2 -z 1
+# created did:oyd:zQmXRiepdNpw3maYHxmtyXzeKnDLYbjxsNDojcPcJ1dg6QG%40http%3A%2F%2Flocalhost%3A3000
+
+# DOC delegate
+oydid delegate --doc-pwd pwd3 -z 2 did:oyd:zQmXRiepdNpw3maYHxmtyXzeKnDLYbjxsNDojcPcJ1dg6QG%40http%3A%2F%2Flocalhost%3A3000
+# delegate log record zQmYpRMAMYVty5E6QkekChgEpsb5mYFdpin9NdF3LBCrttU
+
+# REV delegate
+oydid delegate --rev-pwd pwd4 -z 2 did:oyd:zQmXRiepdNpw3maYHxmtyXzeKnDLYbjxsNDojcPcJ1dg6QG%40http%3A%2F%2Flocalhost%3A3000
+# delegate log record zQmatUuUdj7JiXseUS2kXXNtJrs466nF32BhfU92Jzdisez
+
+# confirm only DOC
+echo '["zQmYpRMAMYVty5E6QkekChgEpsb5mYFdpin9NdF3LBCrttU"]' | oydid confirm --old-doc-pwd pwd1 --old-rev-pwd pwd2 --doc-pwd pwd1 --rev-pwd pwd2 -z 3 did:oyd:zQmXRiepdNpw3maYHxmtyXzeKnDLYbjxsNDojcPcJ1dg6QG%40http%3A%2F%2Flocalhost%3A3000
+
+# confirm DOC & REV
+echo '["zQmYpRMAMYVty5E6QkekChgEpsb5mYFdpin9NdF3LBCrttU", "zQmatUuUdj7JiXseUS2kXXNtJrs466nF32BhfU92Jzdisez"]' | oydid confirm --old-doc-pwd pwd1 --old-rev-pwd pwd2 --doc-pwd pwd1 --rev-pwd pwd2 -z 3 -s did:oyd:zQmXRiepdNpw3maYHxmtyXzeKnDLYbjxsNDojcPcJ1dg6QG%40http%3A%2F%2Flocalhost%3A3000
+
+
+# create VC
+echo '{"key":"value"}' | oydid vc-push --issuer did:oyd:zQmXRiepdNpw3maYHxmtyXzeKnDLYbjxsNDojcPcJ1dg6QG%40http%3A%2F%2Flocalhost%3A3000 --holder did:oyd:zQmXRiepdNpw3maYHxmtyXzeKnDLYbjxsNDojcPcJ1dg6QG%40http%3A%2F%2Flocalhost%3A3000 -l http://localhost:3000 --doc-pwd pwd1 -z 1
+# created http://localhost:3000/credentials/zQmYWAbih8F3cgeCwcMjmrj5y8saDVEYZQUx7JKS8cDFNFa
+
+# read from delegate
+oydid vc-read zQmYWAbih8F3cgeCwcMjmrj5y8saDVEYZQUx7JKS8cDFNFa --holder did:oyd:zQmXRiepdNpw3maYHxmtyXzeKnDLYbjxsNDojcPcJ1dg6QG%40http%3A%2F%2Flocalhost%3A3000 -l http://localhost:3000 --doc-pwd pwd3
+
+
+# update DID with delegate
+echo '[20]' | oydid update did:oyd:zQmUTQxynLUgtzDvRAoQ9rQtM3P7m2CmDKVBXWXDuaRARZk%40http%3A%2F%2Flocalhost%3A3000 --old-doc-pwd pwd3 --old-rev-pwd pwd4 --doc-pwd pwd5 --rev-pwd pwd6 -z 4 -s 
+
+
+
+
+# fix delegate update bug
+
+### pytests
+$ echo '[0]' | oydid create -l http://localhost:3000 --doc-pwd pwd1 --rev-pwd pwd2 -z 1 -s
+created did:oyd:zQmV4Fc5QVD82VPbRj4e5uHPwCRCJGPej9kUYHUinxiYaQ8%40http%3A%2F%2Flocalhost%3A3000
+
+$ oydid delegate --doc-pwd pwd3 -z 2 -s did:oyd:zQmV4Fc5QVD82VPbRj4e5uHPwCRCJGPej9kUYHUinxiYaQ8%40http%3A%2F%2Flocalhost%3A3000
+delegate log record zQmZkHNXGPK2j4HMaUFkw3smVUkX4QD2meupWXezZzqrTVK
+
+$ oydid pubkeys did:oyd:zQmV4Fc5QVD82VPbRj4e5uHPwCRCJGPej9kUYHUinxiYaQ8%40http%3A%2F%2Flocalhost%3A3000
+authorized public keys: z6MuvWooepYBxXLdYggPjxfEZCW3DqDhapLCnYDxnQjkoShA
+
+$ echo '["zQmZkHNXGPK2j4HMaUFkw3smVUkX4QD2meupWXezZzqrTVK"]' | oydid confirm --old-doc-pwd pwd1 --old-rev-pwd pwd2 --doc-pwd pwd1 --rev-pwd pwd2 -z 3 -s did:oyd:zQmV4Fc5QVD82VPbRj4e5uHPwCRCJGPej9kUYHUinxiYaQ8%40http%3A%2F%2Flocalhost%3A3000
+updated did:oyd:zQmahAfQpqxhUsUTqx5fS5jvaLrnbvC1UCWaYx63yXuzNEC%40http%3A%2F%2Flocalhost%3A3000 (with 1 confirmation log entries)
+
+$ oydid delegate --rev-pwd pwd4 -z 4 -s did:oyd:zQmahAfQpqxhUsUTqx5fS5jvaLrnbvC1UCWaYx63yXuzNEC%40http%3A%2F%2Flocalhost%3A3000
+delegate log record zQmZh3zG6jn7JjuCiK1uBCFTyXXqxbvCdcsCeWxAUDXqrxV
+
+$ echo '["zQmZkHNXGPK2j4HMaUFkw3smVUkX4QD2meupWXezZzqrTVK", "zQmZh3zG6jn7JjuCiK1uBCFTyXXqxbvCdcsCeWxAUDXqrxV"]' | oydid confirm --old-doc-pwd pwd1 --old-rev-pwd pwd2 --doc-pwd pwd1 --rev-pwd pwd2 -z 5 -s did:oyd:zQmahAfQpqxhUsUTqx5fS5jvaLrnbvC1UCWaYx63yXuzNEC%40http%3A%2F%2Flocalhost%3A3000
+updated did:oyd:zQmeVwjsqBXnty31KzDGyXJYAfiXQy1PHTt4ekkv1mu212e%40http%3A%2F%2Flocalhost%3A3000 (with 2 confirmation log entries)
+
+$ echo '[1]' | oydid update did:oyd:zQmeVwjsqBXnty31KzDGyXJYAfiXQy1PHTt4ekkv1mu212e%40http%3A%2F%2Flocalhost%3A3000 --old-doc-pwd pwd3 --old-rev-pwd pwd4 --doc-pwd pwd5 --rev-pwd pwd6 -z 6 -s
+updated did:oyd:zQmPF44abwddFGCzkspcA7ErbxqbTFJ6VEUqxAZw4PcYK7H%40http%3A%2F%2Flocalhost%3A3000
+
+

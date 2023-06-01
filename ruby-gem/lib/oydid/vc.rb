@@ -52,7 +52,6 @@ class Oydid
             return [nil, msg]
             exit
         end
-
         retVal = HTTParty.get(vc_url,
             headers: {'Authorization' => 'Bearer ' + access_token})
         if retVal.code != 200
@@ -111,7 +110,7 @@ class Oydid
             proof["type"] = "Ed25519Signature2020"
             proof["verificationMethod"] = options[:issuer].to_s
             proof["proofPurpose"] = "assertionMethod"
-            proof["proofValue"] = sign(vercred["credentialSubject"].to_json_c14n, options[:issuer_privateKey], []).first
+            proof["proofValue"] = sign(vercred["credentialSubject"].transform_keys(&:to_s).to_json_c14n, options[:issuer_privateKey], []).first
             vercred["proof"] = proof
         else
             vercred["proof"] = content["proof"]
@@ -126,6 +125,9 @@ class Oydid
     end
 
     def self.create_vc_proof(content, options)
+        if content["id"].nil?
+            content["id"] = options[:holder]
+        end
         proof = {}
         proof["type"] = "Ed25519Signature2020"
         proof["verificationMethod"] = options[:issuer].to_s

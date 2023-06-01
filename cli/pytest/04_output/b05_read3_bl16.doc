@@ -46,7 +46,7 @@ found UPDATE log record:
     "zQmQ8qgUGTsUDsv8XshjvKtu4VsUPscZuSoM5GThobXexB5"
   ]
 }
-✅ public key from last DID Document: z6MuvWooepYBxXLdYggPjxfEZCW3DqDhapLCnYDxnQjkoShA
+✅ public key: z6MuvWooepYBxXLdYggPjxfEZCW3DqDhapLCnYDxnQjkoShA
 verifies 'doc' reference of new DID Document: z5yEpGrAnNYXPNf8UK4rA5yZS@https://did2.data-container.net
 zJfXAHiq4an6ug2zeQXyaBoGJ9DGdz6YkP7dLjx4t96LKF8sFXN6pfZKHZoNw2hyjGh1MT3663MjFM5B2uaBD5Sp
 of next DID Document (Details: https://ownyourdata.github.io/oydid/#verify_signature)

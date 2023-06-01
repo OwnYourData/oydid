@@ -1,0 +1,1 @@
+$OYDIDCMD pubkeys did:oyd:zQmSGdgg9jqBRZ6swpet9UK6bWxQfMoG9aQrqsmJpP4wA2A

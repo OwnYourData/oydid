@@ -21,7 +21,7 @@ gem 'multicodecs'
 gem 'json-canonicalization', '~> 0.3.0'
 gem 'oydid', '~> 0.5.3'
 gem 'doorkeeper'
-
+gem 'sass-rails'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
