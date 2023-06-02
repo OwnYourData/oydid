@@ -41,4 +41,4 @@ If you want to contribute, please follow these steps:
 
 ## License
 
-[MIT License 2022 - OwnYourData.eu](https://raw.githubusercontent.com/OwnYourData/oydid/main/LICENSE)
+[MIT License 2021-23 - OwnYourData.eu](https://raw.githubusercontent.com/OwnYourData/oydid/main/LICENSE)
