@@ -326,7 +326,7 @@ class Oydid
     def self.read_private_key(filename, options)
         begin
             f = File.open(filename)
-            key_encoded = f.read
+            key_encoded = f.read.strip
             f.close
         rescue
             return [nil, "cannot read file"]

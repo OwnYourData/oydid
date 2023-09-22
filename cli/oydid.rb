@@ -112,6 +112,135 @@ end
 
 # Semantic Container OYDID functions -------------------------------
 
+def sc_auth(did, host, options)
+    token = ""
+    if options[:trace]
+        puts "DID: " + did
+        puts "HOST: " + host
+        puts "Options"
+        puts JSON.pretty_generate(options)
+    end
+
+    # key management
+    tmp_did_hash = did.delete_prefix("did:oyd:") rescue ""
+    tmp_did10 = tmp_did_hash[0,10] + "_private_key.enc" rescue ""
+    privateKey, msg = Oydid.getPrivateKey(options[:doc_enc], options[:doc_pwd], options[:doc_key], tmp_did10, options)
+    if privateKey.nil?
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: private key not found"
+            else
+                puts '{"error": "private key not found"}'
+            end
+        end
+        exit 1
+    end
+
+    if did.include?(LOCATION_PREFIX)
+        hash_split = did.split(LOCATION_PREFIX)
+        doc_location = hash_split[1]
+    end
+
+    # check if provided private key matches pubkey in DID document
+    did_info, msg = Oydid.read(did, options)
+    if did_info.nil?
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: cannot resolve DID (on oydid auth)"
+            else
+                puts '{"error": "cannot resolve DID (on oydid auth)"}'
+            end
+        end
+        exit 1
+    end
+    if did_info["error"] != 0
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: " + did_info["message"].to_s
+            else
+                puts '{"error": "' + did_info["message"].to_s + '"}'
+            end
+        end
+        exit 1
+        # return [nil, did_info["message"].to_s]
+    end
+    if did_info["doc"]["key"].split(":")[0].to_s != Oydid.public_key(privateKey, options).first
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: private key does not match DID document"
+            else
+                puts '{"error": "private key does not match DID document"}'
+            end
+        end
+        exit 1
+    end
+
+    # authenticate against container
+    init_url = host + "/oydid/init"
+    if !init_url.start_with?("http")
+        init_url = "https://" + init_url
+    end
+    sid = SecureRandom.hex(20).to_s
+    request_body = { "session_id": sid, "did": did }
+    if options[:trace]
+        puts "Request"
+        puts init_url.to_s
+        puts request_body.to_json
+    end
+    response = HTTParty.post(init_url,
+        headers: { 'Content-Type' => 'application/json' },
+        body: request_body.to_json ).parsed_response rescue {}
+    if response["challenge"].nil?
+        if options[:silent].nil? || !options[:silent]
+            err_msg = "invalid container authentication"
+            if !response["error"].nil?
+                err_msg += " (" + response["error"].to_s + ")"
+            end
+            if options[:json].nil? || !options[:json]
+                puts "Error: " + err_msg
+            else
+                puts '{"error": "' + err_msg + '"}'
+            end
+        end
+        exit 1
+    end
+    challenge = response["challenge"].to_s
+
+    # sign challenge and request token
+    token_url = host + "/oydid/token"
+    if !token_url.start_with?("http")
+        token_url = "https://" + token_url
+    end
+    request_body = { "session_id": sid, "signed_challenge": Oydid.sign(challenge, privateKey, options).first }
+    response = HTTParty.post(token_url,
+        headers: { 'Content-Type' => 'application/json' },
+        body: request_body.to_json).parsed_response rescue {}
+    token = response["access_token"] rescue nil
+    if token.to_s == ""
+        if options[:silent].nil? || !options[:silent]
+            err_msg = "container does not provide token"
+            if !response["error"].nil?
+                err_msg += " (" + response["error"].to_s + ")"
+            end
+            if options[:json].nil? || !options[:json]
+                puts "Error: " + err_msg
+            else
+                puts '{"error": "' + err_msg + '"}'
+            end
+        end
+        exit 1
+    else
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Token: " + token
+            else
+                puts response.to_json
+            end
+        end
+    end
+
+end
+
 def sc_init(options)
     sc_info_url = options[:location].to_s + "/api/info"
     sc_info = HTTParty.get(sc_info_url,
@@ -202,14 +331,29 @@ def sc_token(did, options)
     # check if provided private key matches pubkey in DID document
     did_info, msg = Oydid.read(did, options)
     if did_info.nil?
-        return [nil, "cannot resolve DID (on sc_token)"]
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: cannot resolve DID (on sc_token)"
+            else
+                puts '{"error": "cannot resolve DID (on sc_token)"}'
+            end
+        end
+        exit 1
+        # return [nil, "cannot resolve DID (on sc_token)"]
     end
     if did_info["error"] != 0
-        return [nil, did_info["message"].to_s]
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: " + did_info["message"].to_s
+            else
+                puts '{"error": "' + did_info["message"].to_s + '"}'
+            end
+        end
+        exit 1
+        # return [nil, did_info["message"].to_s]
     end
     if did_info["doc"]["key"].split(":")[0].to_s != Oydid.public_key(privateKey, options).first
         if options[:silent].nil? || !options[:silent]
-            puts "Error: private key does not match DID document"
             if options[:json].nil? || !options[:json]
                 puts "Error: private key does not match DID document"
             else
@@ -226,6 +370,9 @@ def sc_token(did, options)
     end
     sid = SecureRandom.hex(20).to_s
     request_body = { "session_id": sid, "public_key": Oydid.public_key(privateKey, options).first }
+puts "Request Body"
+puts init_url.to_s
+puts request_body.to_json
     response = HTTParty.post(init_url,
         headers: { 'Content-Type' => 'application/json' },
         body: request_body.to_json ).parsed_response rescue {}
@@ -380,11 +527,12 @@ def print_help()
     puts "  jws-verify - read JWS and verify signature"
     puts ""
     puts "Semantic Container operations:"
-    puts "  sc_init   - create initial DID for a Semantic Container "
-    puts "              (requires TOKEN with admin scope)"
-    puts "  sc_token  - retrieve OAuth2 bearer token using DID Auth"
-    puts "  sc_create - create additional DID for specified subset of data and"
-    puts "              scope"
+    puts "  auth       - retrieve OAuth2 bearer token using DID Auth"
+    puts "  sc_init    - create initial DID for a Semantic Container "
+    puts "               (requires TOKEN with admin scope)"
+    # puts "  sc_token   - retrieve OAuth2 bearer token using DID Auth"
+    puts "  sc_create  - create additional DID for specified subset of data and"
+    puts "               scope"
     puts ""
     puts "OPTIONS"
     puts "     --doc-key DOCUMENT-KEY        - filename with Multibase encoded "
@@ -641,6 +789,21 @@ when "decrypt-jwt", "verify-jws", "verify-signed-message"
         end
         exit(-1)
     end
+# DID Auth with DID and HOST after command
+when "auth"
+    # puts "DID: " + input_did.to_s
+    input_host = ARGV.shift rescue ""
+    if input_host.to_s == ""
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: missing host"
+            else
+                puts '{"error": "mssing host"}'
+            end
+        end
+        exit(-1)
+    end
+    # puts "HOST: " + input_host.to_s
 end
 
 if options[:doc_location].nil?
@@ -1287,6 +1450,8 @@ when "verify-signed-message"
         end
     end
 
+when "auth"
+    sc_auth(input_did, input_host, options)
 when "sc_init"
     sc_init(options)
 when "sc_token"

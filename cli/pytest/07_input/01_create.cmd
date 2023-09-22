@@ -1,0 +1,1 @@
+curl -s -H "Content-Type: application/json" -d @- -X POST https://oydid-registrar.data-container.net/1.0/createIdentifier  | jq '.keys[0] | has("publicKeyHex")'
