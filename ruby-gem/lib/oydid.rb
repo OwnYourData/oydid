@@ -1069,13 +1069,17 @@ class Oydid
                         didDoc.delete("assertionMethod")
                     end
                     if didDoc["keyAgreement"].to_s != ""
-                        wd["keyAgreement"] = didDoc["keyAgreement"]
-                        wd["keyAgreement"].each do |el|
-                            el = el.transform_keys(&:to_s)
-                            el["id"] = percent_encode(did) + el["id"]
-                            el["controller"] = percent_encode(did)
+                        new_keyAgreement = []
+                        didDoc["keyAgreement"].each do |el|
+                            new_el = el.transform_keys(&:to_s)
+                            new_el["id"] = percent_encode(did) + el["id"]
+                            new_el["controller"] = percent_encode(did)
+                            new_keyAgreement << new_el
+                        end unless didDoc["keyAgreement"].nil?
+                        if new_keyAgreement.length > 0
+                            wd["keyAgreement"] = new_keyAgreement
+                            didDoc.delete("keyAgreement")
                         end
-                        didDoc.delete("keyAgreement")
                     end
                     if didDoc["capabilityInvocation"].to_s != ""
                         wd["capabilityInvocation"] = didDoc["capabilityInvocation"]
