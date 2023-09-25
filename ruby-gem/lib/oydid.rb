@@ -1072,7 +1072,7 @@ class Oydid
                         new_keyAgreement = []
                         didDoc["keyAgreement"].each do |el|
                             new_el = el.transform_keys(&:to_s)
-                            new_el["id"] = percent_encode(did) + el["id"]
+                            new_el["id"] = percent_encode(did) + new_el["id"]
                             new_el["controller"] = percent_encode(did)
                             new_keyAgreement << new_el
                         end unless didDoc["keyAgreement"].nil?
