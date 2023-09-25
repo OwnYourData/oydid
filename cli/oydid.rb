@@ -662,6 +662,9 @@ opt_parser = OptionParser.new do |opt|
   opt.on("--old-rev-enc OLD-REVOCATIONKEY-ENCODED") do |rp|
     options[:old_rev_enc] = rp
   end
+  opt.on("--add-x25519pubkey-keyAgreement") do |ax|
+    options[:x25519_keyAgreement] = true
+  end
   opt.on("--simulate") do |simulate|
     options[:simulate] = true
   end
@@ -1625,7 +1628,8 @@ when "encrypt"
     result, msg = Oydid.encrypt(content.to_json, publicKey, {})
     puts result.to_json
 when "decrypt"
-    privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
+    privateKey, msg = Oydid.getPrivateKey(options[:doc_enc], options[:doc_pwd], nil, nil, options)
+    # privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
     message, err = Oydid.decrypt(content.to_json, privateKey, options)
     puts message.to_s
 else
