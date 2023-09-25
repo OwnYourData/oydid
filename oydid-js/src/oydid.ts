@@ -3,7 +3,7 @@ import axios from 'axios';
 export const DEFAULT_DIGEST = "sha2-256";
 export const DEFAULT_ENCODING = "base58btc";
 
-interface ReadOptions {
+export interface ReadOptions {
     encode: "base16" | "base32" | "base58btc" | "base64";
     digest: "sha2-256" | "sha2-512" | "sha3-224" | "sha3-256" | "sha3-384" | "sha3-512" | "blake2b-16" | "blake2b-32" | "blake2b-64";
     simulate: boolean
