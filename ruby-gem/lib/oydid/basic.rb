@@ -98,7 +98,7 @@ class Oydid
     end
 
     # key management ----------------------------
-    def self.generate_private_key(input, method = "ed25519-priv", options)
+    def self.generate_private_key(input, method = "ed25519-priv", options = {})
         begin
             omc = Multicodecs[method].code
         rescue
@@ -124,7 +124,7 @@ class Oydid
         end
     end
 
-    def self.public_key(private_key, options, method = "ed25519-pub")
+    def self.public_key(private_key, options = {}, method = "ed25519-pub")
         code, length, digest = multi_decode(private_key).first.unpack('SCa*')
         case Multicodecs[code].name
         when 'ed25519-priv'

@@ -289,6 +289,18 @@ class Oydid
         pubRevoKey = public_key(revocationKey, options).first
         did_key = publicKey + ":" + pubRevoKey
 
+        if options[:x25519_keyAgreement]
+            if did_doc.nil?
+                did_doc = {}
+            end
+            did_doc[:keyAgreement] = [{
+                "id": "#key-doc-x25519",
+                "type": "X25519KeyAgreementKey2019",
+                "publicKeyMultibase": Oydid.public_key(privateKey, options, 'x25519-pub').first
+            }]
+            did_doc = did_doc.transform_keys(&:to_s)
+        end
+
         # build new revocation document
         subDid = {"doc": did_doc, "key": did_key}.to_json
         retVal = multi_hash(canonical(subDid), LOG_HASH_OPTIONS)
@@ -494,14 +506,17 @@ class Oydid
         success, msg = publish(did, didDocument, logs, options)
 
         if success
+            didDocumentBackup = Marshal.load(Marshal.dump(didDocument))
             w3c_input = {
-                "did" => did,
-                "doc" => didDocument
+                "did" => did.clone,
+                "doc" => didDocument.clone
             }
+            doc_w3c = Oydid.w3c(w3c_input, options)
+            didDocument = didDocumentBackup
             retVal = {
                 "did" => did,
                 "doc" => didDocument,
-                "doc_w3c" => w3c(w3c_input, options),
+                "doc_w3c" => doc_w3c,
                 "log" => logs
             }
             if options[:return_secrets]
@@ -932,7 +947,7 @@ class Oydid
             did = "did:oyd:" + did
         end
 
-        didDoc = did_info.transform_keys(&:to_s)["doc"]
+        didDoc = did_info.dup.transform_keys(&:to_s)["doc"]
         pubDocKey = didDoc["key"].split(":")[0] rescue ""
         pubRevKey = didDoc["key"].split(":")[1] rescue ""
         delegateDocKeys = getDelegatedPubKeysFromDID(did, "doc").first - [pubDocKey] rescue []
@@ -1055,6 +1070,11 @@ class Oydid
                     end
                     if didDoc["keyAgreement"].to_s != ""
                         wd["keyAgreement"] = didDoc["keyAgreement"]
+                        wd["keyAgreement"].each do |el|
+                            el = el.transform_keys(&:to_s)
+                            el["id"] = percent_encode(did) + el["id"]
+                            el["controller"] = percent_encode(did)
+                        end
                         didDoc.delete("keyAgreement")
                     end
                     if didDoc["capabilityInvocation"].to_s != ""
@@ -1066,6 +1086,9 @@ class Oydid
                         didDoc.delete("capabilityDelegation")
                     end
                     payload = didDoc
+                    if payload == {}
+                        payload = nil
+                    end
                 end
             else
                 payload = didDoc["doc"]

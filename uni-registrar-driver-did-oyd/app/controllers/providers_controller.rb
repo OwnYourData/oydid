@@ -52,6 +52,7 @@ class ProvidersController < ApplicationController
             end
         end
 
+        # options = {:return_secrets => true}
         doc = {}
         did_obj = JSON.parse(doc.to_json) rescue nil
         if !did_obj.nil? && did_obj.is_a?(Hash)
@@ -59,7 +60,23 @@ class ProvidersController < ApplicationController
                 doc = Oydid.fromW3C(didDocument, options)
             end
         end
+        options[:x25519_keyAgreement] = true
         status, msg = Oydid.create(doc, options)
+
+        # did_obj = {"keyAgreement":[
+        #     {
+        #         "id": Oydid.percent_encode(status["did"]) + "#key-doc-x25519", 
+        #         "type": "X25519KeyAgreementKey2019", 
+        #         "controller": Oydid.percent_encode(status["did"]), 
+        #         "publicKeyMultibase": Oydid.public_key(status["private_key"], {}, 'x25519-pub').first
+        #     }
+        # ]}
+        # # did_obj = Oydid.fromW3C(doc_w3c, {})
+        # options[:doc_enc] = status["private_key"]
+        # options[:old_doc_enc] = status["private_key"]
+        # options[:rev_enc] = status["revocation_key"]
+        # options[:old_rev_enc] = status["revocation_key"]
+        # status, msg = Oydid.update(did_obj, status["did"], options)
 
         if status.nil?
             render json: {"error": msg},
