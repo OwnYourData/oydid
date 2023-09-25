@@ -1,9 +1,9 @@
-FROM ruby:2.6.9-alpine
+FROM ruby:2.7.8-alpine
 MAINTAINER "Christoph Fabianek" christoph@ownyourdata.eu
 
 RUN addgroup -S user && \
     adduser -S user -G user && \
-    apk add --no-cache libsodium-dev git make gcc musl-dev jq bash curl gdbm && \
+    apk add --no-cache libsodium-dev git make gcc musl-dev jq bash curl gdbm gdbm-dev && \
     gem install httparty ed25519 multibases multihashes multicodecs optparse rbnacl dag uri json-canonicalization oydid && \
     gem install securerandom -v 0.1.1 && \
     apk add --update --no-cache python3 && \
