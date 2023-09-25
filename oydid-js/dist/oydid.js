@@ -34,8 +34,8 @@ const create = (content, options) => __awaiter(void 0, void 0, void 0, function*
     };
 });
 exports.create = create;
-const did_auth = (did, key) => __awaiter(void 0, void 0, void 0, function* () {
-    const url = "https://regapi.data-container.net/did_auth";
+const did_auth = (did, key, regapi_url) => __awaiter(void 0, void 0, void 0, function* () {
+    const url = regapi_url + "/did_auth";
     const body = { did: did, key: key };
     const result = yield axios_1.default.post(url, body);
     return result.data.access_token;

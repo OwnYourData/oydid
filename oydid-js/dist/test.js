@@ -10,7 +10,7 @@ const oydid_1 = require("./oydid");
 //     console.log(JSON.stringify(response, null, 2));
 // })
 const response = (0, oydid_1.create)().then(response => {
-    (0, oydid_1.did_auth)(response.id, response.docKey).then(val => {
+    (0, oydid_1.did_auth)(response.id, response.docKey, "https://regapi.data-container.net").then(val => {
         console.log(val.toString());
     });
 });
