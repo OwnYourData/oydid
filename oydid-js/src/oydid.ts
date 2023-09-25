@@ -59,8 +59,8 @@ export const create = async(content?: any, options?: Partial<ReadOptions>) : Pro
     }
 }
 
-export const did_auth = async(did: string, key: string) : Promise<String> => {
-    const url = "https://regapi.data-container.net/did_auth";
+export const did_auth = async(did: string, key: string, regapi_url: string) : Promise<String> => {
+    const url = regapi_url + "/did_auth";
     const body = {did: did, key: key};
     const result = await axios.post(url, body);
     return result.data.access_token;

@@ -11,7 +11,7 @@ import { read, create, did_auth } from "./oydid";
 // })
 
 const response = create().then(response => {
-    did_auth(response.id, response.docKey).then(val => {
+    did_auth(response.id, response.docKey, "https://regapi.data-container.net").then(val => {
         console.log(val.toString())
     })
 })
