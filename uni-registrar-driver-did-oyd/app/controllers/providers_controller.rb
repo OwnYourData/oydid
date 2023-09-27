@@ -88,7 +88,7 @@ class ProvidersController < ApplicationController
             keys << {
                 "kid": Oydid.percent_encode(status["did"]) +  '#key-doc',
                 "kms": "local",
-                "type": "ed25519", 
+                "type": "Ed25519", 
                 "publicKeyHex": Oydid.multi_decode(status["doc"]["key"].split(":").first).first.unpack('H*').first,
                 "privateKeyHex": Oydid.multi_decode(status["private_key"]).first.unpack('H*').first
             }
@@ -97,7 +97,7 @@ class ProvidersController < ApplicationController
             keys << {
                 "kid": Oydid.percent_encode(status["did"]) +  '#key-rev',
                 "kms": "local",
-                "type": "ed25519", 
+                "type": "Ed25519", 
                 "publicKeyHex": Oydid.multi_decode(status["doc"]["key"].split(":").last).first.unpack('H*').first,
                 "privateKeyHex": Oydid.multi_decode(status["revocation_key"]).first.unpack('H*').first
             }
@@ -198,7 +198,7 @@ class ProvidersController < ApplicationController
             keys << {
                 "kid": Oydid.percent_encode(status["did"]) +  '#key-doc',
                 "kms": "local",
-                "type": "ed25519", 
+                "type": "Ed25519", 
                 "publicKeyHex": Oydid.multi_decode(status["doc"]["key"].split(":").first).first.unpack('H*').first,
                 "privateKeyHex": Oydid.multi_decode(status["private_key"]).first.unpack('H*').first
             }
@@ -207,7 +207,7 @@ class ProvidersController < ApplicationController
             keys << {
                 "kid": Oydid.percent_encode(status["did"]) +  '#key-rev',
                 "kms": "local",
-                "type": "ed25519", 
+                "type": "Ed25519", 
                 "publicKeyHex": Oydid.multi_decode(status["doc"]["key"].split(":").last).first.unpack('H*').first,
                 "privateKeyHex": Oydid.multi_decode(status["revocation_key"]).first.unpack('H*').first
             }

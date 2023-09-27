@@ -46,11 +46,29 @@ class DidsController < ApplicationController
             }
         end
 
+        keys = []
+        # document key
+        keys << {
+            "kid": Oydid.percent_encode("did:oyd:" + result["did"].to_s) + '#key-doc',
+            "kms": "local",
+            "type": "Ed25519", 
+            "publicKeyHex": Oydid.multi_decode(result["doc"]["key"].split(":").first).first.unpack('H*').first
+        }
+
+        # revocation key
+        keys << {
+            "kid": Oydid.percent_encode("did:oyd:" + result["did"].to_s) + '#key-rev',
+            "kms": "local",
+            "type": "Ed25519", 
+            "publicKeyHex": Oydid.multi_decode(result["doc"]["key"].split(":").last).first.unpack('H*').first
+        }
+
         retVal = {
             "didResolutionMetadata": didResolutionMetadata,
             "didDocument": Oydid.w3c(result, {}),
             "didDocumentMetadata": {
                 "did": Oydid.percent_encode("did:oyd:" + result["did"].to_s),
+                "keys": keys,
                 "registry": Oydid.get_location(result["did"].to_s),
                 "log_hash": result["doc"]["log"].to_s,
                 "log": result["log"],

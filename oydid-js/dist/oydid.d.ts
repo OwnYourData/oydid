@@ -5,6 +5,10 @@ export interface ReadOptions {
     digest: "sha2-256" | "sha2-512" | "sha3-224" | "sha3-256" | "sha3-384" | "sha3-512" | "blake2b-16" | "blake2b-32" | "blake2b-64";
     simulate: boolean;
 }
+export interface CipherMessage {
+    value: string;
+    nonce: string;
+}
 interface DidDocument {
     doc: any;
     key: string;
@@ -17,5 +21,7 @@ interface Did {
 }
 export declare const read: (did: string, options?: Partial<ReadOptions>) => Promise<DidDocument>;
 export declare const create: (content?: any, options?: Partial<ReadOptions>) => Promise<Did>;
-export declare const did_auth: (did: string, key: string, regapi_url: string) => Promise<String>;
+export declare const didAuth: (did: string, key: string, regapi_url: string) => Promise<string>;
+export declare const hexToMulti: (hexKey: string) => Promise<string>;
+export declare const decrypt: (message: CipherMessage, key: string, options?: Partial<ReadOptions>) => Promise<string>;
 export {};
