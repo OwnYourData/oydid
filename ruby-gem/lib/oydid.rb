@@ -300,6 +300,15 @@ class Oydid
             }]
             did_doc = did_doc.transform_keys(&:to_s)
         end
+        if options[:authentication]
+            if did_doc.nil?
+                did_doc = {}
+            end
+            did_doc[:authentication] = [{
+                "id": "#key-doc"
+            }]
+            did_doc = did_doc.transform_keys(&:to_s)
+        end
 
         # build new revocation document
         subDid = {"doc": did_doc, "key": did_key}.to_json
@@ -1061,8 +1070,16 @@ class Oydid
                 if didDoc["doc"] != {}
                     didDoc = didDoc["doc"]
                     if didDoc["authentication"].to_s != ""
-                        wd["authentication"] = didDoc["authentication"]
-                        didDoc.delete("authentication")
+                        new_authentication = []
+                        didDoc["authentication"].each do |el|
+                            new_el = el.transform_keys(&:to_s)
+                            new_el["id"] = percent_encode(did) + new_el["id"]
+                            new_authentication << new_el
+                        end unless didDoc["authentication"].nil?
+                        if new_authentication.length > 0
+                            wd["authentication"] = new_authentication
+                            didDoc.delete("authentication")
+                        end
                     end
                     if didDoc["assertionMethod"].to_s != ""
                         wd["assertionMethod"] = didDoc["assertionMethod"]
@@ -1073,7 +1090,6 @@ class Oydid
                         didDoc["keyAgreement"].each do |el|
                             new_el = el.transform_keys(&:to_s)
                             new_el["id"] = percent_encode(did) + new_el["id"]
-                            new_el["controller"] = percent_encode(did)
                             new_keyAgreement << new_el
                         end unless didDoc["keyAgreement"].nil?
                         if new_keyAgreement.length > 0

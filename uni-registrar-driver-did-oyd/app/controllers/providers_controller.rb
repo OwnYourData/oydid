@@ -17,6 +17,7 @@ class ProvidersController < ApplicationController
     #     }
     # }
     def create
+        params.permit!
         options = params[:options] || {}
         options[:return_secrets] = true
         secret = params[:secret] || {}
@@ -61,6 +62,7 @@ class ProvidersController < ApplicationController
             end
         end
         options[:x25519_keyAgreement] = true
+        options[:authentication] = true
         status, msg = Oydid.create(doc, options)
 
         # did_obj = {"keyAgreement":[
@@ -85,21 +87,29 @@ class ProvidersController < ApplicationController
             keys = []
 
             # document key
+            code, length, pubKey = Oydid.multi_decode(status["doc"]["key"].split(":").first).first.unpack('CCa*')
+            pubKeyHex = pubKey.bytes.pack('C*').unpack1('H*')
+            code, length, privKey = Oydid.multi_decode(status["private_key"]).first.unpack('SCa*')
+            privKeyHex = privKey.bytes.pack('C*').unpack1('H*')
             keys << {
                 "kid": Oydid.percent_encode(status["did"]) +  '#key-doc',
                 "kms": "local",
                 "type": "Ed25519", 
-                "publicKeyHex": Oydid.multi_decode(status["doc"]["key"].split(":").first).first.unpack('H*').first,
-                "privateKeyHex": Oydid.multi_decode(status["private_key"]).first.unpack('H*').first
+                "publicKeyHex": pubKeyHex,
+                "privateKeyHex": privKeyHex + pubKeyHex
             }
 
             # revocation key
+            code, length, pubKey = Oydid.multi_decode(status["doc"]["key"].split(":").last).first.unpack('CCa*')
+            pubKeyHex = pubKey.bytes.pack('C*').unpack1('H*')
+            code, length, privKey = Oydid.multi_decode(status["revocation_key"]).first.unpack('SCa*')
+            privKeyHex = privKey.bytes.pack('C*').unpack1('H*')
             keys << {
                 "kid": Oydid.percent_encode(status["did"]) +  '#key-rev',
                 "kms": "local",
                 "type": "Ed25519", 
-                "publicKeyHex": Oydid.multi_decode(status["doc"]["key"].split(":").last).first.unpack('H*').first,
-                "privateKeyHex": Oydid.multi_decode(status["revocation_key"]).first.unpack('H*').first
+                "publicKeyHex": pubKeyHex,
+                "privateKeyHex": privKeyHex + pubKeyHex
             }
 
             retVal = {

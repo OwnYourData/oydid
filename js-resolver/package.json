@@ -1,7 +1,7 @@
 {
   "name": "oydid-did-resolver",
   "description": "OYDID resolver for did-resolve",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "Gabriel Unterholzer",
   "license": "MIT",
   "main": "dist/index.js",
