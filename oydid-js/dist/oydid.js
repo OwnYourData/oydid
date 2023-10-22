@@ -19,6 +19,12 @@ const base58_1 = require("multiformats/bases/base58");
 // import bs58 from 'bs58';
 exports.DEFAULT_DIGEST = "sha2-256";
 exports.DEFAULT_ENCODING = "base58btc";
+/**
+ * resolve DID to DID Document
+ * @param did DID string (in format did:oyd:123)
+ * @param options optional parameters
+ * @returns DID Document
+ */
 const read = (did, options) => __awaiter(void 0, void 0, void 0, function* () {
     const o = Object.assign({ encode: exports.DEFAULT_ENCODING, digest: exports.DEFAULT_DIGEST, simulate: false }, options);
     if (!did) {
@@ -27,6 +33,12 @@ const read = (did, options) => __awaiter(void 0, void 0, void 0, function* () {
     return { doc: { "hello": "world" }, key: "asdf:qwer", log: "asdf" };
 });
 exports.read = read;
+/**
+ * create a new DID
+ * @param content payload in the new DID Document
+ * @param options optional parameters
+ * @returns DID and private keys
+ */
 const create = (content, options) => __awaiter(void 0, void 0, void 0, function* () {
     const url = "https://oydid-registrar.data-container.net/1.0/createIdentifier";
     const result = yield axios_1.default.post(url, {});
@@ -37,6 +49,13 @@ const create = (content, options) => __awaiter(void 0, void 0, void 0, function*
     };
 });
 exports.create = create;
+/**
+ *
+ * @param did DID string (in format did:oyd:123)
+ * @param key private key necessary for signing during authorization process
+ * @param regapi_url RegAPI URL (only protocol and host, e.g. http://host.com)
+ * @returns OAuth 2.0 Bearer Token
+ */
 const didAuth = (did, key, regapi_url) => __awaiter(void 0, void 0, void 0, function* () {
     const url = regapi_url + "/did_auth";
     const body = { did: did, key: key };
@@ -44,13 +63,26 @@ const didAuth = (did, key, regapi_url) => __awaiter(void 0, void 0, void 0, func
     return result.data.access_token;
 });
 exports.didAuth = didAuth;
-const hexToMulti = (hexKey) => __awaiter(void 0, void 0, void 0, function* () {
+/**
+ * convert hexadecimal encoded object to base58btc Multiformat encoding
+ * @param hexKey hexadecimal encoded object
+ * @param options optional parameters to specify preferred target encoding
+ * @returns base58btc Multiformat encoded object
+ */
+const hexToMulti = (hexKey, options) => __awaiter(void 0, void 0, void 0, function* () {
     yield libsodium_wrappers_sumo_1.ready;
     const keyBytes = (0, libsodium_wrappers_sumo_1.from_hex)(hexKey);
     const multiformatKey = base58_1.base58btc.encode(keyBytes);
     return multiformatKey;
 });
 exports.hexToMulti = hexToMulti;
+/**
+ * decrypt a libsodium encrypted message
+ * @param message cipher and nonce of encrypted message
+ * @param key private key to decrypt message
+ * @param options optional parameters
+ * @returns decrypted message
+ */
 const decrypt = (message, key, options) => __awaiter(void 0, void 0, void 0, function* () {
     yield libsodium_wrappers_sumo_1.ready;
     const privateKeyBytes = base58_1.base58btc.decode(key);
