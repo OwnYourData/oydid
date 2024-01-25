@@ -1,0 +1,36 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/suites/jws-2020/v1"
+  ],
+  "authentication": [
+    "did:ebsi:zg1rJyVu5sUdVAc14X3e5ob#key-1"
+  ],
+  "service": [],
+  "verificationMethod": [
+    {
+      "id": "did:ebsi:zg1rJyVu5sUdVAc14X3e5ob#key-1",
+      "controller": "did:ebsi:zg1rJyVu5sUdVAc14X3e5ob",
+      "type": "JsonWebKey2020",
+      "publicKeyJwk": {
+        "kty": "EC",
+        "crv": "secp256k1",
+        "x": "b8UbP2HidIWxYbugrmQFYtfPflggwhYQ6Uu7cKZMQWY",
+        "y": "aaKd5y7jNXGYAF8nC4P3_3CdKcETasPZ7sxSDO6kBDA"
+      }
+    }
+  ],
+  "id": "did:ebsi:zg1rJyVu5sUdVAc14X3e5ob",
+  "assertionMethod": [
+    "did:ebsi:zg1rJyVu5sUdVAc14X3e5ob#key-1"
+  ],
+  "capabilityDelegation": [
+    "did:ebsi:zg1rJyVu5sUdVAc14X3e5ob#key-1"
+  ],
+  "capabilityInvocation": [
+    "did:ebsi:zg1rJyVu5sUdVAc14X3e5ob#key-1"
+  ],
+  "alsoKnownAs": [
+    "did:oyd:zQmaC996sgjL7puygD1TNpWFzgB3Z8tpydYGApxtoP54nRN"
+  ]
+}
