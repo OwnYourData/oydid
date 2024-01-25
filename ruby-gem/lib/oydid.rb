@@ -24,10 +24,14 @@ class Oydid
     DEFAULT_ENCODING = "base58btc"
     SUPPORTED_ENCODINGS = ["base16", "base32", "base58btc", "base64"]
     LOG_HASH_OPTIONS = {:digest => "sha2-256", :encode => "base58btc"}
+    DEFAULT_PUBLIC_RESOLVER = "https://dev.uniresolver.io/1.0/identifiers/"
+
+    # full Multicodecs table: https://github.com/multiformats/multicodec/blob/master/table.csv
+    # Multicodecs.register(code: 0x1305, name: 'rsa-priv', tag: 'key')
+    # Multicodecs.register(code: 0x1205, name: 'rsa-pub', tag: 'key')
 
     # expected DID format: did:oyd:123
     def self.read(did, options)
-
         if did.to_s == ""
             return [nil, "missing DID"]
         end
@@ -133,14 +137,24 @@ class Oydid
                     end
                 end
             end
-            currentDID = dag_update(currentDID, options)
+
+            # identify if DID Rotation was performed
+            rotated_DID = (currentDID.transform_keys(&:to_s)["doc"]["doc"].has_key?("@context") &&
+                currentDID.transform_keys(&:to_s)["doc"]["doc"].has_key?("id") &&
+                currentDID.transform_keys(&:to_s)["doc"]["doc"]["id"].split(":").first == "did") rescue false
+
+            if rotated_DID
+                doc = currentDID["doc"].dup
+                currentDID = dag_update(currentDID, options)
+                currentDID["doc"] = doc
+            else
+                currentDID = dag_update(currentDID, options)
+            end
             if options[:log_complete]
                 currentDID["log"] = log_array
             end
-
             return [currentDID, ""]
         end
-
     end
 
     def self.create(content, options)
@@ -296,7 +310,7 @@ class Oydid
             did_doc[:keyAgreement] = [{
                 "id": "#key-doc-x25519",
                 "type": "X25519KeyAgreementKey2019",
-                "publicKeyMultibase": Oydid.public_key(privateKey, options, 'x25519-pub').first
+                "publicKeyMultibase": public_key(privateKey, options, 'x25519-pub').first
             }]
             did_doc = did_doc.transform_keys(&:to_s)
         end
@@ -951,6 +965,13 @@ class Oydid
     end
 
     def self.w3c(did_info, options)
+        # check if doc is already W3C DID
+        is_already_w3c_did = (did_info.transform_keys(&:to_s)["doc"]["doc"].has_key?("@context") &&
+            did_info.transform_keys(&:to_s)["doc"]["doc"].has_key?("id") &&
+            did_info.transform_keys(&:to_s)["doc"]["doc"]["id"].split(":").first == "did") rescue false
+        if is_already_w3c_did
+            return did_info.transform_keys(&:to_s)["doc"]["doc"]
+        end
         did = percent_encode(did_info["did"])
         if !did.start_with?("did:oyd:")
             did = "did:oyd:" + did
@@ -1044,7 +1065,7 @@ class Oydid
             end
         end unless did_info["log"].nil?
         if equivalentIds.length > 0
-            wd[:alsoKnownAs] = equivalentIds
+            wd["alsoKnownAs"] = equivalentIds
         end
 
         if didDoc["doc"].is_a?(Hash) && !didDoc["doc"]["service"].nil?
@@ -1104,6 +1125,19 @@ class Oydid
                     if didDoc["capabilityDelegation"].to_s != ""
                         wd["capabilityDelegation"] = didDoc["capabilityDelegation"]
                         didDoc.delete("capabilityDelegation")
+                    end
+                    if didDoc["alsoKnownAs"].to_s != ""
+                        if didDoc["alsoKnownAs"].is_a?(Array)
+                            dda = didDoc["alsoKnownAs"]
+                        else
+                            dda = [didDoc["alsoKnownAs"]]
+                        end
+                        if wd["alsoKnownAs"].nil?
+                            wd["alsoKnownAs"] = dda
+                        else
+                            wd["alsoKnownAs"] += dda
+                        end
+                        didDoc.delete("alsoKnownAs")
                     end
                     payload = didDoc
                     if payload == {}

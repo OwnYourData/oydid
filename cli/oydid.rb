@@ -9,7 +9,7 @@ require 'oydid'
 
 LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
-VERSION = "0.5.2"
+VERSION = "0.5.3"
 LOG_HASH_OPTIONS = {:digest => "sha2-256", :encode => "base58btc"}
 
 # internal functions -------------------------------
@@ -370,9 +370,6 @@ def sc_token(did, options)
     end
     sid = SecureRandom.hex(20).to_s
     request_body = { "session_id": sid, "public_key": Oydid.public_key(privateKey, options).first }
-puts "Request Body"
-puts init_url.to_s
-puts request_body.to_json
     response = HTTParty.post(init_url,
         headers: { 'Content-Type' => 'application/json' },
         body: request_body.to_json ).parsed_response rescue {}
@@ -590,6 +587,9 @@ opt_parser = OptionParser.new do |opt|
   options[:show_hash] = false
   options[:show_verification] = false
   options[:simulate] = false
+  options[:authentication] = false
+  options[:x25519_keyAgreement] = false
+  options[:followAlsoKnownAs] = false
   options[:encode] = LOG_HASH_OPTIONS[:encode] # base58btc
   options[:digest] = LOG_HASH_OPTIONS[:digest] # sha2-256
   opt.on("-l","--location LOCATION","default URL to store/query DID data") do |loc|
@@ -619,6 +619,9 @@ opt_parser = OptionParser.new do |opt|
   end
   opt.on("--json-output") do |j|
     options[:json] = true
+  end
+  opt.on("--follow-alsoKnownAs") do |f|
+    options[:followAlsoKnownAs] = true
   end
   opt.on("--digest HASH-ALGORITHM") do |digest|
     options[:digest] = digest
@@ -662,9 +665,6 @@ opt_parser = OptionParser.new do |opt|
   opt.on("--old-rev-enc OLD-REVOCATIONKEY-ENCODED") do |rp|
     options[:old_rev_enc] = rp
   end
-  opt.on("--add-x25519pubkey-keyAgreement") do |ax|
-    options[:x25519_keyAgreement] = true
-  end
   opt.on("--simulate") do |simulate|
     options[:simulate] = true
   end
@@ -676,6 +676,15 @@ opt_parser = OptionParser.new do |opt|
   end
   opt.on("-z", "--timestamp TIMESTAMP") do |ts|
     options[:ts] = ts.to_i
+  end
+  opt.on("--authentication") do |a|
+    options[:authentication] = true
+  end
+  opt.on("--x25519-keyAgreement") do |a|
+    options[:x25519_keyAgreement] = true
+  end
+  opt.on("--add-x25519pubkey-keyAgreement") do |a|
+    options[:x25519_keyAgreement] = true
   end
 
   # VC options

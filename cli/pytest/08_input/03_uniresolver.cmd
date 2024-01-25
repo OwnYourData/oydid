@@ -1,0 +1,1 @@
+curl -s https://dev.uniresolver.io/1.0/identifiers/did:oyd:zQmZ7wwgCxkExNeXHm9XLxAKs7Y7pubTKCHQLTxRrA3Fz51 | jq '{didDocument: .didDocument, didDocumentMetadata: .didDocumentMetadata}' | jq -c
