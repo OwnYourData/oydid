@@ -59,21 +59,6 @@ module ApplicationHelper
         result = Oydid.dag2array(dag, log_array, create_index, [], options)
         ordered_log_array = Oydid.dag2array_terminate(dag, log_array, terminate_index, result, options)
         currentDID["log"] = ordered_log_array.flatten.uniq.compact.dup
-#         full_log_array = ordered_log_array.dup
-#         i = 0
-#         ordered_log_array.each do |log|
-#             original_log_array = ordered_log_array.dup
-#             op = log["op"] rescue -1
-#             if op == 0 # TERMINATE
-# puts "I: " + i.to_s
-#                 result_array = Oydid.dag2array_terminate(dag, original_log_array, i, full_log_array, options)
-# puts "Result"
-# puts JSON.pretty_generate(result_array)
-#                 full_log_array = [full_log_array, result].flatten.uniq.compact
-#             end
-#             i += 1
-#         end
-#         currentDID["full_log"] = full_log_array
         # !!! ugly hack
         currentDID["full_log"] = log_array
         currentDID = dag_update(currentDID, options)
@@ -266,7 +251,45 @@ module ApplicationHelper
                     break
                 end
             when 1 # revocation log entry
-                # do nothing
+                # handle DID Rotation
+                if (i == (currentDID["log"].length-1))
+                    if options[:followAlsoKnownAs]
+                        current_doc = currentDID["doc"]
+                        if current_doc["doc"].transform_keys(&:to_s).has_key?("alsoKnownAs")
+                            rotate_DID = current_doc["doc"].transform_keys(&:to_s)["alsoKnownAs"]
+                            if rotate_DID.start_with?("did:")
+                                rotate_DID_method = rotate_DID.split(":").take(2).join(":")
+                                did_orig = currentDID["did"]
+                                if !did_orig.start_with?("did:oyd:")
+                                    did_orig = "did:oyd:" + did_orig
+                                end
+                                case rotate_DID_method
+                                when "did:ebsi"
+                                    public_resolver = ENV["PUBLIC_RESOLVER"] || DEFAULT_PUBLIC_RESOLVER
+                                    rotate_DID_Document = HTTParty.get(public_resolver + rotate_DID)
+                                    rotate_ddoc = JSON.parse(rotate_DID_Document.parsed_response)
+
+                                    # checks
+                                    # 1) is original DID revoked -> fulfilled, otherwise we would not be in this branch
+                                    # 2) das new DID reference back original DID
+
+                                    currentDID["did"] = rotate_DID
+                                    currentDID["doc"]["doc"] = rotate_ddoc["didDocument"]
+                                    if verification_output
+                                        currentDID["verification"] += "DID rotation to: " + rotate_DID.to_s + "\n"
+                                        currentDID["verification"] += "✅ original DID (" + did_orig + ") revoked and referenced in alsoKnownAs\n"
+                                        currentDID["verification"] += "(Details: https://ownyourdata.github.io/oydid/#did_rotation)" + "\n\n"
+                                    end
+                                when "did:oyd"
+                                    puts "try to resolve did:oyd with our own resolver"
+                                    puts "add verification text"
+                                else
+                                    # do nothing: DID Rotation is not supported for this DID method yet
+                                end
+                            end
+                        end
+                    end
+                end
             when 5 # DELEGATE
                 # do nothing
             else

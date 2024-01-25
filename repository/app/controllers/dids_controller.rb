@@ -18,9 +18,15 @@ class DidsController < ApplicationController
                 options[:log_location] = options[:location]
             end
         end
-
         did = params[:did]
-        
+        options_followAlsoKnownAs = params[:followAlsoKnownAs].to_s.downcase
+        if options_followAlsoKnownAs == ""
+            options[:followAlsoKnownAs] = false
+        elsif options_followAlsoKnownAs == "true"
+            options[:followAlsoKnownAs] = true
+        else
+            options[:followAlsoKnownAs] = false
+        end
         result = resolve_did(did, options)
         if result["error"] != 0
             # puts "Error: " + result["message"].to_s

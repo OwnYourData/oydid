@@ -107,26 +107,6 @@ export interface RegistrarResponse {
 }
 
 /**
- * resolve DID to DID Document
- * @param did DID string (in format did:oyd:123)
- * @param options optional parameters
- * @returns DID Document
- */
-export const read = async (did: string, options?: Partial<ReadOptions>) : Promise<DidDocument> => {
-    const o: ReadOptions = {
-        encode: DEFAULT_ENCODING,
-        digest: DEFAULT_DIGEST,
-        simulate: false,
-        ...options,
-    }
-    if (!did) {
-        throw new Error("missing DID1")
-    }
-
-    return {doc:{"hello":"world"}, key:"asdf:qwer", log: "asdf"}
-}
-
-/**
  * create a new DID
  * @param content payload in the new DID Document
  * @param options optional parameters
@@ -143,30 +123,87 @@ export const create = async(content?: any, options?: Partial<ReadOptions>) : Pro
 }
 
 /**
- * 
+ * resolve DID to DID Document
  * @param did DID string (in format did:oyd:123)
- * @param key private key necessary for signing during authorization process
- * @param regapi_url RegAPI URL (only protocol and host, e.g. http://host.com)
- * @returns OAuth 2.0 Bearer Token
+ * @param options optional parameters
+ * @returns DID Document
  */
-export const didAuth = async(did: string, key: string, regapi_url: string) : Promise<string> => {
-    const url = regapi_url + "/did_auth";
-    const body = {did: did, key: key};
-    const result = await axios.post(url, body);
-    return result.data.access_token;
+export const read = async (did: string, options?: Partial<ReadOptions>) : Promise<DidDocument> => {
+    const o: ReadOptions = {
+        encode: DEFAULT_ENCODING,
+        digest: DEFAULT_DIGEST,
+        simulate: false,
+        ...options,
+    }
+    if (!did) {
+        throw new Error("missing DID")
+    }
+
+    return {doc:{"hello":"world"}, key:"asdf:qwer", log: "asdf"}
 }
 
 /**
- * convert hexadecimal encoded object to base58btc Multiformat encoding
- * @param hexKey hexadecimal encoded object
- * @param options optional parameters to specify preferred target encoding
- * @returns base58btc Multiformat encoded object
+ * update DID Document for existing DID
+ * @param did DID string (in format did:oyd:123)
+ * @param content payload of the updated DID Document
+ * @param options optional parameters
+ * @returns DID and private keys
  */
-export const hexToMulti = async(hexKey: string, options?: Partial<ReadOptions>) : Promise<string> => {
-    await sodiumReady;
-    const keyBytes = from_hex(hexKey);
-    const multiformatKey = base58btc.encode(keyBytes);
-    return multiformatKey;
+export const update = async (did: string, content: any, options?: Partial<ReadOptions>) : Promise<DidDocument> => {
+    const o: ReadOptions = {
+        encode: DEFAULT_ENCODING,
+        digest: DEFAULT_DIGEST,
+        simulate: false,
+        ...options,
+    }
+    if (!did) {
+        throw new Error("missing DID")
+    }
+
+    return {
+        id: "asdf", 
+        docKey: result.data.keys[0].privateKeyHex, 
+        revKey: result.data.keys[1].privateKeyHex
+    }
+}
+
+/**
+ * deactivate DID
+ * @param did DID string (in format did:oyd:123)
+ * @param options optional parameters
+ * @returns DID
+ */
+export const deactivate = async (did: string, options?: Partial<ReadOptions>) : Promise<DidDocument> => {
+    const o: ReadOptions = {
+        encode: DEFAULT_ENCODING,
+        digest: DEFAULT_DIGEST,
+        simulate: false,
+        ...options,
+    }
+    if (!did) {
+        throw new Error("missing DID")
+    }
+
+    return {
+        id: did
+    }
+}
+
+/**
+ * encrypt a message using libsodium
+ * @param payload to encrypt
+ * @param option parameters with public key for encryption
+ * @returns cipher and nonce of encrypted message
+ */
+export const encrypt = async(payload: string, options: Partial<ReadOptions>) : Promise<string> => {
+    if (!payload) {
+        throw new Error("missing payload")
+    }
+
+    return {
+        cipher: "cipher",
+        nonce: "nonce"
+    }
 }
 
 /**
@@ -191,4 +228,59 @@ export const decrypt = async(message: CipherMessage, key: string, options?: Part
 
     return to_string(decryptedMessageBytes);
 
+}
+
+/**
+ * sign a message
+ * @param payload to sign
+ * @param option parameters with private key for signing
+ * @returns signature of payload
+ */
+export const sign = async(payload: string, options: Partial<ReadOptions>) : Promise<string> => {
+    if (!payload) {
+        throw new Error("missing payload")
+    }
+    return "string";
+}
+
+/**
+ * verify signature for a message
+ * @param hexKey hexadecimal encoded object
+ * @param options optional parameters to specify preferred target encoding
+ * @returns base58btc Multiformat encoded object
+ */
+export const verify = async(message: string, signature: string, options?: Partial<ReadOptions>) : Promise<boolean> => {
+    if (!message) {
+        throw new Error("missing message")
+    }
+    if (!signature) {
+        throw new Error("missing signature")
+    }
+    return true;
+}
+
+/**
+ * @param did DID string (in format did:oyd:123)
+ * @param key private key necessary for signing during authorization process
+ * @param regapi_url RegAPI URL (only protocol and host, e.g. http://host.com)
+ * @returns OAuth 2.0 Bearer Token
+ */
+export const didAuth = async(did: string, key: string, regapi_url: string) : Promise<string> => {
+    const url = regapi_url + "/did_auth";
+    const body = {did: did, key: key};
+    const result = await axios.post(url, body);
+    return result.data.access_token;
+}
+
+/**
+ * convert hexadecimal encoded object to base58btc Multiformat encoding
+ * @param hexKey hexadecimal encoded object
+ * @param options optional parameters to specify preferred target encoding
+ * @returns base58btc Multiformat encoded object
+ */
+export const hexToMulti = async(hexKey: string, options?: Partial<ReadOptions>) : Promise<string> => {
+    await sodiumReady;
+    const keyBytes = from_hex(hexKey);
+    const multiformatKey = base58btc.encode(keyBytes);
+    return multiformatKey;
 }

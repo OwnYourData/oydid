@@ -10,13 +10,13 @@
         "id": "did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR#key-doc",
         "type": "Ed25519VerificationKey2020",
         "controller": "did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR",
-        "publicKeyMultibase": "z6Mv4q7EFUKq7p8KKGGfh1UjduMrpNnzdprtaMiFsp9Kq9gD"
+        "publicKeyMultibase": "zDG2hGmmoAon2XDA1y11hnxwhFVa88VRbtmEFMywWuQGH"
       },
       {
         "id": "did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR#key-rev",
         "type": "Ed25519VerificationKey2020",
         "controller": "did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR",
-        "publicKeyMultibase": "z6MuxmEJYvuo7kre1hXcdVuTm7igpGxi7MkkgrtstRmGVyxY"
+        "publicKeyMultibase": "z7C9maEMmAkWMDeQxuVSRvBJXFPjqc2KU1GQsNbZTaEYc"
       }
     ],
     "alsoKnownAs": [
@@ -35,6 +35,20 @@
   },
   "didDocumentMetadata": {
     "did": "did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR",
+    "keys": [
+      {
+        "kid": "did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR#key-doc",
+        "kms": "local",
+        "type": "Ed25519",
+        "publicKeyHex": "ed20b625defd50d9ba296f742890b391fa9ace42d22c7df4e3fa9883ee5bc7fb6462"
+      },
+      {
+        "kid": "did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR#key-rev",
+        "kms": "local",
+        "type": "Ed25519",
+        "publicKeyHex": "ed205c016cced936a41880d6522bcb349296f4e4ad6fd81e926c14d46a7062d0fdc5"
+      }
+    ],
     "registry": "https://oydid.ownyourdata.eu",
     "log_hash": "zQmTDrBYmvKTuo5KvW84uvRrGizrPNym1nF15fpBtiHLc6i",
     "log": [

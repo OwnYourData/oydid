@@ -137,17 +137,26 @@ class Oydid
         terminate_overall = 0
         terminate_index = nil
         logs.each do |el|
-            if el["op"].to_i == 0
+            if el["op"].to_i == 0 # TERMINATE
                 if dag.vertices[i].successors.length == 0
                     terminate_entries += 1
                     terminate_index = i
                 end
                 terminate_overall += 1
+            elsif el["op"].to_i == 1 # REVOKE
+                # get terminate_index for revoked DIDs
+                if dag.vertices[i].successors.length == 0
+                    dag.vertices[i].predecessors.each do |l|
+                        if logs[l[:id]]["op"].to_i == 0 # TERMINATE
+                            terminate_index = l[:id]
+                        end
+                    end
+                end
             end
             i += 1
         end unless logs.nil?
 
-        if terminate_entries != 1 && !options[:log_complete]
+        if terminate_entries != 1 && !options[:log_complete] && !options[:followAlsoKnownAs]
             if options[:silent].nil? || !options[:silent]
                 return [nil, nil, nil, "cannot resolve DID" ]
             end
@@ -217,7 +226,7 @@ class Oydid
             end unless s.predecessors.length < 2
             dag2array(dag, log_array, s[:id], result, options)
         end unless dag.vertices[index].successors.count == 0
-        result
+        result.uniq
     end
 
     def self.dag2array_terminate(dag, log_array, index, result, options)
@@ -237,7 +246,7 @@ class Oydid
             end
         end unless dag.vertices[index].nil?
         result << log_array[index]
-        result
+        result.uniq
     end
 
     def self.dag_update(currentDID, options)
@@ -490,7 +499,45 @@ class Oydid
                     break
                 end
             when 1 # revocation log entry
-                # do nothing
+                # handle DID Rotation
+                if (i == (currentDID["log"].length-1))
+                    if options[:followAlsoKnownAs]
+                        current_doc = currentDID["doc"]
+                        if current_doc["doc"].transform_keys(&:to_s).has_key?("alsoKnownAs")
+                            rotate_DID = current_doc["doc"].transform_keys(&:to_s)["alsoKnownAs"]
+                            if rotate_DID.start_with?("did:")
+                                rotate_DID_method = rotate_DID.split(":").take(2).join(":")
+                                did_orig = currentDID["did"]
+                                if !did_orig.start_with?("did:oyd")
+                                    did_orig = "did:oyd:" + did_orig
+                                end
+                                case rotate_DID_method
+                                when "did:ebsi"
+                                    public_resolver = DEFAULT_PUBLIC_RESOLVER
+                                    rotate_DID_Document = HTTParty.get(public_resolver + rotate_DID)
+                                    rotate_ddoc = JSON.parse(rotate_DID_Document.parsed_response)
+                                    rotate_ddoc = rotate_ddoc.except("didDocumentMetadata", "didResolutionMetadata")
+
+                                    # checks
+                                    # 1) is original DID revoked -> fulfilled, otherwise we would not be in this branch
+                                    # 2) das new DID reference back original DID
+                                    currentDID["did"] = rotate_DID
+                                    currentDID["doc"]["doc"] = rotate_ddoc
+                                    if verification_output
+                                        currentDID["verification"] += "DID rotation to: " + rotate_DID.to_s + "\n"
+                                        currentDID["verification"] += "✅ original DID (" + did_orig + ") revoked and referenced in alsoKnownAs\n"
+                                        currentDID["verification"] += "(Details: https://ownyourdata.github.io/oydid/#did_rotation)" + "\n\n"
+                                    end
+                                when "did:oyd"
+                                    puts "try to resolve did:oyd with our own resolver"
+                                    puts "add verification text"
+                                else
+                                    # do nothing: DID Rotation is not supported for this DID method yet
+                                end
+                            end
+                        end
+                    end
+                end
             when 5 # DELEGATE
                 # do nothing
             else
