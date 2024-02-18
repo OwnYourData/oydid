@@ -95,13 +95,6 @@ export interface RegistrarResponse {
     keys: didKey[];
 }
 /**
- * resolve DID to DID Document
- * @param did DID string (in format did:oyd:123)
- * @param options optional parameters
- * @returns DID Document
- */
-export declare const read: (did: string, options?: Partial<ReadOptions>) => Promise<DidDocument>;
-/**
  * create a new DID
  * @param content payload in the new DID Document
  * @param options optional parameters
@@ -109,7 +102,57 @@ export declare const read: (did: string, options?: Partial<ReadOptions>) => Prom
  */
 export declare const create: (content?: any, options?: Partial<ReadOptions>) => Promise<Did>;
 /**
- *
+ * resolve DID to DID Document
+ * @param did DID string (in format did:oyd:123)
+ * @param options optional parameters
+ * @returns DID Document
+ */
+export declare const read: (did: string, options?: Partial<ReadOptions>) => Promise<DidDocument>;
+/**
+ * update DID Document for existing DID
+ * @param did DID string (in format did:oyd:123)
+ * @param content payload of the updated DID Document
+ * @param options optional parameters
+ * @returns DID and private keys
+ */
+export declare const update: (did: string, content: any, options?: Partial<ReadOptions>) => Promise<Did>;
+/**
+ * deactivate DID
+ * @param did DID string (in format did:oyd:123)
+ * @param options optional parameters
+ * @returns DID
+ */
+export declare const deactivate: (did: string, options?: Partial<ReadOptions>) => Promise<Did>;
+/**
+ * encrypt a message using libsodium
+ * @param payload to encrypt
+ * @param option parameters with public key for encryption
+ * @returns cipher and nonce of encrypted message
+ */
+export declare const encrypt: (payload: string, options: Partial<ReadOptions>) => Promise<any>;
+/**
+ * decrypt a libsodium encrypted message
+ * @param message cipher and nonce of encrypted message
+ * @param key private key to decrypt message
+ * @param options optional parameters
+ * @returns decrypted message
+ */
+export declare const decrypt: (message: CipherMessage, key: string, options?: Partial<ReadOptions>) => Promise<string>;
+/**
+ * sign a message
+ * @param payload to sign
+ * @param option parameters with private key for signing
+ * @returns signature of payload
+ */
+export declare const sign: (payload: string, options: Partial<ReadOptions>) => Promise<string>;
+/**
+ * verify signature for a message
+ * @param hexKey hexadecimal encoded object
+ * @param options optional parameters to specify preferred target encoding
+ * @returns base58btc Multiformat encoded object
+ */
+export declare const verify: (message: string, signature: string, options?: Partial<ReadOptions>) => Promise<boolean>;
+/**
  * @param did DID string (in format did:oyd:123)
  * @param key private key necessary for signing during authorization process
  * @param regapi_url RegAPI URL (only protocol and host, e.g. http://host.com)
@@ -123,11 +166,3 @@ export declare const didAuth: (did: string, key: string, regapi_url: string) => 
  * @returns base58btc Multiformat encoded object
  */
 export declare const hexToMulti: (hexKey: string, options?: Partial<ReadOptions>) => Promise<string>;
-/**
- * decrypt a libsodium encrypted message
- * @param message cipher and nonce of encrypted message
- * @param key private key to decrypt message
- * @param options optional parameters
- * @returns decrypted message
- */
-export declare const decrypt: (message: CipherMessage, key: string, options?: Partial<ReadOptions>) => Promise<string>;

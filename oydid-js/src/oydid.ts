@@ -1,7 +1,6 @@
+import didJWT from 'did-jwt';
 import axios from 'axios';
-import { ready as sodiumReady, from_hex, from_string, to_string, crypto_box_open_easy, crypto_hash_sha256, crypto_scalarmult_base } from 'libsodium-wrappers-sumo';
 import { base58btc } from 'multiformats/bases/base58';
-// import bs58 from 'bs58';
 
 export const DEFAULT_DIGEST = "sha2-256";
 export const DEFAULT_ENCODING = "base58btc";
@@ -149,7 +148,7 @@ export const read = async (did: string, options?: Partial<ReadOptions>) : Promis
  * @param options optional parameters
  * @returns DID and private keys
  */
-export const update = async (did: string, content: any, options?: Partial<ReadOptions>) : Promise<DidDocument> => {
+export const update = async (did: string, content: any, options?: Partial<ReadOptions>) : Promise<Did> => {
     const o: ReadOptions = {
         encode: DEFAULT_ENCODING,
         digest: DEFAULT_DIGEST,
@@ -161,9 +160,9 @@ export const update = async (did: string, content: any, options?: Partial<ReadOp
     }
 
     return {
-        id: "asdf", 
-        docKey: result.data.keys[0].privateKeyHex, 
-        revKey: result.data.keys[1].privateKeyHex
+        id: did, 
+        docKey: "", 
+        revKey: ""
     }
 }
 
@@ -173,7 +172,7 @@ export const update = async (did: string, content: any, options?: Partial<ReadOp
  * @param options optional parameters
  * @returns DID
  */
-export const deactivate = async (did: string, options?: Partial<ReadOptions>) : Promise<DidDocument> => {
+export const deactivate = async (did: string, options?: Partial<ReadOptions>) : Promise<Did> => {
     const o: ReadOptions = {
         encode: DEFAULT_ENCODING,
         digest: DEFAULT_DIGEST,
@@ -185,7 +184,9 @@ export const deactivate = async (did: string, options?: Partial<ReadOptions>) : 
     }
 
     return {
-        id: did
+        id: did, 
+        docKey: "", 
+        revKey: ""
     }
 }
 
@@ -195,14 +196,16 @@ export const deactivate = async (did: string, options?: Partial<ReadOptions>) : 
  * @param option parameters with public key for encryption
  * @returns cipher and nonce of encrypted message
  */
-export const encrypt = async(payload: string, options: Partial<ReadOptions>) : Promise<string> => {
+export const encrypt = async(payload: string, options: Partial<ReadOptions>) : Promise<any> => {
     if (!payload) {
         throw new Error("missing payload")
     }
-
+    const url = "https://oydid.ownyourdata.eu/helper/encrypt";
+    const body = {message: payload, key: ""};
+    const result = await axios.post(url, body);
     return {
-        cipher: "cipher",
-        nonce: "nonce"
+        cipher: result.data.cipher,
+        nonce: result.data.nonce
     }
 }
 
@@ -214,20 +217,10 @@ export const encrypt = async(payload: string, options: Partial<ReadOptions>) : P
  * @returns decrypted message
  */
 export const decrypt = async(message: CipherMessage, key: string, options?: Partial<ReadOptions>) : Promise<string> => {
-    await sodiumReady;
-    const privateKeyBytes = base58btc.decode(key);
-    const privateKey = privateKeyBytes.slice(privateKeyBytes.length - 32);
-    const authHash = crypto_hash_sha256(from_string('auth'));
-    const authKey = crypto_scalarmult_base(authHash);
-
-    const decryptedMessageBytes = crypto_box_open_easy(
-        from_hex(message.value), 
-        from_hex(message.nonce),
-        authKey,
-        privateKey);
-
-    return to_string(decryptedMessageBytes);
-
+    const url = "https://oydid.ownyourdata.eu/helper/decrypt";
+    const body = {message: message, key: key};
+    const result = await axios.post(url, body);
+    return JSON.stringify(result.data, null, 0);
 }
 
 /**
@@ -266,7 +259,7 @@ export const verify = async(message: string, signature: string, options?: Partia
  * @returns OAuth 2.0 Bearer Token
  */
 export const didAuth = async(did: string, key: string, regapi_url: string) : Promise<string> => {
-    const url = regapi_url + "/did_auth";
+    const url = regapi_url + (regapi_url.endsWith('/') ? "" : "/") + "did_auth";
     const body = {did: did, key: key};
     const result = await axios.post(url, body);
     return result.data.access_token;
@@ -279,8 +272,7 @@ export const didAuth = async(did: string, key: string, regapi_url: string) : Pro
  * @returns base58btc Multiformat encoded object
  */
 export const hexToMulti = async(hexKey: string, options?: Partial<ReadOptions>) : Promise<string> => {
-    await sodiumReady;
-    const keyBytes = from_hex(hexKey);
+    const keyBytes = didJWT.hexToBytes(hexKey);
     const multiformatKey = base58btc.encode(keyBytes);
     return multiformatKey;
 }

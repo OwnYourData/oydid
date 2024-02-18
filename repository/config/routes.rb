@@ -31,6 +31,10 @@ Rails.application.routes.draw do
     match 'oydid/init',     to: 'dids#init',                    via: 'post'
     match 'oydid/token',    to: 'dids#token',                   via: 'post'
 
+    # helper functions
+    match 'helper/encrypt', to: 'dids#encrypt',                 via: 'post'
+    match 'helper/decrypt', to: 'dids#decrypt',                 via: 'post'
+
     # administrative
     root 'application#home'
     match '/',          to: 'application#home',    via: 'get'

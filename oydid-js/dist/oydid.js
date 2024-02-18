@@ -12,27 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.decrypt = exports.hexToMulti = exports.didAuth = exports.create = exports.read = exports.DEFAULT_ENCODING = exports.DEFAULT_DIGEST = void 0;
+exports.hexToMulti = exports.didAuth = exports.verify = exports.sign = exports.decrypt = exports.encrypt = exports.deactivate = exports.update = exports.read = exports.create = exports.DEFAULT_ENCODING = exports.DEFAULT_DIGEST = void 0;
+const did_jwt_1 = __importDefault(require("did-jwt"));
 const axios_1 = __importDefault(require("axios"));
-const libsodium_wrappers_sumo_1 = require("libsodium-wrappers-sumo");
 const base58_1 = require("multiformats/bases/base58");
-// import bs58 from 'bs58';
 exports.DEFAULT_DIGEST = "sha2-256";
 exports.DEFAULT_ENCODING = "base58btc";
-/**
- * resolve DID to DID Document
- * @param did DID string (in format did:oyd:123)
- * @param options optional parameters
- * @returns DID Document
- */
-const read = (did, options) => __awaiter(void 0, void 0, void 0, function* () {
-    const o = Object.assign({ encode: exports.DEFAULT_ENCODING, digest: exports.DEFAULT_DIGEST, simulate: false }, options);
-    if (!did) {
-        throw new Error("missing DID1");
-    }
-    return { doc: { "hello": "world" }, key: "asdf:qwer", log: "asdf" };
-});
-exports.read = read;
 /**
  * create a new DID
  * @param content payload in the new DID Document
@@ -50,14 +35,126 @@ const create = (content, options) => __awaiter(void 0, void 0, void 0, function*
 });
 exports.create = create;
 /**
- *
+ * resolve DID to DID Document
+ * @param did DID string (in format did:oyd:123)
+ * @param options optional parameters
+ * @returns DID Document
+ */
+const read = (did, options) => __awaiter(void 0, void 0, void 0, function* () {
+    const o = Object.assign({ encode: exports.DEFAULT_ENCODING, digest: exports.DEFAULT_DIGEST, simulate: false }, options);
+    if (!did) {
+        throw new Error("missing DID");
+    }
+    return { doc: { "hello": "world" }, key: "asdf:qwer", log: "asdf" };
+});
+exports.read = read;
+/**
+ * update DID Document for existing DID
+ * @param did DID string (in format did:oyd:123)
+ * @param content payload of the updated DID Document
+ * @param options optional parameters
+ * @returns DID and private keys
+ */
+const update = (did, content, options) => __awaiter(void 0, void 0, void 0, function* () {
+    const o = Object.assign({ encode: exports.DEFAULT_ENCODING, digest: exports.DEFAULT_DIGEST, simulate: false }, options);
+    if (!did) {
+        throw new Error("missing DID");
+    }
+    return {
+        id: did,
+        docKey: "",
+        revKey: ""
+    };
+});
+exports.update = update;
+/**
+ * deactivate DID
+ * @param did DID string (in format did:oyd:123)
+ * @param options optional parameters
+ * @returns DID
+ */
+const deactivate = (did, options) => __awaiter(void 0, void 0, void 0, function* () {
+    const o = Object.assign({ encode: exports.DEFAULT_ENCODING, digest: exports.DEFAULT_DIGEST, simulate: false }, options);
+    if (!did) {
+        throw new Error("missing DID");
+    }
+    return {
+        id: did,
+        docKey: "",
+        revKey: ""
+    };
+});
+exports.deactivate = deactivate;
+/**
+ * encrypt a message using libsodium
+ * @param payload to encrypt
+ * @param option parameters with public key for encryption
+ * @returns cipher and nonce of encrypted message
+ */
+const encrypt = (payload, options) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!payload) {
+        throw new Error("missing payload");
+    }
+    const url = "https://oydid.ownyourdata.eu/helper/encrypt";
+    const body = { message: payload, key: "" };
+    const result = yield axios_1.default.post(url, body);
+    return {
+        cipher: result.data.cipher,
+        nonce: result.data.nonce
+    };
+});
+exports.encrypt = encrypt;
+/**
+ * decrypt a libsodium encrypted message
+ * @param message cipher and nonce of encrypted message
+ * @param key private key to decrypt message
+ * @param options optional parameters
+ * @returns decrypted message
+ */
+const decrypt = (message, key, options) => __awaiter(void 0, void 0, void 0, function* () {
+    const url = "https://oydid.ownyourdata.eu/helper/decrypt";
+    const body = { message: message, key: key };
+    const result = yield axios_1.default.post(url, body);
+    return JSON.stringify(result.data, null, 0);
+});
+exports.decrypt = decrypt;
+/**
+ * sign a message
+ * @param payload to sign
+ * @param option parameters with private key for signing
+ * @returns signature of payload
+ */
+const sign = (payload, options) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!payload) {
+        throw new Error("missing payload");
+    }
+    return "string";
+});
+exports.sign = sign;
+/**
+ * verify signature for a message
+ * @param hexKey hexadecimal encoded object
+ * @param options optional parameters to specify preferred target encoding
+ * @returns base58btc Multiformat encoded object
+ */
+const verify = (message, signature, options) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!message) {
+        throw new Error("missing message");
+    }
+    if (!signature) {
+        throw new Error("missing signature");
+    }
+    return true;
+});
+exports.verify = verify;
+/**
  * @param did DID string (in format did:oyd:123)
  * @param key private key necessary for signing during authorization process
  * @param regapi_url RegAPI URL (only protocol and host, e.g. http://host.com)
  * @returns OAuth 2.0 Bearer Token
  */
 const didAuth = (did, key, regapi_url) => __awaiter(void 0, void 0, void 0, function* () {
-    const url = regapi_url + "/did_auth";
+    const url = regapi_url + (regapi_url.endsWith('/') ? "" : "/") + "did_auth";
     const body = { did: did, key: key };
     const result = yield axios_1.default.post(url, body);
     return result.data.access_token;
@@ -70,26 +167,8 @@ exports.didAuth = didAuth;
  * @returns base58btc Multiformat encoded object
  */
 const hexToMulti = (hexKey, options) => __awaiter(void 0, void 0, void 0, function* () {
-    yield libsodium_wrappers_sumo_1.ready;
-    const keyBytes = (0, libsodium_wrappers_sumo_1.from_hex)(hexKey);
+    const keyBytes = did_jwt_1.default.hexToBytes(hexKey);
     const multiformatKey = base58_1.base58btc.encode(keyBytes);
     return multiformatKey;
 });
 exports.hexToMulti = hexToMulti;
-/**
- * decrypt a libsodium encrypted message
- * @param message cipher and nonce of encrypted message
- * @param key private key to decrypt message
- * @param options optional parameters
- * @returns decrypted message
- */
-const decrypt = (message, key, options) => __awaiter(void 0, void 0, void 0, function* () {
-    yield libsodium_wrappers_sumo_1.ready;
-    const privateKeyBytes = base58_1.base58btc.decode(key);
-    const privateKey = privateKeyBytes.slice(privateKeyBytes.length - 32);
-    const authHash = (0, libsodium_wrappers_sumo_1.crypto_hash_sha256)((0, libsodium_wrappers_sumo_1.from_string)('auth'));
-    const authKey = (0, libsodium_wrappers_sumo_1.crypto_scalarmult_base)(authHash);
-    const decryptedMessageBytes = (0, libsodium_wrappers_sumo_1.crypto_box_open_easy)((0, libsodium_wrappers_sumo_1.from_hex)(message.value), (0, libsodium_wrappers_sumo_1.from_hex)(message.nonce), authKey, privateKey);
-    return (0, libsodium_wrappers_sumo_1.to_string)(decryptedMessageBytes);
-});
-exports.decrypt = decrypt;

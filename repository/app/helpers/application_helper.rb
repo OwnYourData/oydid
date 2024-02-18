@@ -264,7 +264,7 @@ module ApplicationHelper
                                     did_orig = "did:oyd:" + did_orig
                                 end
                                 case rotate_DID_method
-                                when "did:ebsi"
+                                when "did:ebsi", "did:cheqd"
                                     public_resolver = ENV["PUBLIC_RESOLVER"] || DEFAULT_PUBLIC_RESOLVER
                                     rotate_DID_Document = HTTParty.get(public_resolver + rotate_DID)
                                     rotate_ddoc = JSON.parse(rotate_DID_Document.parsed_response)
