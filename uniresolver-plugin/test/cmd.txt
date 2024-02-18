@@ -10,8 +10,6 @@ curl -s http://localhost:3000/1.0/identifiers/did:oyd:zQmaBZTghndXTgxNwfbdpVLWdF
 
 https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
 
-
 curl -s http://localhost:3000/1.0/identifiers/did:oyd:zQmdXNRiMWEYTiYF58a9BaiUkfB2xWUgL7G7ozyCCNPqjKV | jq
-
 
 curl -s http://localhost:3000/1.0/identifiers/did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR | jq

@@ -685,4 +685,48 @@ class DidsController < ApplicationController
                    status: 500
         end
     end
+
+    def encrypt
+        begin
+            msg, err = Oydid.encrypt(params[:message], params[:key])
+            if err.to_s == ""
+                render json: msg,
+                       status: 200
+            else
+                render json: {error: err},
+                       status: 500
+            end
+        rescue => error
+            render json: {error: error.message},
+                   status: 500
+        end
+    end
+
+    def decrypt
+        begin
+            msg, err = Oydid.decrypt(params[:message].to_json, params[:key])
+            if err.to_s == ""
+                msg_parsed = JSON.parse(msg) rescue nil
+                if msg_parsed.nil?
+                    if msg.is_a?(String)
+                        render json: [msg],
+                               status: 200
+                    else
+                        render json: msg,
+                               status: 200
+                    end
+                else
+                    render json: msg_parsed,
+                           status: 200
+                end
+            else
+                render json: {error: err},
+                       status: 500
+            end
+        rescue => error
+            render json: {error: error.message},
+                   status: 500
+        end
+    end
+
 end
