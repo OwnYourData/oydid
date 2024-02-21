@@ -1,4 +1,4 @@
-import didJWT from 'did-jwt';
+// import didJWT from 'did-jwt';
 import axios from 'axios';
 import { base58btc } from 'multiformats/bases/base58';
 
@@ -272,7 +272,8 @@ export const didAuth = async(did: string, key: string, regapi_url: string) : Pro
  * @returns base58btc Multiformat encoded object
  */
 export const hexToMulti = async(hexKey: string, options?: Partial<ReadOptions>) : Promise<string> => {
-    const keyBytes = didJWT.hexToBytes(hexKey);
+    const keyBytes = Buffer.from(hexKey, "hex");
+    // const keyBytes = didJWT.hexToBytes(hexKey);
     const multiformatKey = base58btc.encode(keyBytes);
     return multiformatKey;
 }

@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hexToMulti = exports.didAuth = exports.verify = exports.sign = exports.decrypt = exports.encrypt = exports.deactivate = exports.update = exports.read = exports.create = exports.DEFAULT_ENCODING = exports.DEFAULT_DIGEST = void 0;
-const did_jwt_1 = __importDefault(require("did-jwt"));
+// import didJWT from 'did-jwt';
 const axios_1 = __importDefault(require("axios"));
 const base58_1 = require("multiformats/bases/base58");
 exports.DEFAULT_DIGEST = "sha2-256";
@@ -167,7 +167,8 @@ exports.didAuth = didAuth;
  * @returns base58btc Multiformat encoded object
  */
 const hexToMulti = (hexKey, options) => __awaiter(void 0, void 0, void 0, function* () {
-    const keyBytes = did_jwt_1.default.hexToBytes(hexKey);
+    const keyBytes = Buffer.from(hexKey, "hex");
+    // const keyBytes = didJWT.hexToBytes(hexKey);
     const multiformatKey = base58_1.base58btc.encode(keyBytes);
     return multiformatKey;
 });
