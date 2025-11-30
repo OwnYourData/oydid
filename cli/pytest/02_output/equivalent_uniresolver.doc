@@ -10,13 +10,13 @@
         "id": "did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR#key-doc",
         "type": "Ed25519VerificationKey2020",
         "controller": "did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR",
-        "publicKeyMultibase": "zDG2hGmmoAon2XDA1y11hnxwhFVa88VRbtmEFMywWuQGH"
+        "publicKeyMultibase": "z6Mv4q7EFUKq7p8KKGGfh1UjduMrpNnzdprtaMiFsp9Kq9gD"
       },
       {
         "id": "did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR#key-rev",
         "type": "Ed25519VerificationKey2020",
         "controller": "did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR",
-        "publicKeyMultibase": "z7C9maEMmAkWMDeQxuVSRvBJXFPjqc2KU1GQsNbZTaEYc"
+        "publicKeyMultibase": "z6MuxmEJYvuo7kre1hXcdVuTm7igpGxi7MkkgrtstRmGVyxY"
       }
     ],
     "alsoKnownAs": [

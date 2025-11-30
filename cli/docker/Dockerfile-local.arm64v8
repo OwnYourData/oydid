@@ -24,6 +24,7 @@ RUN chmod 755 /usr/local/bin/oydid && \
     mkdir -p /usr/src/pytest
 COPY --chown=user:user pytest /usr/src/pytest
 COPY Rakefile /usr/src/pytest
+
 USER user
 WORKDIR /home/user
 

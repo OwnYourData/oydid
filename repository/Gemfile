@@ -1,31 +1,29 @@
 source 'https://rubygems.org'
 
-ruby '2.6.9'
+ruby '3.2.8'
 
-gem 'rails', '~> 5.2.5'
-gem 'sqlite3', '~> 1.3.6'
-gem 'pg', '>= 0.18', '< 2.0'
-gem 'puma', '>= 3.12.2'
+gem 'rails', "~> 7.2"
+gem 'sqlite3'
+gem 'pg'
+gem 'puma'
 gem 'rack-cors', ">= 1.0.4", require: 'rack/cors'
 gem 'rbnacl'
 gem 'httparty'
 gem 'responders'
-gem 'sprockets', '~> 3.7'
 gem 'rswag'
-gem 'pagy', '~> 3.5'
+# gem 'pagy'
 gem 'ed25519'
-gem 'dag'
 gem 'multibases'
 gem 'multihashes'
 gem 'multicodecs'
-gem 'json-canonicalization', '~> 0.3.0'
-gem 'oydid', '~> 0.5.3'
+gem 'json-canonicalization'
+gem 'oydid'
 gem 'doorkeeper'
-gem 'sass-rails'
+gem 'sass-rails', '>= 6'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
-  gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
+  gem 'byebug', platforms: [:mri, :windows]
   gem 'rspec-rails'
 end
 

@@ -1,0 +1,44 @@
+services:
+  pod:
+    image: oydeu/oydid-base:arm64v8
+    container_name: oydid
+    environment:
+      RAILS_ENV: "production"
+      RAILS_LOG_TO_STDOUT: "TRUE"
+      DC_DB: "postgres"
+      DB_HOST: "db"
+      DB_NAME: "did"
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      RAILS_CONFIG_HOSTS: 'localhost:3300'
+      SECRET_KEY_BASE: 17cce413365562c5c0ab09ffaa9d4cf669e94b1338dd2bea5243f24f729e8f9a27f761bc47fa575f2ad1690b45b3439c9ddb3d7a143596b0a65e97d1b0881c01
+    networks:
+      - local-net
+    ports:
+      - "3300:3000"
+    depends_on:
+      - "db"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+  db:
+    image: arm64v8/postgres:17-alpine
+    container_name: db
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    volumes:
+      - data:/var/lib/postgresql/data
+    networks:
+      - local-net
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+volumes:
+  data:
+networks:
+  local-net:
+

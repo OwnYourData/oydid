@@ -1,0 +1,43 @@
+require 'jwt'
+require 'json'
+
+TOKEN = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.' \
+        'eyJleHAiOjE3NTUzNTY1ODksInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvZXhhbXBsZXMvdjEiXSwi' \
+        'dHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJldmlkZW5jZURvY3VtZW50IjoiaGVsbG8gd29ybGQifX0sInN1YiI6ImRpZDpveWQ6elFtWWh6cmU0cnIzYTFCTVNUQjdyenoxVXRhQXhH' \
+        'd1hEc3pRUW94dWl6ZFlQZGciLCJuYmYiOjE3NDc1ODA1OTcsImlzcyI6ImRpZDpveWQ6elFtWWh6cmU0cnIzYTFCTVNUQjdyenoxVXRhQXhHd1hEc3pRUW94dWl6ZFlQZGcifQ.' \
+        'pmmnV0e8gsk_jdXeflik4GVbL0_F2QkQHD1rwYRh2b_44EcWstcO1CzS7MrOsDfZi7YCREDO6IggcsNUfUbPKw'
+
+JWK_DATA = {
+  kty: 'EC',
+  crv: 'P-256',
+  x:   'JyQdWh5K5k1PvyNnKAORovrylKJL0LWALc-Ltc_-V3I',
+  y:   'iOhCmmyMkXcxk5HMxKFLX5Il0cuzJmz3PWHDXPmDJ7I'
+}
+jwk = JWT::JWK.import(JWK_DATA)
+public_ec = jwk.keypair
+
+DECODE_OPTS = {
+  algorithms:          ['ES256'],
+  verify_expiration:   true,   # exp-Claim
+  verify_not_before:   true,   # nbf-Claim
+  leeway:              60,     # Sekunden Toleranz
+  iss:                 'did:oyd:zQmYhzre4rr3a1BMSTB7rzz1UtaAxGwXDszQQoxuizdYPdg',
+  verify_iss:          true
+}
+
+begin
+  payload, header = JWT.decode(TOKEN, public_ec, true, DECODE_OPTS)
+
+  puts '✅  Signatur & Claims in Ordnung'
+  puts 'Header:';  pp header
+  puts 'Payload:'; pp payload
+rescue JWT::ExpiredSignature
+  warn '❌  Token ist abgelaufen (exp)'
+rescue JWT::ImmatureSignature
+  warn '❌  Token ist noch nicht gültig (nbf)'
+rescue JWT::InvalidIssuerError
+  warn '❌  Issuer stimmt nicht'
+rescue JWT::DecodeError => e
+  warn "❌  Verifikation fehlgeschlagen: #{e.class} – #{e.message}"
+end
+

@@ -1,0 +1,31 @@
+OYDID Read Benchmark
+Measurements          : 20
+Reads per measurement : 10
+Total DIDs available  : 363
+----------------------------------------
+Measurement 1: 4782 ms (10 resolves)
+Measurement 2: 4572 ms (10 resolves)
+Measurement 3: 4567 ms (10 resolves)
+Measurement 4: 4432 ms (10 resolves)
+Measurement 5: 4228 ms (10 resolves)
+Measurement 6: 4463 ms (10 resolves)
+Measurement 7: 4331 ms (10 resolves)
+Measurement 8: 4519 ms (10 resolves)
+Measurement 9: 4616 ms (10 resolves)
+Measurement 10: 4547 ms (10 resolves)
+Measurement 11: 4490 ms (10 resolves)
+Measurement 12: 4717 ms (10 resolves)
+Measurement 13: 4168 ms (10 resolves)
+Measurement 14: 4288 ms (10 resolves)
+Measurement 15: 4466 ms (10 resolves)
+Measurement 16: 4666 ms (10 resolves)
+Measurement 17: 4441 ms (10 resolves)
+Measurement 18: 4891 ms (10 resolves)
+Measurement 19: 5067 ms (10 resolves)
+Measurement 20: 4734 ms (10 resolves)
+----------------------------------------
+Number of measurements : 20
+Total reads performed  : 200
+Min duration           : 4168 ms
+Max duration           : 5067 ms
+Average duration       : 4549 ms

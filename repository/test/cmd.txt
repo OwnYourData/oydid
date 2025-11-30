@@ -1,6 +1,12 @@
 docker run -d --name repo -p 3000:3000 oydeu/oydid-base
-docker run -d --name repo -e DID_DB=local -p 3000:3000 oydeu/oydid-base
+
 docker run -d --name did_repo -e DID_DB=local -p 3000:3000 oydeu/oydid-base:arm64v8
+
+===
+
+docker run -d --name oydid -e DID_DB=local -p 3300:3000 oydeu/oydid-base
+
+===
 
 docker-compose -f test/docker-compose.yml up -d
 # docker run -d --name did_repo -e DID_DB=external -p 3000:3000 oydeu/oydid-base

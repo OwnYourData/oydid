@@ -38,6 +38,37 @@ class DidsController < ApplicationController
         end
     end
 
+    def show
+        options = {}
+        if ENV["DID_LOCATION"].to_s != ""
+            options[:location] = ENV["DID_LOCATION"].to_s
+            if options[:doc_location].nil?
+                options[:doc_location] = options[:location]
+            end
+            if options[:log_location].nil?
+                options[:log_location] = options[:location]
+            end
+        end
+        did = params[:did]
+        options_followAlsoKnownAs = params[:followAlsoKnownAs].to_s.downcase
+        if options_followAlsoKnownAs == ""
+            options[:followAlsoKnownAs] = false
+        elsif options_followAlsoKnownAs == "true"
+            options[:followAlsoKnownAs] = true
+        else
+            options[:followAlsoKnownAs] = false
+        end
+        result = resolve_did(did, options)
+        if result["error"] != 0
+            # puts "Error: " + result["message"].to_s
+            render json: {"error": result["message"].to_s}.to_json,
+                   status: 500
+        else
+            render json: result["doc"],
+                   status: 200
+        end
+    end
+
     def raw
         options = {}
         if ENV["DID_LOCATION"].to_s != ""
@@ -146,10 +177,14 @@ class DidsController < ApplicationController
                 new_logs << item
             when 2, 3 # CREATE or UPDATE
                 # check with didPubKey validity of signature
-                if !Oydid.verify(item["doc"], item["sig"], didPubKey)
-                    render json: {"error": "invalid signature in log with op=" + item["op"].to_s},
-                           status: 400
-                    return
+
+                # signature for CREATE is optional (due to CMSM)
+                if !item["sig"].nil?
+                    if !Oydid.verify(item["doc"], item["sig"], didPubKey)
+                        render json: {"error": "invalid signature in log with op=" + item["op"].to_s},
+                               status: 400
+                        return
+                    end
                 end
                 new_logs << item
             else
@@ -729,4 +764,163 @@ class DidsController < ApplicationController
         end
     end
 
+    def web
+        puts request.host.to_s
+        did_host = request.host.to_s
+        did = params[:did]
+        fragment = params[:fragment]
+        options = {}
+        didLocation = did.split(LOCATION_PREFIX)[1] rescue ""
+        didHash = did.split(LOCATION_PREFIX)[0] rescue did
+        didHash = didHash.delete_prefix("did:oyd:")
+
+        # check for pub-key identifier
+        if didHash.start_with?("z6M") && didHash.length == 48
+
+        else
+            options[:digest] = Oydid.get_digest(didHash).first
+            options[:encode] = Oydid.get_encoding(didHash).first
+        end
+        options[:followAlsoKnownAs] = ENV['FOLLOW_ALSOKNOWNAS'].to_s.downcase != 'false'
+        result = Oydid.read(did, options).first rescue nil
+        if result.nil?
+            render json: {"error": "not found"},
+                   status: 404
+            return
+        end
+        if result["error"] != 0
+            render json: {"error": result["message"].to_s},
+                   status: result["error"]
+            return
+        end
+
+        didResolutionMetadata = {}
+        if !ENV["UNIRESOLVER_DEBUG"].nil?
+            didResolutionMetadata = {
+              "contentType": "application/did+ld+json",
+              "pattern": "^(did:oyd:.+)$",
+              "driverUrl": "https://oydid-resolver.data-container.net/1.0/identifiers/$1",
+              "duration": 1,
+              "did": {
+                "didString": did,
+                "methodSpecificId": didHash,
+                "method": "oyd"
+              }
+            }
+        end
+
+        pubDocKey = result["doc"]["key"].split(":")[0]
+        pubkey = Oydid.multi_decode(pubDocKey).first
+        if pubkey.bytes.length == 34
+            code = pubkey.bytes.first
+            digest = pubkey[-32..]
+        else
+            if pubkey.start_with?("\x80\x24".dup.force_encoding('ASCII-8BIT'))
+                code = 4608 # Bytes 0x80 0x24 sind das Varint-Encoding des Multicodec-Codes 0x1200 (p256-pub)
+                            # 4608 == Oydid.read_varint("\x80$") oder "\x80\x24".force_encoding('ASCII-8BIT')
+            else
+                code = pubkey.unpack('n').first
+            end
+            digest = pubkey[-1*(pubkey.bytes.length-2)..]
+        end
+        keys = []
+        case Multicodecs[code].name
+        when 'ed25519-pub'
+            # document key
+            keys << {
+                "kid": Oydid.percent_encode("did:oyd:" + result["did"].to_s) + '#key-doc',
+                "kms": "local",
+                "type": "Ed25519", 
+                "publicKeyHex": Oydid.multi_decode(result["doc"]["key"].split(":").first).first.unpack('H*').first
+            }
+
+            # revocation key
+            keys << {
+                "kid": Oydid.percent_encode("did:oyd:" + result["did"].to_s) + '#key-rev',
+                "kms": "local",
+                "type": "Ed25519", 
+                "publicKeyHex": Oydid.multi_decode(result["doc"]["key"].split(":").last).first.unpack('H*').first
+            }
+        when 'p256-pub'
+            pubDocKey_jwk, msg = Oydid.public_key_to_jwk(result["doc"]["key"].split(":").first)
+            if pubDocKey_jwk.nil?
+                return {"error": "document key: " + msg.to_s}
+            end
+            pubRevKey_jwk, msg = Oydid.public_key_to_jwk(result["doc"]["key"].split(":").last)
+            if pubRevKey_jwk.nil?
+                return {"error": "revocation key: " + msg.to_s}
+            end
+
+            # document key
+            keys << {
+                "kid": Oydid.percent_encode("did:oyd:" + result["did"].to_s) + '#key-doc',
+                "kms": "local",
+                "type": "JsonWebKey2020",
+                "publicKeyJwk": pubDocKey_jwk
+            }
+
+            # revocation key
+            keys << {
+                "kid": Oydid.percent_encode("did:oyd:" + result["did"].to_s) + '#key-rev',
+                "kms": "local",
+                "type": "JsonWebKey2020",
+                "publicKeyJwk": pubRevKey_jwk
+            }
+        else
+            return {"error": "unsupported key codec (" + Multicodecs[code].name.to_s + ")"}
+        end
+
+        oydid_W3C = Oydid.w3c(Marshal.load(Marshal.dump(result)), {})
+
+        if result["did"].to_s.start_with?("did:oyd")
+            did_identifier = Oydid.percent_encode(result["did"].to_s)
+        else
+            did_identifier = Oydid.percent_encode("did:oyd:" + result["did"].to_s)
+        end
+        retVal = {
+            "didResolutionMetadata": didResolutionMetadata,
+            "didDocument": oydid_W3C,
+            "didDocumentMetadata": {
+                "did": did_identifier,
+                "keys": keys,
+                "registry": Oydid.get_location(result["did"].to_s),
+                "log_hash": result["doc"]["log"].to_s,
+                "log": result["log"],
+                "document_log_id": result["doc_log_id"].to_i,
+                "termination_log_id": result["termination_log_id"].to_i
+            }
+        }
+        if fragment.to_s != ""
+            vms = retVal[:didDocument]["verificationMethod"]
+            vms.each do |vm|
+                if vm[:id].split('#').last == fragment
+                    retVal[:didDocument] = {
+                        "@context": retVal[:didDocument]["@context"],
+                        id: vm[:id],
+                        type: vm[:type],
+                        controller: vm[:controller],
+                        publicKeyMultibase: vm[:publicKeyMultibase]
+                    }
+                end
+            end
+        end
+        retVal = replace_oyd(retVal, did_host)
+        render plain: retVal[:didDocument].to_json,
+               mime_type: Mime::Type.lookup("application/ld+json"),
+               content_type: 'application/ld+json',
+               status: 200
+    end
+
+    def replace_oyd(obj, did_host)
+      case obj
+      when String
+        obj.gsub("did:oyd:", "did:web:#{did_host}:")
+      when Array
+        obj.map { |e| replace_oyd(e, did_host) }
+      when Hash
+        obj.transform_values { |v| replace_oyd(v, did_host) }
+      else
+        obj
+      end
+    end
 end

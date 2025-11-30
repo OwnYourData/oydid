@@ -1,0 +1,30 @@
+OYDID Write Benchmark
+Measurements   : 20
+DIDs list file : oydid_dids_for_read.txt
+----------------------------------------
+Measurement 1: 10456 ms (20 operations)
+Measurement 2: 5744 ms (13 operations)
+Measurement 3: 11465 ms (19 operations)
+Measurement 4: 9163 ms (18 operations)
+Measurement 5: 8548 ms (18 operations)
+Measurement 6: 12019 ms (22 operations)
+Measurement 7: 8828 ms (17 operations)
+Measurement 8: 10397 ms (18 operations)
+Measurement 9: 9819 ms (19 operations)
+Measurement 10: 9131 ms (15 operations)
+Measurement 11: 7298 ms (13 operations)
+Measurement 12: 8365 ms (17 operations)
+Measurement 13: 12224 ms (22 operations)
+Measurement 14: 5762 ms (12 operations)
+Measurement 15: 8829 ms (18 operations)
+Measurement 16: 6278 ms (13 operations)
+Measurement 17: 14576 ms (26 operations)
+Measurement 18: 10564 ms (20 operations)
+Measurement 19: 10988 ms (20 operations)
+Measurement 20: 13165 ms (23 operations)
+----------------------------------------
+Number of measurements : 20
+Min duration           : 5744 ms
+Max duration           : 14576 ms
+Average duration       : 9680 ms
+DIDs stored in         : oydid_dids_for_read.txt

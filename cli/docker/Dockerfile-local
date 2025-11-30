@@ -1,15 +1,13 @@
-FROM ruby:2.7.8-alpine
-MAINTAINER "Christoph Fabianek" christoph@ownyourdata.eu
+FROM ruby:3.2.8-alpine
+LABEL org.opencontainers.image.authors="Christoph Fabianek <christoph@ownyourdata.eu>"
 
 RUN addgroup -S user && \
     adduser -S user -G user && \
-    apk add --no-cache libsodium-dev git make gcc musl-dev jq bash curl gdbm gdbm-dev && \
-    gem install httparty ed25519 multibases multihashes multicodecs optparse rbnacl dag uri json-canonicalization oydid && \
-    gem install securerandom -v 0.1.1 && \
-    apk add --update --no-cache python3 && \
+    apk add --no-cache libsodium-dev openssl openssl-dev git make gcc musl-dev jq bash curl gdbm gdbm-dev enscript ghostscript && \
+    gem install httparty ed25519 multibases multihashes multicodecs optparse rbnacl dag uri json-canonicalization openssl oydid securerandom && \
+    apk add --update --no-cache python3 pipx py3-setuptools py3-pytest py3-requests && \
     ln -sf python3 /usr/bin/python && \
-    python3 -m ensurepip && \
-    pip3 install --no-cache --upgrade pip setuptools pytest requests pytest-subprocess
+    apk add --no-cache py3-pytest-subprocess --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
 COPY oydid.rb /usr/local/bin/oydid
 COPY ./docker/start.sh /usr/local/bin/start.sh
 COPY docker/local-gem/*.gem /tmp/
@@ -24,6 +22,7 @@ RUN chmod 755 /usr/local/bin/oydid && \
     mkdir -p /usr/src/pytest
 COPY --chown=user:user pytest /usr/src/pytest
 COPY Rakefile /usr/src/pytest
+
 USER user
 WORKDIR /home/user
 
