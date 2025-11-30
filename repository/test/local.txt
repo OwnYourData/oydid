@@ -1,0 +1,11 @@
+docker pull oydeu/oydid-base
+#arm64v8
+
+docker run -d --name did_repo -e DID_DB=local -p 3000:3000 oydeu/oydid-base
+check: http://localhost:3000/
+
+echo '' | oydid create -l http://localhost:3000
+
+echo '{"hello": "world"}' | oydid create -l http://localhost:3000
+
+echo '["reproducible"]' | oydid create  --doc-pwd pwd1 --rev-pwd pwd2 -z 1 -l http://localhost:3000

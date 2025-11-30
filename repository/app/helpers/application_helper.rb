@@ -88,10 +88,13 @@ module ApplicationHelper
                     return currentDID
                 end
                 if el["op"] == 2 # CREATE
-                    if !Oydid.match_log_did?(el, doc)
-                        currentDID["error"] = 1
-                        currentDID["message"] = "Signatures in log don't match"
-                        return currentDID
+                    # signature for CREATE is optional (due to CMSM)
+                    if !el["sig"].nil?
+                        if !Oydid.match_log_did?(el, doc)
+                            currentDID["error"] = 1
+                            currentDID["message"] = "Signatures in log don't match"
+                            return currentDID
+                        end
                     end
                 end
                 currentDID["did"] = doc_did
@@ -115,6 +118,13 @@ module ApplicationHelper
                 did_hash = did_hash.split("@").first
                 did10 = did_hash[0,10]
                 did, doc = local_retrieve_document(did_hash)
+
+                if !Oydid.match_log_did?(el, doc)
+                    currentDID["error"] = 1
+                    currentDID["message"] = "Signatures in log don't match"
+                    return currentDID
+                end
+
                 term = doc["log"]
                 log_location = term.split("@")[1] rescue ""
                 if log_location.to_s == ""
@@ -150,7 +160,7 @@ module ApplicationHelper
                 log_array = local_retrieve_log(did_hash)
                 log_array.each do |log_el|
                     log_el_structure = log_el.dup
-                    if log_el["op"].to_i == 1 # TERMINATE
+                    if log_el["op"].to_i == 1 # REVOKE
                         log_el_structure.delete("previous")
                     end
                     if Oydid.multi_hash(Oydid.canonical(log_el_structure), log_options).first == revoc_term
@@ -237,7 +247,6 @@ module ApplicationHelper
                             end
                         end
                     end
-
                 else
                     if verification_output
                         currentDID["verification"] += "Revocation reference in log record: " + revoc_term.to_s + "\n"

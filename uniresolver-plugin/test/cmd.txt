@@ -13,3 +13,12 @@ https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmaBZTghndXTg
 curl -s http://localhost:3000/1.0/identifiers/did:oyd:zQmdXNRiMWEYTiYF58a9BaiUkfB2xWUgL7G7ozyCCNPqjKV | jq
 
 curl -s http://localhost:3000/1.0/identifiers/did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR | jq
+
+
+curl https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmXkP3D6LaHUrKzRkfDGFZ4T8ECrCgZLL4zDwFbFHmwzSw
+
+curl "https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmXkP3D6LaHUrKzRkfDGFZ4T8ECrCgZLL4zDwFbFHmwzSw" | jq '.didDocument'
+curl "https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmXkP3D6LaHUrKzRkfDGFZ4T8ECrCgZLL4zDwFbFHmwzSw?fragment=key-doc" | jq '.didDocument'
+
+
+curl https://oydid-resolver.data-container.net/1.0/identifiers/did:oyd:zQmTxrzHj3vJ4SmWm9a2gB6q3JdshvBLbxmU9j1Z4y9tPP2

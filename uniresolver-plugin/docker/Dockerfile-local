@@ -1,24 +1,20 @@
 FROM ruby:3.2.2
-MAINTAINER "Christoph Fabianek" christoph@ownyourdata.eu
+LABEL org.opencontainers.image.authors="Christoph Fabianek <christoph@ownyourdata.eu>"
 
 WORKDIR /usr/src/app
-ENV RAILS_ROOT $WORKDIR
+ENV RAILS_ROOT=/usr/src/app/
 RUN mkdir -p $RAILS_ROOT/tmp/pids && \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-  		libsodium-dev \
+		libsodium-dev \
 		build-essential && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY Gemfile $WORKDIR
-
-COPY docker/local-gem/*.gem /tmp/
-RUN gem install /tmp/*.gem && \
-	bundle install
-
+COPY Gemfile Gemfile.lock $RAILS_ROOT
 COPY docker/local-gem/*.gem /tmp/
 
 RUN gem install bundler && \
+	gem install /tmp/*.gem && \
 	gem update --system && \
 	bundle install && \
 	bundle update
@@ -29,7 +25,7 @@ ENV RAILS_ENV=production
 
 COPY . .
 RUN gem update bundler && \
-    gem install /tmp/*.gem && \
+	gem install /tmp/*.gem && \
 	bundle update
 
 CMD ["rails", "server", "-b", "0.0.0.0"]

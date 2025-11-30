@@ -51,7 +51,10 @@ class Oydid
         else
             return [nil, "unsupported digest: '" + method.to_s + "'"]
         end
-        encoded = multi_encode(Multihashes.encode(digest, method.to_s), options)
+        code = Multicodecs[method].code
+        length = digest.bytesize
+        encoded = multi_encode([code, length, digest].pack("CCa#{length}"), options)
+        # encoded = multi_encode(Multihashes.encode(digest, method.to_s), options)
         if encoded.first.nil?
             return [nil, encoded.last]
         else
@@ -60,15 +63,15 @@ class Oydid
     end
 
     def self.get_digest(message)
-        decoded_message, error = Oydid.multi_decode(message)
+        decoded_message, error = multi_decode(message)
         if decoded_message.nil?
             return [nil, error]
         end
-        retVal = Multihashes.decode decoded_message
-        if retVal[:hash_function].to_s != ""
-            return [retVal[:hash_function].to_s, ""]
-        end
-        case Oydid.multi_decode(message).first[0..1].to_s
+        # retVal = Multihashes.decode decoded_message
+        # if retVal[:hash_function].to_s != ""
+        #     return [retVal[:hash_function].to_s, ""]
+        # end
+        case decoded_message[0..1].to_s
         when "\x02\x10"
             return ["blake2b-16", ""]
         when "\x04 "
@@ -76,7 +79,13 @@ class Oydid
         when "\b@"
             return ["blake2b-64", ""]
         else
-            return [nil, "unknown digest"]
+            code, length, digest = decoded_message.unpack('CCa*')
+            retVal = Multicodecs[code].name rescue nil
+            if !retVal.nil?
+                return [retVal, ""]
+            else
+                return [nil, "unknown digest"]
+            end
         end
     end
 
@@ -103,7 +112,60 @@ class Oydid
         did = did.sub("https://","").sub("@", "%40").sub("http://","http%3A%2F%2F").gsub(":","%3A").sub("did%3Aoyd%3A", "did:oyd:")
     end
 
+    def self.to_varint(n)
+        bytes = []
+        loop do
+            byte = n & 0x7F
+            n >>= 7
+            if n == 0
+                bytes << byte
+                break
+            else
+                bytes << (byte | 0x80)
+            end
+        end
+        bytes
+    end
+
+    def self.read_varint(str)
+        n = shift = 0
+        str.each_byte do |byte|
+            n |= (byte & 0x7f) << shift
+            break unless (byte & 0x80) == 0x80
+            shift += 7
+        end
+        return n
+    end
+
     # key management ----------------------------
+    def self.get_keytype(input)
+        code, length, digest = multi_decode(input).first.unpack('SCa*')
+        case Multicodecs[code]&.name
+        when 'ed25519-priv', 'p256-priv'
+            return Multicodecs[code].name
+        else
+            pubkey = multi_decode(input).first
+            if pubkey.bytes.length == 34
+                code = pubkey.bytes.first
+                digest = pubkey[-32..]
+            else
+                if pubkey.start_with?("\x80\x24".dup.force_encoding('ASCII-8BIT'))
+                    code = 4608 # Bytes 0x80 0x24 sind das Varint-Encoding des Multicodec-Codes 0x1200 (p256-pub)
+                                # 4608 == Oydid.read_varint("\x80$") oder "\x80\x24".force_encoding('ASCII-8BIT')
+                else
+                    code = pubkey.unpack('n').first
+                end
+                digest = pubkey[-1*(pubkey.bytes.length-2)..]
+            end
+            case Multicodecs[code]&.name
+            when 'ed25519-pub', 'p256-pub'
+                return Multicodecs[code].name
+            else
+                return nil
+            end
+        end
+    end
+
     def self.generate_private_key(input, method = "ed25519-priv", options = {})
         begin
             omc = Multicodecs[method].code
@@ -113,19 +175,35 @@ class Oydid
         
         case Multicodecs[method].name 
         when 'ed25519-priv'
-            if input != ""
-                raw_key = Ed25519::SigningKey.new(RbNaCl::Hash.sha256(input))
-            else
+            if input == ""
                 raw_key = Ed25519::SigningKey.generate
+            else
+                raw_key = Ed25519::SigningKey.new(RbNaCl::Hash.sha256(input))
             end
             raw_key = raw_key.to_bytes
-            length = raw_key.bytesize
+        when 'p256-priv'
+            key = OpenSSL::PKey::EC.new('prime256v1')
+            if input == ""
+                key = OpenSSL::PKey::EC.generate('prime256v1')
+            else
+                # input for p256-priv requires valid base64 encoded private key
+                begin
+                    key = OpenSSL::PKey.read Base64.decode64(input)
+                rescue
+                    return [nil, "invalid input"]
+                end
+            end
+            raw_key = key.private_key.to_s(2)
         else
             return [nil, "unsupported key codec"]
         end
-        
+
+        # only encoding without specifying key-type
+        # encoded = multi_encode(raw_key, options)
+
+        # encoding with specyfying key-type
+        length = raw_key.bytesize
         encoded = multi_encode([omc, length, raw_key].pack("SCa#{length}"), options)
-        # encoded = multi_encode(raw_key.to_bytes, options)
         if encoded.first.nil?
             return [nil, encoded.last]
         else
@@ -133,10 +211,11 @@ class Oydid
         end
     end
 
-    def self.public_key(private_key, options = {}, method = "ed25519-pub")
+    def self.public_key(private_key, options = {}, method = nil)
         code, length, digest = multi_decode(private_key).first.unpack('SCa*')
         case Multicodecs[code].name
         when 'ed25519-priv'
+            method = 'ed25519-pub' if method.nil?
             case method
             when 'ed25519-pub'
                 public_key = Ed25519::SigningKey.new(digest).verify_key
@@ -145,9 +224,32 @@ class Oydid
             else
                 return [nil, "unsupported key codec"]
             end
-            # encoded = multi_encode(public_key.to_bytes, options)
-            length = public_key.to_bytes.bytesize
-            encoded = multi_encode([Multicodecs[method].code, length, public_key].pack("CCa#{length}"), options)
+
+            # encoding according to https://www.w3.org/TR/vc-di-eddsa/#ed25519verificationkey2020
+            encoded = multi_encode(
+                Multibases::DecodedByteArray.new(
+                    ([Multicodecs[method].code, 1] << 
+                        public_key.to_bytes.bytes).flatten)
+                    .to_s(Encoding::BINARY),
+                options)
+
+            # previous (up until oydid 0.5.6) wrong encoding (length should not be set!):
+            # length = public_key.to_bytes.bytesize
+            # encoded = multi_encode([Multicodecs[method].code, length, public_key].pack("CCa#{length}"), options)
+            if encoded.first.nil?
+                return [nil, encoded.last]
+            else
+                return [encoded.first, ""]
+            end
+        when 'p256-priv'
+            method = 'p256-pub' if method.nil?
+            group = OpenSSL::PKey::EC::Group.new('prime256v1')
+            public_key = group.generator.mul(OpenSSL::BN.new(digest, 2))
+            encoded = multi_encode(
+                Multibases::DecodedByteArray.new(
+                    (to_varint(0x1200) << public_key.to_bn.to_s(2).bytes)
+                    .flatten).to_s(Encoding::BINARY),
+                options)
             if encoded.first.nil?
                 return [nil, encoded.last]
             else
@@ -175,6 +277,9 @@ class Oydid
             end
         else
             privateKey, msg = decode_private_key(enc.to_s, options)
+            if msg.nil?
+                privateKey = enc.to_s
+            end
         end
         return [privateKey, msg]
     end
@@ -249,16 +354,97 @@ class Oydid
         return [keys.uniq, ""]
     end
 
-    def self.sign(message, private_key, options)
-        code, length, digest = multi_decode(private_key).first.unpack('SCa*')
-        case Multicodecs[code].name
+    def self.sign(message, private_key, options = {})
+        key_type = get_keytype(private_key)
+        case key_type
         when 'ed25519-priv'
+            code, length, digest = multi_decode(private_key).first.unpack('SCa*')
             encoded = multi_encode(Ed25519::SigningKey.new(digest).sign(message), options)
             if encoded.first.nil?
                 return [nil, encoded.last]
             else
                 return [encoded.first, ""]
             end
+        when 'p256-priv'
+            # non-deterministic signing
+            # ec_key = decode_private_key(private_key).first
+            # dgst_bin = OpenSSL::Digest::SHA256.digest(message)
+            # der = ec_key.dsa_sign_asn1(dgst_bin)
+            # asn1 = OpenSSL::ASN1.decode(der)
+            # r_hex = asn1.value[0].value.to_s(16).rjust(64, '0')
+            # s_hex = asn1.value[1].value.to_s(16).rjust(64, '0')
+            # sig_bin = [r_hex + s_hex].pack('H*')
+            # encoded_signature = Base64.strict_encode64(sig_bin).tr('+/', '-_').delete('=')
+
+            # === deterministic signing with P-256 =====
+            # key & constants
+            ec_key = decode_private_key(private_key).first
+            if (ec_key.respond_to?(:private_key) ? ec_key.private_key : nil).nil?
+                return [nil, "invalild private key"]
+            end
+
+            group = OpenSSL::PKey::EC::Group.new('prime256v1')
+            n = group.order
+            qlen = n.num_bits
+            holen = 256
+            bx = ec_key.private_key
+
+            # hash message
+            h1_bin = OpenSSL::Digest::SHA256.digest(message)
+            h1_int = h1_bin.unpack1('H*').to_i(16)
+
+            # helper (RFC 6979 Section 2.3)
+            int2octets = lambda do |int|
+                bin = int.to_s(16).rjust((qlen + 7) / 8 * 2, '0')
+                [bin].pack('H*')
+            end
+            bits2octets = lambda do |bits|
+                z1 = bits % n
+                int2octets.call(z1)
+            end
+
+            # initialize HMAC-DRBG
+            v = "\x01" * (holen / 8)
+            k = "\x00" * (holen / 8)
+            key_oct = int2octets.call(bx)
+            hash_oct = bits2octets.call(h1_int)
+
+            k = OpenSSL::HMAC.digest('SHA256', k, v + "\x00" + key_oct + hash_oct)
+            v = OpenSSL::HMAC.digest('SHA256', k, v)
+            k = OpenSSL::HMAC.digest('SHA256', k, v + "\x01" + key_oct + hash_oct)
+            v = OpenSSL::HMAC.digest('SHA256', k, v)
+
+            # identify k (step H in RFC 6979)
+            loop do
+                v = OpenSSL::HMAC.digest('SHA256', k, v)
+                t = v.unpack1('H*').to_i(16)
+
+                k_candidate = t % n
+                if k_candidate.positive? && k_candidate < n
+                    k_bn = OpenSSL::BN.new(k_candidate)
+                    # calculate signature (r,s)
+                    r_bn = group.generator.mul(k_bn).to_bn                     # Point → BN (uncompressed)
+                    # extract x
+                    r_int = r_bn.to_s(2)[1, 32].unpack1('H*').to_i(16) % n
+                    next if r_int.zero?
+
+                    kinv = k_bn.mod_inverse(n)
+                    s_int = (kinv * (h1_int + bx.to_i * r_int)) % n
+                    next if s_int.zero?
+                    s_int = n.to_i - s_int if s_int > n.to_i / 2
+
+                    # encode r||s -> URL-safe Base64
+                    r_hex = r_int.to_s(16).rjust(64, '0')
+                    s_hex = s_int.to_s(16).rjust(64, '0')
+                    sig   = [r_hex + s_hex].pack('H*')
+                    return [Base64.urlsafe_encode64(sig, padding: false), ""]
+                end
+
+                k = OpenSSL::HMAC.digest('SHA256', k, v + "\x00")
+                v = OpenSSL::HMAC.digest('SHA256', k, v)
+            end            
+
+            return [encoded_signature, ""]
         else
             return [nil, "unsupported key codec"]
         end
@@ -266,7 +452,19 @@ class Oydid
 
     def self.verify(message, signature, public_key)
         begin
-            code, length, digest = multi_decode(public_key).first.unpack('CCa*')
+            pubkey = multi_decode(public_key).first
+            if pubkey.bytes.length == 34
+                code = pubkey.bytes.first
+                digest = pubkey[-32..]
+            else
+                if pubkey.start_with?("\x80\x24".dup.force_encoding('ASCII-8BIT'))
+                    code = 4608 # Bytes 0x80 0x24 sind das Varint-Encoding des Multicodec-Codes 0x1200 (p256-pub)
+                                # 4608 == Oydid.read_varint("\x80$") oder "\x80\x24".force_encoding('ASCII-8BIT')
+                else
+                    code = pubkey.unpack('n').first
+                end
+                digest = pubkey[-1*(pubkey.bytes.length-2)..]
+            end
             case Multicodecs[code].name
             when 'ed25519-pub'
                 verify_key = Ed25519::VerifyKey.new(digest)
@@ -278,6 +476,26 @@ class Oydid
                     signature_verification = false
                 end
                 return [signature_verification, ""]
+            when 'p256-pub'
+                asn1_public_key = OpenSSL::ASN1::Sequence.new([
+                  OpenSSL::ASN1::Sequence.new([
+                    OpenSSL::ASN1::ObjectId.new('id-ecPublicKey'),
+                    OpenSSL::ASN1::ObjectId.new('prime256v1')
+                  ]),
+                  OpenSSL::ASN1::BitString.new(digest)
+                ])
+                key = OpenSSL::PKey::EC.new(asn1_public_key.to_der)
+
+                sig_raw = Base64.urlsafe_decode64(signature + "=" * ((4 - signature.size % 4) % 4))
+                r_hex   = sig_raw[0, 32].unpack1("H*")
+                s_hex   = sig_raw[32, 32].unpack1("H*")
+                asn_r   = OpenSSL::ASN1::Integer.new(OpenSSL::BN.new(r_hex, 16))
+                asn_s   = OpenSSL::ASN1::Integer.new(OpenSSL::BN.new(s_hex, 16))
+                sig_der = OpenSSL::ASN1::Sequence.new([asn_r, asn_s]).to_der
+
+                message_digest = OpenSSL::Digest::SHA256.new
+                valid = key.dsa_verify_asn1(message_digest.digest(message), sig_der)
+                return [valid, ""]
             else
                 return [nil, "unsupported key codec"]
             end
@@ -288,8 +506,15 @@ class Oydid
 
     def self.encrypt(message, public_key, options = {})
         begin
-            code, length, digest = multi_decode(public_key).first.unpack('CCa*')
-            case Multicodecs[code].name
+            if options[:key_type].to_s == ''
+                pk = multi_decode(public_key).first
+                code = pk.bytes.first
+                digest = pk[-32..]
+                key_type = Multicodecs[code].name rescue ''
+            else
+                key_type = options[:key_type]
+            end
+            case key_type
             when 'x25519-pub'
                 pubKey = RbNaCl::PublicKey.new(digest)
                 authHash = RbNaCl::Hash.sha256('auth'.dup.force_encoding('ASCII-8BIT'))
@@ -304,6 +529,43 @@ class Oydid
                         nonce: nonce.unpack('H*')[0]
                     }, ""
                 ]
+            when 'p256-pub'
+                recipient_pub_key = decode_public_key(public_key).first
+
+                # a) Ephemeren Sender-Key erzeugen + ECDH
+                ephemeral_key = OpenSSL::PKey::EC.generate('prime256v1')
+                shared_secret = ephemeral_key.dh_compute_key(recipient_pub_key.public_key)
+
+                # b) Ableitung Content-Encryption-Key (CEK) – simple HKDF-Light
+                cek = OpenSSL::Digest::SHA256.digest(shared_secret)
+
+                # c) Symmetrische Verschlüsselung (AES-256-GCM)
+                cipher = OpenSSL::Cipher.new('aes-256-gcm')
+                cipher.encrypt
+                cipher.key = cek
+                iv = OpenSSL::Random.random_bytes(12) # 96-bit IV wie empfohlen
+                cipher.iv = iv
+                cipher.auth_data = '' # kein AAD
+                ciphertext = cipher.update(message) + cipher.final
+                tag = cipher.auth_tag
+
+                # d) JWE-Header (nur die nötigen Felder)
+                header = {
+                  alg: 'ECDH-ES',
+                  enc: 'A256GCM',
+                  kid: options[:kid],
+                  epk: JWT::JWK.new(ephemeral_key).export.slice(:kty, :crv, :x, :y)
+                }
+
+                # e) JWE-Compact-Serialisierung (EncryptedKey leer bei ECDH-ES)
+                jwe_compact = [
+                    Base64.urlsafe_encode64(header.to_json).delete("="),
+                    '',
+                    Base64.urlsafe_encode64(iv).delete("="),
+                    Base64.urlsafe_encode64(ciphertext).delete("="),
+                    Base64.urlsafe_encode64(tag).delete("="),
+                ].join('.')
+                return [jwe_compact, nil]
             else
                 return [nil, "unsupported key codec"]
             end
@@ -314,17 +576,40 @@ class Oydid
 
     def self.decrypt(message, private_key, options = {})
         begin
-            cipher = [JSON.parse(message)["value"]].pack('H*')
-            nonce = [JSON.parse(message)["nonce"]].pack('H*')
-            code, length, digest = multi_decode(private_key).first.unpack('SCa*')
-            case Multicodecs[code].name
+            key_type = get_keytype(private_key)
+            case key_type
             when 'ed25519-priv'
+                cipher = [JSON.parse(message)["value"]].pack('H*')
+                nonce = [JSON.parse(message)["nonce"]].pack('H*')
+                code, length, digest = multi_decode(private_key).first.unpack('SCa*')
+                if length != 32 # support only encoded keys
+                    digest = Multibases.unpack(private_key).decode.to_s('ASCII-8BIT')
+                    code = Multicodecs["ed25519-priv"].code
+                end
                 privKey = RbNaCl::PrivateKey.new(digest)
                 authHash = RbNaCl::Hash.sha256('auth'.dup.force_encoding('ASCII-8BIT'))
                 authKey = RbNaCl::PrivateKey.new(authHash).public_key
                 box = RbNaCl::Box.new(authKey, privKey)
                 retVal = box.decrypt(nonce, cipher)
                 return [retVal, ""]
+            when 'p256-priv'
+                private_key = decode_private_key(private_key).first
+                head_b64, _, iv_b64, cipher_b64, tag_b64 = message.split('.')
+                decoded_header = JSON.parse(Base64.urlsafe_decode64(head_b64))
+                epk_pub = Oydid.decode_public_key(Oydid.public_key_from_jwk(decoded_header['epk']).first).first
+
+                shared_secret2 = private_key.dh_compute_key(epk_pub.public_key) # ECDH (Gegenseite)
+                cek2 = OpenSSL::Digest::SHA256.digest(shared_secret2)
+
+                decipher = OpenSSL::Cipher.new('aes-256-gcm')
+                decipher.decrypt
+                decipher.key = cek2
+                decipher.iv = Base64.urlsafe_decode64(iv_b64)
+                decipher.auth_tag = Base64.urlsafe_decode64(tag_b64)
+                decipher.auth_data = ''
+                plaintext = decipher.update(Base64.urlsafe_decode64(cipher_b64)) + decipher.final
+
+                return [plaintext, nil]
             else
                 return [nil, "unsupported key codec"]
             end
@@ -333,7 +618,6 @@ class Oydid
         end
     end
 
-    # key="812b578d2e357270cbbd26a9dd44f93e5c8a3b44462e271348ce8f742dfe08144d06fd1f64d5a15c5b21564695d0dca9d65af322e8f96ef394400fe255d288cf"
     def jweh(key)
         pub_key=key[-64..-1]
         prv_key=key[0..-65]
@@ -342,21 +626,16 @@ class Oydid
         bin_pub=[hex_pub].pack('H*')
         int_pub=RbNaCl::PublicKey.new(bin_pub)
         len_pub=int_pub.to_bytes.bytesize
-        enc_pub=Oydid.multi_encode([Multicodecs["x25519-pub"].code,len_pub,int_pub].pack("CCa#{len_pub}"),{}).first
+        enc_pub=multi_encode([Multicodecs["x25519-pub"].code,len_pub,int_pub].pack("CCa#{len_pub}"),{}).first
 
         hex_prv=prv_key
         bin_prv=[hex_prv].pack('H*')
         int_prv=RbNaCl::PrivateKey.new(bin_prv)
         len_prv=int_prv.to_bytes.bytesize
-        enc_prv=Oydid.multi_encode([Multicodecs["ed25519-priv"].code,len_prv,int_prv].pack("SCa#{len_prv}"),{}).first
+        enc_prv=multi_encode([Multicodecs["ed25519-priv"].code,len_prv,int_prv].pack("SCa#{len_prv}"),{}).first
         return [enc_pub, enc_prv]
     end
 
-    # public_key=jweh(key).first
-    # require 'oydid'
-    # message="hallo"
-    # public_key="z6Mv4uEoFYJ369NoE9xUzxG5sm8KpPnvHX6YH6GsYFGSQ32J"
-    # jwe=Oydid.encryptJWE(message, public_key).first
     def self.encryptJWE(message, public_key, options = {})
 
         jwe_header = {"enc":"XC20P"}
@@ -378,7 +657,7 @@ class Oydid
 
         # Key Encryption ---
         snd_prv = RbNaCl::PrivateKey.generate
-        code, length, digest = Oydid.multi_decode(public_key).first.unpack('CCa*')
+        code, length, digest = multi_decode(public_key).first.unpack('CCa*')
         buffer = RbNaCl::Util.zeros(RbNaCl::Boxes::Curve25519XSalsa20Poly1305::PublicKey::BYTES)
         RbNaCl::Signatures::Ed25519::VerifyKey.crypto_sign_ed25519_pk_to_curve25519(buffer, digest)
         shared_secret = RbNaCl::GroupElement.new(buffer).mult(snd_prv.to_bytes)
@@ -434,11 +713,6 @@ class Oydid
         return [jwe_full, ""]
     end
 
-    # require 'oydid'
-    # message = '{"protected":"eyJlbmMiOiJYQzIwUCJ9","iv":"G24pK06HSbL0vTlRZMIEBLfa074tJ1tq","ciphertext":"N5bgUr8","tag":"CJeq8cuaercgoBZmrYoGUA","recipients":[{"encrypted_key":"chR8HQh1CRYRU4TdlfBbvon4fcb5PKfWPSo0SgkMC_8","header":{"alg":"ECDH-ES+XC20PKW","iv":"K7lUo8shyJhxC7Nl45VlXes4tbDeZyBL","tag":"2sLCGRv70ESqEAqos3ZhSg","epk":{"kty":"OKP","crv":"X25519","x":"ZpnKcI7Kac6HPwVAGwM0PBweTFKM6wHHVljTHMRWpD4"}}}]}'
-    # message = jwe.to_json
-    # private_key = "z1S5USmDosHvi2giCLHCCgcq3Cd31mrhMcUy2fcfszxxLkD7"
-    # Oydid.decryptJWE(jwe.to_json, private_key)
     def self.decryptJWE(message, private_key, options = {})
 
         # JWE parsing
@@ -463,7 +737,7 @@ class Oydid
         cnt_aad = Base64.urlsafe_decode64(cnt_aad_enc)
 
         # Key Decryption
-        code, length, digest = Oydid.multi_decode(private_key).first.unpack('SCa*')
+        code, length, digest = multi_decode(private_key).first.unpack('SCa*')
         buffer = RbNaCl::Util.zeros(RbNaCl::Boxes::Curve25519XSalsa20Poly1305::PublicKey::BYTES)
         RbNaCl::Signatures::Ed25519::SigningKey.crypto_sign_ed25519_sk_to_curve25519(buffer, digest)
         shared_secret = RbNaCl::GroupElement.new(snd_pub).mult(buffer)
@@ -491,28 +765,90 @@ class Oydid
         rescue
             return [nil, "cannot read file"]
         end
-        decode_private_key(key_encoded, options)
+        key_type = get_keytype(key_encoded) || options[:key_type] rescue options[:key_type]
+        if key_type.include?('-')
+            key_type = key_type.split('-').first || options[:key_type] rescue options[:key_type]
+        end
+        if key_type == 'p256'
+            begin
+                key = decode_private_key(key_encoded).first
+                private_key = key.private_key.to_s(2)
+                code = Multicodecs["p256-priv"].code
+            rescue
+                return [nil, "invalid base64 encoded p256-priv key"]
+            end
+        else
+            begin
+                code, length, digest = multi_decode(key_encoded).first.unpack('SCa*')
+                case Multicodecs[code].name
+                when 'ed25519-priv'
+                    private_key = Ed25519::SigningKey.new(digest).to_bytes
+                # when 'p256-priv'
+                #     key = OpenSSL::PKey::EC.new('prime256v1')
+                #     key.private_key = OpenSSL::BN.new(digest, 2)
+                #     private_key = key.private_key.to_s(2)
+                else
+                    return [nil, "unsupported key codec"]
+                end
+            rescue
+                return [nil, "invalid key"]
+            end
+        end
+        length = private_key.bytesize
+        return multi_encode([code, length, private_key].pack("SCa#{length}"), options)
+
     end
 
-    def self.decode_private_key(key_encoded, options)
-        begin
-            code, length, digest = multi_decode(key_encoded).first.unpack('SCa*')
-            case Multicodecs[code].name
-            when 'ed25519-priv'
-                private_key = Ed25519::SigningKey.new(digest).to_bytes
-            else
-                return [nil, "unsupported key codec"]
-            end
-            length = private_key.bytesize
-            return multi_encode([code, length, private_key].pack("SCa#{length}"), options)
-        rescue
-            return [nil, "invalid key"]
+    def self.decode_private_key(key_encoded, options = {})
+        code, length, digest = multi_decode(key_encoded).first.unpack('SCa*')
+        case Multicodecs[code].name
+        when 'ed25519-priv'
+            private_key = Ed25519::SigningKey.new(digest).to_bytes
+        when 'p256-priv'
+            group = OpenSSL::PKey::EC::Group.new('prime256v1')
+            pub_key = group.generator.mul(OpenSSL::BN.new(digest, 2))
+            pub_oct = pub_key.to_bn.to_s(2)
+
+            parameters = OpenSSL::ASN1::ObjectId("prime256v1")
+            parameters.tag = 0
+            parameters.tagging = :EXPLICIT
+            parameters.tag_class = :CONTEXT_SPECIFIC
+
+            public_key_bitstring = OpenSSL::ASN1::BitString(pub_oct)
+            public_key_bitstring.tag = 1
+            public_key_bitstring.tagging = :EXPLICIT
+            public_key_bitstring.tag_class = :CONTEXT_SPECIFIC
+
+            ec_private_key_asn1 = OpenSSL::ASN1::Sequence([
+                OpenSSL::ASN1::Integer(1),
+                OpenSSL::ASN1::OctetString(digest),
+                parameters,
+                public_key_bitstring
+            ])
+            private_key = OpenSSL::PKey.read(ec_private_key_asn1.to_der)
+
+        else
+            return [nil, "unsupported key codec"]
         end
+        return [private_key, nil]
+
     end
 
     def self.decode_public_key(key_encoded)
         begin
-            code, length, digest = multi_decode(key_encoded).first.unpack('CCa*')
+            pubkey = multi_decode(key_encoded).first
+            if pubkey.bytes.length == 34
+                code = pubkey.bytes.first
+                digest = pubkey[-32..]
+            else
+                if pubkey.start_with?("\x80\x24".dup.force_encoding('ASCII-8BIT'))
+                    code = 4608 # Bytes 0x80 0x24 sind das Varint-Encoding des Multicodec-Codes 0x1200 (p256-pub)
+                                # 4608 == Oydid.read_varint("\x80$") oder "\x80\x24".force_encoding('ASCII-8BIT')
+                else
+                    code = pubkey.unpack('n').first
+                end
+                digest = pubkey[-1*(pubkey.bytes.length-2)..]
+            end
             case Multicodecs[code].name
             when 'ed25519-pub'
                 verify_key = Ed25519::VerifyKey.new(digest)
@@ -520,11 +856,151 @@ class Oydid
             when 'x25519-pub'
                 pub_key = RbNaCl::PublicKey.new(digest)
                 return [pub_key, ""]
+            when 'p256-pub'
+                asn1_public_key = OpenSSL::ASN1::Sequence.new([
+                  OpenSSL::ASN1::Sequence.new([
+                    OpenSSL::ASN1::ObjectId.new('id-ecPublicKey'),
+                    OpenSSL::ASN1::ObjectId.new('prime256v1')
+                  ]),
+                  OpenSSL::ASN1::BitString.new(digest)
+                ])
+                pub_key = OpenSSL::PKey::EC.new(asn1_public_key.to_der)
+
+                return [pub_key, ""]
             else
                 return [nil, "unsupported key codec"]
             end
         rescue
             return [nil, "unknown key codec"]
+        end
+    end
+
+    def self.private_key_to_jwk(private_key)
+        code, length, digest = multi_decode(private_key).first.unpack('SCa*')
+        case Multicodecs[code].name
+        when 'ed25519-priv'
+            return [nil, "not supported yet"]
+        when 'p256-priv'
+            group = OpenSSL::PKey::EC::Group.new('prime256v1')
+            public_key = group.generator.mul(OpenSSL::BN.new(digest, 2))
+            point = public_key.to_bn.to_s(2) 
+
+            x_bin = point[1, 32]
+            y_bin = point[33, 32]
+            x = Base64.urlsafe_encode64(x_bin, padding: false)
+            y = Base64.urlsafe_encode64(y_bin, padding: false)
+            d = Base64.urlsafe_encode64(digest, padding: false)
+
+            jwk = {
+              kty: "EC",
+              crv: "P-256",
+              x: x,
+              y: y,
+              d: d
+            }
+            return [jwk, ""]
+        else
+            return [nil, "unsupported key codec"]
+        end
+    end
+
+    def self.public_key_to_jwk(public_key)
+        begin
+            pubkey = multi_decode(public_key).first
+            if pubkey.bytes.length == 34
+                code = pubkey.bytes.first
+                digest = pubkey[-32..]
+            else
+                if pubkey.start_with?("\x80\x24".dup.force_encoding('ASCII-8BIT'))
+                    code = 4608 # Bytes 0x80 0x24 sind das Varint-Encoding des Multicodec-Codes 0x1200 (p256-pub)
+                                # 4608 == Oydid.read_varint("\x80$") oder "\x80\x24".force_encoding('ASCII-8BIT')
+                else
+                    code = pubkey.unpack('n').first
+                end
+                digest = pubkey[-1*(pubkey.bytes.length-2)..]
+            end
+            case Multicodecs[code].name
+            when 'ed25519-pub'
+                return [nil, "not supported yet"]
+            when 'p256-pub'
+                if digest.bytes.first == 4
+                    # Unkomprimiertes Format: X (32 Bytes) || Y (32 Bytes)
+                    x_coord = digest[1..32]
+                    y_coord = digest[33..64]
+                    x_base64 = Base64.urlsafe_encode64(x_coord, padding: false)
+                    y_base64 = Base64.urlsafe_encode64(y_coord, padding: false)
+                else 
+                    asn1_public_key = OpenSSL::ASN1::Sequence.new([
+                      OpenSSL::ASN1::Sequence.new([
+                        OpenSSL::ASN1::ObjectId.new('id-ecPublicKey'),
+                        OpenSSL::ASN1::ObjectId.new('prime256v1')
+                      ]),
+                      OpenSSL::ASN1::BitString.new(digest)
+                    ])
+                    key = OpenSSL::PKey::EC.new(asn1_public_key.to_der)
+                    x, y = key.public_key.to_octet_string(:uncompressed)[1..].unpack1('H*').scan(/.{64}/)
+                    x_base64 = Base64.urlsafe_encode64([x].pack('H*'), padding: false)
+                    y_base64 = Base64.urlsafe_encode64([y].pack('H*'), padding: false)
+                end
+                jwk = {
+                    "kty" => "EC",
+                    "crv" => "P-256",
+                    "x" => x_base64,
+                    "y" => y_base64 }
+                return [jwk, ""]
+            else
+                return [nil, "unsupported key codec"]
+            end
+        rescue
+            return [nil, "unknown key codec"]
+        end
+    end
+
+    def self.base64_url_decode(str)
+        Base64.urlsafe_decode64(str + '=' * (4 - str.length % 4))
+    end
+
+    def self.public_key_from_jwk(jwk, options = {})
+        begin
+            if jwk.is_a?(String)
+                jwk = JSON.parse(jwk)
+            end
+        rescue
+            return [nil, "invalid input"]
+        end
+        jwk = jwk.transform_keys(&:to_s)
+        if jwk["kty"] == "EC" && jwk["crv"] == "P-256"
+            x = base64_url_decode(jwk["x"])
+            y = base64_url_decode(jwk["y"])
+            digest = OpenSSL::ASN1::BitString.new(OpenSSL::BN.new("\x04" + x + y, 2).to_s(2))
+            encoded = multi_encode(
+                Multibases::DecodedByteArray.new(
+                    (to_varint(0x1200) << digest.value.bytes)
+                    .flatten).to_s(Encoding::BINARY),
+                options)
+
+            # asn1_public_key = OpenSSL::ASN1::Sequence.new([
+            #   OpenSSL::ASN1::Sequence.new([
+            #     OpenSSL::ASN1::ObjectId.new('id-ecPublicKey'),
+            #     OpenSSL::ASN1::ObjectId.new('prime256v1')
+            #   ]),
+            #   OpenSSL::ASN1::BitString.new(OpenSSL::BN.new("\x04" + x + y, 2).to_s(2))
+            # ])
+            # pub_key = OpenSSL::PKey::EC.new(asn1_public_key.to_der)
+            # encoded = multi_encode(
+            #     Multibases::DecodedByteArray.new(
+            #         (to_varint(0x1200) << pub_key.to_bn.to_s(2).bytes)
+            #         .flatten).to_s(Encoding::BINARY),
+            #     options)
+
+
+            if encoded.first.nil?
+                return [nil, encoded.last]
+            else
+                return [encoded.first, ""]
+            end
+        else
+            return [nil, "unsupported key codec"]
         end
     end
 

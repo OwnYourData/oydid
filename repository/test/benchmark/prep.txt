@@ -1,0 +1,1 @@
+docker run -d --name oydid -p 3300:3000 -e DID_DB=local oydeu/oydid-base

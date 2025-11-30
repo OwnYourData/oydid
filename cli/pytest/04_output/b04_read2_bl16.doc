@@ -1,33 +1,33 @@
-identifier: z5yEpGrAnNYXPNf8UK4rA5yZS
+identifier: z5yAQnhhWrKnw5VSjzm6pDXDJ
 ✅ is hash of DID Document:
 {
   "doc": {
     "digest": "blake2b-16",
     "version": 2
   },
-  "key": "z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2",
-  "log": "zQmRkhdsWVUVHxKTHvh9Misjo7ii3K6G7G2fRYa2sNFnfmW@https://did2.data-container.net"
+  "key": "z6MkohaQP7cMpNmboQvCkegtPVLHSwcmRbcSydCxFH1J6a6M:z6MkfSajc2c8KeQ6TbFAhhGu4G7ncv6oRk1DCQudWhxwxcMU",
+  "log": "zQmSuEnom98YvUtsgTZtMxxh9yyjnrJQAxN51vWMVWLcjwM@https://did2.data-container.net"
 }
 (Details: https://ownyourdata.github.io/oydid/#calculate_hash)
 
-'log' reference in DID Document: zQmRkhdsWVUVHxKTHvh9Misjo7ii3K6G7G2fRYa2sNFnfmW
+'log' reference in DID Document: zQmSuEnom98YvUtsgTZtMxxh9yyjnrJQAxN51vWMVWLcjwM
 ✅ is hash of TERMINATE log record:
 {
   "ts": 2,
   "op": 0,
-  "doc": "zQmcwhtURhai5168DrBVYpPV2CUnKPBHR5zEWy9ZzYGSypr@https://did2.data-container.net",
-  "sig": "z22eys5XAtkynHQRL86EwR99acLtUXgWCQ3qQcg2tGyHD9BaMRa6puNHqMkUpGmFVvWuKRgDkqBYC9jgaTUeTKqJQ",
+  "doc": "zQmaoC1fo7utZUHmfx36UowJetBnRjiqNWafzHchnRotoFe@https://did2.data-container.net",
+  "sig": "zhG4aGhbjcDBFUTHdqm8k1GRcjCPTChnUhD5YLrpziaQhWVNqjQayHZuDkEiNQ9YL5agfGbK4NKNJQ3fTCngoifa",
   "previous": [
 
   ]
 }
 (Details: https://ownyourdata.github.io/oydid/#calculate_hash)
 
-Revocation reference in log record: zQmcwhtURhai5168DrBVYpPV2CUnKPBHR5zEWy9ZzYGSypr
+Revocation reference in log record: zQmaoC1fo7utZUHmfx36UowJetBnRjiqNWafzHchnRotoFe
 ✅ cannot find revocation record searching at
 - https://did2.data-container.net
 (Details: https://ownyourdata.github.io/oydid/#retrieve_log)
 
 === end of verification output ===
 
-{"doc":{"digest":"blake2b-16","version":2},"key":"z6Mv1pPtmZuxRqdRUyC9o6C5PLCTCFZnX3oNyCn2vqF676iu:z6MusZQDzUuiw7Fv99X7k8n646yxNE3pXCC9BzUiCGCjy8z2","log":"zQmRkhdsWVUVHxKTHvh9Misjo7ii3K6G7G2fRYa2sNFnfmW@https://did2.data-container.net"}
+{"doc":{"digest":"blake2b-16","version":2},"key":"z6MkohaQP7cMpNmboQvCkegtPVLHSwcmRbcSydCxFH1J6a6M:z6MkfSajc2c8KeQ6TbFAhhGu4G7ncv6oRk1DCQudWhxwxcMU","log":"zQmSuEnom98YvUtsgTZtMxxh9yyjnrJQAxN51vWMVWLcjwM@https://did2.data-container.net"}

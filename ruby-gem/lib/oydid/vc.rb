@@ -65,11 +65,102 @@ class Oydid
         return [retVal.parsed_response, ""]
     end
 
+    def self.vc_proof_prep(vc, proof)
+        cntxt = vc["@context"].dup
+        if !cntxt.is_a?(Array)
+            cntxt = [cntxt]
+        end
+        cntxt << ED25519_SECURITY_SUITE unless cntxt.include?(ED25519_SECURITY_SUITE)
+        vc["@context"] = cntxt.dup
+        vc.delete("proof")
+        vc = JSON::LD::API.compact(JSON.parse(vc.to_json), JSON.parse(cntxt.to_json))
+        graph = RDF::Graph.new << JSON::LD::Reader.new(vc.to_json)
+        norm_graph = graph.dump(:normalize).to_s
+        if norm_graph.strip == ""
+            return [nil, nil, "empty VC"]
+        end
+        hash1 = Multibases.pack("base16", RbNaCl::Hash.sha256(norm_graph)).to_s[1..]
+
+        remove_context = false
+        if proof["@context"].nil?
+            proof["@context"] = cntxt.dup
+            remove_context = true
+        else
+            cntxt = proof["@context"]
+        end
+        if proof["created"].nil?
+            proof["created"] = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+        end        
+        proof.delete("proofValue")
+        proof = JSON::LD::API.compact(JSON.parse(proof.to_json), JSON.parse(cntxt.to_json))
+        graph = RDF::Graph.new << JSON::LD::Reader.new(proof.to_json)
+        norm_graph = graph.dump(:normalize).to_s
+        if norm_graph.strip == ""
+            return [nil, nil, "empty proof"]
+        end
+        hash2 = Multibases.pack("base16", RbNaCl::Hash.sha256(norm_graph)).to_s[1..]
+        if remove_context
+            proof.delete("@context")
+        end
+        vc["proof"] = proof
+
+        return [vc, hash2+hash1, nil]
+    end
+
+    # Verifiable Credential hash
+    # vc = {"@context", "type", "issuer", "issuanceDate", "credentialSubject"}
+    #      but no "proof"!
+    # proof = {"type", "verificationMethod", "proofPurpose", "created"}
+    #      but no "proofValue"
+    # private_key_encoded (string) "z..."
+    # https://www.w3.org/TR/vc-di-eddsa/#representation-ed25519signature2020
+    def self.vc_proof(vc, proof, private_key_encoded, options)
+        vc, vc_hash, errmsg = vc_proof_prep(vc, proof)
+        if vc.nil?
+            return [nil, errmsg]
+        end
+        code, length, digest = multi_decode(private_key_encoded).first.unpack('SCa*')
+        case Multicodecs[code].name
+        when 'ed25519-priv'
+            signing_key = Ed25519::SigningKey.new(digest)
+            vc["proof"]["proofValue"] = multi_encode(signing_key.sign([vc_hash].pack('H*')).bytes, options).first
+        when 'p256-priv'
+            vc["proof"]["proofValue"] = sign("message", private_key_encoded, options)
+        else
+            return [nil, "unsupported key codec"]
+        end
+        return [vc, nil]
+
+    end
+
     def self.create_vc(content, options)
-        vercred = {}
+        if options[:issuer_privateKey].to_s == ""
+            return [nil, "missing issuer private key"]
+        end
+        code, length, digest = multi_decode(options[:issuer_privateKey]).first.unpack('SCa*')
+        case options[:vc_type].to_s
+        when 'Ed25519Signature2020'
+            if Multicodecs[code].name != 'ed25519-priv'
+                return [nil, "combination of credential type '" + options[:vc_type].to_s + "' and key type '" + Multicodecs[code].name.to_s + "' not supported"]
+            end
+        when 'JsonWebSignature2020'
+            if Multicodecs[code].name != 'p256-priv'
+                return [nil, "combination of credential type '" + options[:vc_type].to_s + "' and key type '" + Multicodecs[code].name.to_s + "' not supported"]
+            end
+        else
+            return [nil, "unsupported credential type '" + options[:vc_type].to_s + "'"]
+        end
+        vercred = content
         # set the context, which establishes the special terms used
         if content["@context"].nil?
-            vercred["@context"] = ["https://www.w3.org/ns/credentials/v2"]
+            case options[:vc_type].to_s
+            when "Ed25519Signature2020"
+                vercred["@context"] = ["https://www.w3.org/ns/credentials/v2"]
+            when "JsonWebSignature2020"
+                vercred["@context"] = ["https://www.w3.org/2018/credentials/v1"]
+            else
+                return [nil, "invalid credential type '" + options[:vc_type].to_s + "'"]
+            end
         else
             vercred["@context"] = content["@context"]
         end
@@ -93,7 +184,7 @@ class Oydid
             return [nil, "invalid 'issuer'"]
         end
         if options[:ts].nil?
-            vercred["issuanceDate"] = Time.now.utc.iso8601
+            vercred["issuanceDate"] = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
         else
             vercred["issuanceDate"] = Time.at(options[:ts]).utc.iso8601
         end
@@ -101,47 +192,117 @@ class Oydid
             vercred["credentialSubject"] = {"id": options[:holder]}.merge(content)
         else
             vercred["credentialSubject"] = content["credentialSubject"]
+            if vercred["credentialSubject"]["id"].nil?
+                if options[:holder].nil?
+                    return [nil, "missing 'id' (of holder) in 'credentialSubject'"]
+                end
+                vercred["credentialSubject"]["id"] = options[:holder]
+            end
         end
         if vercred["credentialSubject"].to_s == "" || vercred["credentialSubject"].to_s == "{}" || vercred["credentialSubject"].to_s == "[]"
             return [nil, "invalid 'credentialSubject'"]
         end
-        if content["proof"].nil?
-            proof = {}
-            proof["type"] = "Ed25519Signature2020"
-            proof["verificationMethod"] = options[:issuer].to_s
-            proof["proofPurpose"] = "assertionMethod"
-            proof["proofValue"] = sign(vercred["credentialSubject"].transform_keys(&:to_s).to_json_c14n, options[:issuer_privateKey], []).first
-            vercred["proof"] = proof
+
+        case options[:vc_type].to_s
+        when 'Ed25519Signature2020'
+            if content["proof"].nil?
+                proof = {}
+                proof["type"] = "Ed25519Signature2020"
+                proof["verificationMethod"] = options[:issuer].to_s + "#key-doc"
+                proof["proofPurpose"] = "assertionMethod"
+                id_vc = vercred.dup
+                id_vc["proof"] = proof
+                identifier_str = multi_hash(canonical(id_vc), options).first
+                if options[:vc_location].nil?
+                    vercred["identifier"] = identifier_str
+                else
+                    vc_location = options[:vc_location].to_s
+                    if !vc_location.start_with?("http")
+                        vc_location = "https://" + token_url
+                    end
+                    if !vc_location.end_with?('/')
+                        vc_location += '/'
+                    end
+                    if !vc_location.end_with?('credentials/')
+                        vc_location += 'credentials/'
+                    end
+                    vercred["id"] = vc_location + identifier_str
+                end
+
+                vercred, errmsg = vc_proof(vercred, proof, options[:issuer_privateKey], options)
+                if vercred.nil?
+                    return [nil, errmsg]
+                end
+                # proof["proofValue"] = sign(vercred["credentialSubject"].transform_keys(&:to_s).to_json_c14n, options[:issuer_privateKey], []).first
+            else
+                id_vc = vercred.dup
+                content["proof"].delete("proofValue")
+                id_vc["proof"] = content["proof"]
+                identifier_str = multi_hash(canonical(id_vc), options).first
+                if options[:vc_location].nil?
+                    vercred["identifier"] = identifier_str
+                else
+                    vercred["id"] = options[:vc_location].to_s + identifier_str
+                end
+
+                vercred, errmsg = vc_proof(vercred, content["proof"], options[:issuer_privateKey], options)
+                if vercred.nil?
+                    return [nil, errmsg]
+                end
+            end
+            if vercred["proof"].to_s == "" || vercred["proof"].to_s == "{}" || vercred["proof"].to_s == "[]"
+                return [nil, "invalid 'proof'"]
+            end
+
+        when 'JsonWebSignature2020'
+            jwt_vc = {}
+            jwt_vc["vc"] = vercred.dup
+            jwt_vc["exp"] = (Time.now + (3 * 30 * 24 * 60 * 60)).to_i
+            jwt_vc["iss"] = vercred["issuer"]
+            jwt_vc["nbf"] = 
+            if options[:ts].nil?
+                jwt_vc["nbf"] = Time.now.utc.to_i
+            else
+                jwt_vc["nbf"] = options[:ts].to_i
+            end
+            identifier_str = multi_hash(canonical(vercred), options).first
+            jwt_vc["jti"] = identifier_str
+            jwt_vc["sub"] = options[:holder]
+
+            vercred = jwt_vc.dup
         else
-            vercred["proof"] = content["proof"]
-        end
-        if vercred["proof"].to_s == "" || vercred["proof"].to_s == "{}" || vercred["proof"].to_s == "[]"
-            return [nil, "invalid 'proof'"]
+            return [nil, "unsupported credential type '" + options[:vc_type].to_s + "'"]
         end
 
-        # specify the identifier of the credential
-        vercred["identifier"] = hash(vercred.to_json)
         return [vercred, ""]
     end
 
     def self.create_vc_proof(content, options)
         if content["id"].nil?
-            content["id"] = options[:holder]
+            content["id"] = options[:issuer]
         end
         proof = {}
         proof["type"] = "Ed25519Signature2020"
         proof["verificationMethod"] = options[:issuer].to_s
         proof["proofPurpose"] = "assertionMethod"
-        proof["proofValue"] = sign(content.to_json_c14n, options[:issuer_privateKey], []).first
 
-        return [proof, ""]
+        content, errmsg = vc_proof(content, proof, options[:issuer_privateKey], options)
+        if content.nil?
+            return [nil, errmsg]
+        end
+        # proof["proofValue"] = sign(content.to_json_c14n, options[:issuer_privateKey], []).first
+
+        return [content["proof"], ""]
     end
 
     def self.publish_vc(vc, options)
         vc = vc.transform_keys(&:to_s)
         identifier = vc["identifier"] rescue nil
         if identifier.nil?
-            return [nil, "invalid format (missing identifier"]
+            identifier = vc["id"] rescue nil
+        end
+        if identifier.nil?
+            return [nil, "invalid format (missing identifier)"]
             exit
         end
         if vc["credentialSubject"].is_a?(Array)
@@ -162,7 +323,9 @@ class Oydid
         if vc_location.to_s == ""
             vc_location = DEFAULT_LOCATION
         end
-        vc["identifier"] = vc_location.sub(/(\/)+$/,'') + "/credentials/" + identifier
+        if !identifier.start_with?('http')
+            identifier = vc_location.sub(/(\/)+$/,'') + "/credentials/" + identifier
+        end
 
         # build object to post
         vc_data = {
@@ -178,7 +341,7 @@ class Oydid
             err_msg = retVal.parsed_response("error").to_s rescue "invalid response from " + vc_url.to_s
             return [nil, err_msg]
         end
-        return [vc["identifier"], ""]
+        return [retVal["identifier"], ""]
     end
 
     def self.read_vp(identifier, options)
@@ -201,39 +364,68 @@ class Oydid
     def self.create_vp(content, options)
         verpres = {}
         # set the context, which establishes the special terms used
-        verpres["@context"] = ["https://www.w3.org/ns/credentials/v2"]
+        if !content["@context"].nil?
+            verpres["@context"] = content["@context"].dup
+        else
+            verpres["@context"] = ["https://www.w3.org/ns/credentials/v2", ED25519_SECURITY_SUITE]
+        end
         verpres["type"] = ["VerifiablePresentation"]
         verpres["verifiableCredential"] = [content].flatten
 
         proof = {}
-        proof["type"] = "Ed25519Signature2020"
-        if options[:ts].nil?
-            proof["created"] = Time.now.utc.iso8601
+        case options[:vc_type].to_s
+        when 'Ed25519Signature2020'
+            proof['type'] = 'Ed25519Signature2020'
+                if !options[:ts].nil?
+                    proof["created"] = Time.at(options[:ts]).utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+                end
+                proof["verificationMethod"] = options[:holder].to_s
+                proof["proofPurpose"] = "authentication"
+                verpres, errmsg = vc_proof(verpres, proof, options[:holder_privateKey], options)
+        when 'JsonWebSignature2020'
+            verpres["holder"] = options[:holder].to_s
+            proof['type'] = 'JsonWebSignature2020'
+            if options[:ts].nil?
+                proof['created'] = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+            else
+                proof["created"] = Time.at(options[:ts]).utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+            end
+            proof["proofPurpose"] = "authentication"
+            proof["verificationMethod"] = options[:holder].to_s + '#key-doc'
+
+            verpres["proof"] = proof
+
+            options[:issuer] = options[:holder]
+            options[:issuer_privateKey] = options[:holder_privateKey]
+            jwt, msg = Oydid.jwt_from_vc(verpres, options)
+            parts = jwt.split('.')
+            detached_jws = "#{parts[0]}..#{parts[2]}"
+
+            proof['jws'] = detached_jws
+            verpres["proof"] = proof
         else
-            proof["created"] = Time.at(options[:ts]).utc.iso8601
+            return [nil, "unsupported credential type '" + options[:vc_type].to_s + "'"]
         end
-        proof["verificationMethod"] = options[:holder].to_s
-        proof["proofPurpose"] = "authentication"
 
         # private_key = generate_private_key(options[:issuer_privateKey], "ed25519-priv", []).first
-        proof["proofValue"] = sign([content].flatten.to_json_c14n, options[:holder_privateKey], []).first
-        verpres["proof"] = proof
+        # proof["proofValue"] = sign([content].flatten.to_json_c14n, options[:holder_privateKey], []).first
+        # verpres["proof"] = proof
 
         # specify the identifier of the credential
-        verpres["identifier"] = hash(verpres.to_json)
+        verpres["identifier"] = hash(canonical(verpres.to_json))
         return [verpres, ""]
     end
 
     def self.publish_vp(vp, options)
-        vc = vp.transform_keys(&:to_s)
+        vp = vp.transform_keys(&:to_s)
         identifier = vp["identifier"] rescue nil
         if identifier.nil?
-            return [nil, "invalid format (missing identifier"]
+            return [nil, "invalid format (missing identifier)"]
             exit
         end
 
         proof = vp["proof"].transform_keys(&:to_s) rescue nil
-        holder = proof["verificationMethod"] rescue nil
+        holder = vp["holder"] rescue nil
         if holder.nil?
             return [nil, "invalid format (missing holder)"]
             exit
@@ -265,46 +457,160 @@ class Oydid
         return [vp["identifier"], ""]
     end
 
-    def self.verify_vp(content, options)
+    def self.verify_vc(content, options)
         retVal = {}
-        if content["identifier"].nil?
-            return [nil, "invalid VP (unknown identifier"]
-            exit
-        end
-        retVal[:identifier] = content["identifier"].to_s
-
-        proofValue = content["proof"]["proofValue"].to_s rescue nil
-        if proofValue.nil?
-            return [nil, "invalid VP (unknown proofValue"]
-            exit
-        end
-
-        vercred = content["verifiableCredential"].to_json_c14n rescue nil
+        vercred = content.to_json_c14n rescue nil
         if vercred.nil?
-            return [nil, "invalid VP (unknown verifiableCredential"]
+            return [nil, "invalid verifiableCredential input"]
+        end
+        retVal[:id] = content["id"] rescue nil
+        if retVal[:id].nil?
+            retVal[:id] = content["identifier"] rescue nil
+            if retVal[:id].nil?
+                return [nil, "invalid VC (missing id)"]
+            end
+        end
+        issuer = content["issuer"].to_s rescue nil
+        if issuer.nil?
+            return [nil, "invalid VC (unknown issuer)"]
             exit
         end
-
-        holder = content["proof"]["verificationMethod"].to_s rescue nil
-        if holder.nil?
-            return [nil, "invalid VP (unknown holder"]
-            exit
-        end
-        pubKey, msg = getPubKeyFromDID(holder)
-        if pubKey.nil?
+        publicKey, msg = getPubKeyFromDID(issuer)
+        if publicKey.nil?
             return [nil, "cannot verify public key"]
             exit
         end
-        result, msg = verify(vercred, proofValue, pubKey)
-        if result.to_s == ""
-            return [nil, msg]
-            exit
+        vc, vc_hash, errmsg = vc_proof_prep(JSON.parse(content.to_json), JSON.parse(content["proof"].to_json))
+        begin
+            pubkey = Oydid.multi_decode(publicKey).first
+            code = pubkey.bytes.first
+            digest = pubkey[-32..]
+            case Multicodecs[code].name
+            when 'ed25519-pub'
+                verify_key = Ed25519::VerifyKey.new(digest)
+                signature_verification = false
+                begin
+                    verify_key.verify(multi_decode(content["proof"]["proofValue"]).first, [vc_hash].pack('H*'))
+                    signature_verification = true
+                rescue Ed25519::VerifyError
+                    signature_verification = false
+                end
+                if signature_verification
+                    return [retVal, nil]
+                else
+                    return [nil, "proof signature does not match VC"]
+                end
+            else
+                return [nil, "unsupported key codec"]
+            end
+        rescue
+            return [nil, "unknown key codec"]
         end
-        if result
-            return [retVal, ""]
-        else
-            return [nil, "signature verification failed"]
+    end
+
+    def self.verify_vp(content, options)
+        retVal = {}
+        verpres = content.to_json_c14n rescue nil
+        if verpres.nil?
+            return [nil, "invalid verifiablePresetation input"]
         end
+        retVal[:id] = content["id"] rescue nil
+        if retVal[:id].nil?
+            retVal[:id] = content["identifier"] rescue nil
+            if retVal[:id].nil?
+                return [nil, "invalid VP (missing id)"]
+            end
+        end
+        holder = content["proof"]["verificationMethod"].to_s rescue nil
+        if holder.nil?
+            return [nil, "invalid VP (unknown holder"]
+        end
+        publicKey, msg = getPubKeyFromDID(holder)
+        if publicKey.nil?
+            return [nil, "cannot verify public key"]
+        end
+        # begin
+            key_type = get_keytype(publicKey)
+            case key_type
+            # pubkey = Oydid.multi_decode(publicKey).first
+            # code = pubkey.bytes.first
+            # digest = pubkey[-32..]
+            # case Multicodecs[code].name
+            when 'ed25519-pub'
+                pubkey = Oydid.multi_decode(publicKey).first
+                code = pubkey.bytes.first
+                digest = pubkey[-32..]
+                verify_key = Ed25519::VerifyKey.new(digest)
+                vp, vp_hash, errmsg = vc_proof_prep(JSON.parse(content.to_json), JSON.parse(content["proof"].to_json))
+
+                signature_verification = false
+                begin
+                    verify_key.verify(multi_decode(content["proof"]["proofValue"]).first, [vp_hash].pack('H*'))
+                    signature_verification = true
+                rescue Ed25519::VerifyError
+                    signature_verification = false
+                end
+                if signature_verification
+                    return [retVal, nil]
+                else
+                    return [nil, "proof signature does not match VP"]
+                end
+            when 'p256-pub'
+                jws = content["proof"]["jws"]
+                head_b64, _, sig_b64 = jws.split('.')
+                verpres = JSON.parse(verpres)
+                verpres["proof"].delete("jws")
+                verpres.delete("identifier")
+                encoded_payload = Base64.urlsafe_encode64(verpres.to_json_c14n, padding: false)
+                data_to_sign = "#{head_b64}.#{encoded_payload}"
+# puts 'data_to_sign: ' + data_to_sign.to_s
+# puts 'encoded_signature: ' + sig_b64.to_s
+# puts 'publicKey: ' + publicKey.to_s
+
+                valid = verify(data_to_sign, sig_b64, publicKey).first
+                if valid
+                    return [retVal, nil]
+                else
+                    return [nil, "proof signature does not match VP"]
+                end
+            else
+                return [nil, "unsupported key codec"]
+            end
+        # rescue
+        #     return [nil, "unknown key codec"]
+        # end
+    end
+
+    def self.jwt_from_vc(vc, options)
+        if options[:issuer].to_s == ''
+            return [nil, 'missing issuer DID']
+        end
+        header = {
+            alg: 'ES256',
+            typ: 'JWT',
+            kid: options[:issuer] + '#key-doc'
+        }
+
+        if options[:issuer_privateKey].to_s == ''
+            return [nil, 'missing issuer private key']
+        end
+        private_key = decode_private_key(options[:issuer_privateKey]).first
+
+        encoded_header = Base64.urlsafe_encode64(header.to_json, padding: false)
+        encoded_payload = Base64.urlsafe_encode64(vc.to_json_c14n, padding: false)
+        data_to_sign = "#{encoded_header}.#{encoded_payload}"
+# puts 'data_to_sign: ' + data_to_sign.to_s
+# puts 'privateKey: ' + options[:issuer_privateKey].to_s
+
+        jwt_digest = OpenSSL::Digest::SHA256.new
+        asn1_signature = OpenSSL::ASN1.decode(private_key.dsa_sign_asn1(jwt_digest.digest(data_to_sign)))
+        raw_signature = asn1_signature.value.map { |i| i.value.to_s(2).rjust(32, "\x00") }.join()
+        encoded_signature = Base64.urlsafe_encode64(raw_signature, padding: false)
+# puts 'encoded_signature: ' + encoded_signature.to_s
+
+        jwt = "#{encoded_header}.#{encoded_payload}.#{encoded_signature}"
+
+        return [jwt, nil]
     end
 
 end

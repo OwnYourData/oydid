@@ -1,0 +1,22 @@
+# issuer
+echo '{"authentication":["#key-doc"], "assertionMethod":["#key-doc"]}' | oydid create --doc-pwd vc-issuer
+created did:oyd:zQmNVifyfQMBSVbNMfMuCHBS8SNPKijX1nJifhYgsfh3t1S
+
+# holder
+echo '{"authentication":["#key-doc"], "assertionMethod":["#key-doc"]}' | oydid create --doc-pwd vc-holder
+created did:oyd:zQmTQR1gGUY4cYxPSmR7k6THoGSdGyxW9SB3wkPKuAFGvFS
+
+# create vc
+echo '{"hello": "world"}' | oydid vc \
+    --issuer did:oyd:zQmNVifyfQMBSVbNMfMuCHBS8SNPKijX1nJifhYgsfh3t1S \
+    --doc-pwd vc-issuer \
+    --holder did:oyd:zQmTQR1gGUY4cYxPSmR7k6THoGSdGyxW9SB3wkPKuAFGvFS
+
+# verify vc
+echo '{"name": "world"}' | oydid vc --issuer did:oyd:zQmNVifyfQMBSVbNMfMuCHBS8SNPKijX1nJifhYgsfh3t1S --doc-pwd vc-issuer --holder did:oyd:zQmTQR1gGUY4cYxPSmR7k6THoGSdGyxW9SB3wkPKuAFGvFS | oydid vc-verify
+
+# create vp
+echo '{"name": "world"}' | oydid vc --issuer did:oyd:zQmNVifyfQMBSVbNMfMuCHBS8SNPKijX1nJifhYgsfh3t1S --doc-pwd vc-issuer --holder did:oyd:zQmTQR1gGUY4cYxPSmR7k6THoGSdGyxW9SB3wkPKuAFGvFS | oydid vp --issuer did:oyd:zQmNVifyfQMBSVbNMfMuCHBS8SNPKijX1nJifhYgsfh3t1S --doc-pwd vc-holder --holder did:oyd:zQmTQR1gGUY4cYxPSmR7k6THoGSdGyxW9SB3wkPKuAFGvFS
+
+# verify vp
+echo '{"name": "world"}' | oydid vc --issuer did:oyd:zQmNVifyfQMBSVbNMfMuCHBS8SNPKijX1nJifhYgsfh3t1S --doc-pwd vc-issuer --holder did:oyd:zQmTQR1gGUY4cYxPSmR7k6THoGSdGyxW9SB3wkPKuAFGvFS | oydid vp --issuer did:oyd:zQmNVifyfQMBSVbNMfMuCHBS8SNPKijX1nJifhYgsfh3t1S --doc-pwd vc-holder --holder did:oyd:zQmTQR1gGUY4cYxPSmR7k6THoGSdGyxW9SB3wkPKuAFGvFS | oydid vp-verify

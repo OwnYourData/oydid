@@ -63,6 +63,29 @@ class Oydid
         when 'ed25519-priv'
             private_key = RbNaCl::Signatures::Ed25519::SigningKey.new(digest)
             token = JWT.encode payload, private_key, 'ED25519'
+        when 'p256-priv'
+            group = OpenSSL::PKey::EC::Group.new('prime256v1')
+            pub_key = group.generator.mul(OpenSSL::BN.new(digest, 2))
+            pub_oct = pub_key.to_bn.to_s(2)
+
+            parameters = OpenSSL::ASN1::ObjectId("prime256v1")
+            parameters.tag = 0
+            parameters.tagging = :EXPLICIT
+            parameters.tag_class = :CONTEXT_SPECIFIC
+
+            public_key_bitstring = OpenSSL::ASN1::BitString(pub_oct)
+            public_key_bitstring.tag = 1
+            public_key_bitstring.tagging = :EXPLICIT
+            public_key_bitstring.tag_class = :CONTEXT_SPECIFIC
+
+            ec_private_key_asn1 = OpenSSL::ASN1::Sequence([
+                OpenSSL::ASN1::Integer(1),
+                OpenSSL::ASN1::OctetString(digest),
+                parameters,
+                public_key_bitstring
+            ])
+            ec_key = OpenSSL::PKey.read(ec_private_key_asn1.to_der) 
+            token = JWT.encode(payload, ec_key, 'ES256')         
         else
             token = nil
             error = "unsupported key codec"

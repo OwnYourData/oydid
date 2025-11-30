@@ -9,7 +9,7 @@ require 'oydid'
 
 LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
-VERSION = "0.5.3"
+VERSION = "0.5.8"
 LOG_HASH_OPTIONS = {:digest => "sha2-256", :encode => "base58btc"}
 
 # internal functions -------------------------------
@@ -476,6 +476,7 @@ end
 
 def print_version()
     puts VERSION.to_s + " (oydid gem: v" + Gem.loaded_specs["oydid"].version.to_s + ")"
+    puts 'supported curves: ed25519, p-256 (default: ed25519)'
     puts "supported digests: " + Oydid::SUPPORTED_DIGESTS.join(", ") + " (default: " + Oydid::DEFAULT_DIGEST + ")"
     puts "supported encodings: " + Oydid::SUPPORTED_ENCODINGS.join(", ") + " (default: " + Oydid::DEFAULT_ENCODING + ")"
 end
@@ -498,6 +499,7 @@ def print_help()
     puts "  vc-proof   - create only proof for claim(s) from STDIN"
     puts "  vc-read    - output VC for given identifier"
     puts "  vc-push    - new VC and store to repo, reads claim(s) from STDIN"
+    puts "  vc-verify  - read VC from STDIN and verify proof"
     puts "  vp         - new VP, reads VC(s) from STDIN"
     puts "  vp-push    - new VP and store in repo, reads VC(s) from STDIN"
     puts "  vp-verify  - read VP from STDIN and verify proof"
@@ -532,6 +534,9 @@ def print_help()
     puts "               scope"
     puts ""
     puts "OPTIONS"
+    puts "     --cmsm                        - Client-Managed-Secret-Mode"
+    puts "     --credential-type VC-TYPE     - specifies the representation of a VC"
+    puts "                                     (default: Ed25519Signature2020)"
     puts "     --doc-key DOCUMENT-KEY        - filename with Multibase encoded "
     puts "                                     private key for signing documents"
     puts "     --doc-pwd DOCUMENT-PASSWORD   - password for private key for "
@@ -542,6 +547,8 @@ def print_help()
     puts "                                     identifier (default: sha2-256)"
     puts " -h, --help                        - dispay this help text"
     puts "     --json-output                 - write response as JSON object"
+    puts " -k, --key-type KEY-TYPE           - specifies the cryptographic key type"
+    puts "                                     (default: ed25519)"
     puts " -l, --location LOCATION           - default URL to store/query DID data"
     puts "     --revocation                  - request revocation pubkeys"
     puts "     --rev-key REVOCATION-KEY      - filename with Multibase encoded "
@@ -555,7 +562,7 @@ def print_help()
     puts "     --show-verification           - display raw data and steps for"
     puts "                                     verifying DID resolution process"
     puts "     --silent                      - suppress any output"
-    puts " -z  --timestamp TIMESTAMP         - timestamp in UNIX epoch to be used"
+    puts " -z, --timestamp TIMESTAMP         - timestamp in UNIX epoch to be used"
     puts "                                     (only for testing)"
     puts " -t, --token TOKEN                 - OAuth2 bearer token to access "
     puts "                                     Semantic Container"
@@ -576,25 +583,31 @@ end
 # trace.enable
 
 # commandline options
-options = { }
+options = {}
 opt_parser = OptionParser.new do |opt|
   opt.banner = "Usage: #{$0} OPERATION [OPTIONS]"
   opt.separator  ""
   opt.separator  "OPERATION"
   opt.separator  "OPTIONS"
 
+  options[:cmsm] = false
   options[:log_complete] = false
   options[:show_hash] = false
   options[:show_verification] = false
   options[:simulate] = false
   options[:authentication] = false
+  options[:key_type] = 'ed25519'
+  options[:vc_type] = 'Ed25519Signature2020'
   options[:x25519_keyAgreement] = false
   options[:followAlsoKnownAs] = false
   options[:encode] = LOG_HASH_OPTIONS[:encode] # base58btc
   options[:digest] = LOG_HASH_OPTIONS[:digest] # sha2-256
-  opt.on("-l","--location LOCATION","default URL to store/query DID data") do |loc|
-    if !loc.start_with?("http")
-        loc = "https://" + loc
+  opt.on("-l","--location LOCATION","default URL to store/query data") do |loc|
+    check_url = %r{^((?:[a-zA-Z][a-zA-Z\d+\-.]*:)?\/\/)?[^\s:@\/]+(:\d+)?(\/[^\s]*)?$}
+    if !(loc =~ check_url)
+        if !loc.start_with?("http")
+            loc = "https://" + loc
+        end
     end
     options[:location] = loc
   end
@@ -619,6 +632,12 @@ opt_parser = OptionParser.new do |opt|
   end
   opt.on("--json-output") do |j|
     options[:json] = true
+  end
+  opt.on("-k KEY-TYPE", "--key-type KEY-TYPE") do |t|
+    options[:key_type] = t
+  end
+  opt.on("--credential-type VC-TYPE") do |t|
+    options[:vc_type] = t
   end
   opt.on("--follow-alsoKnownAs") do |f|
     options[:followAlsoKnownAs] = true
@@ -686,6 +705,12 @@ opt_parser = OptionParser.new do |opt|
   opt.on("--add-x25519pubkey-keyAgreement") do |a|
     options[:x25519_keyAgreement] = true
   end
+  opt.on("--cmsm") do |cmsm|
+    options[:cmsm] = true
+  end
+  opt.on("--vc-output FORMAT") do |f|
+    options[:vc_format] = f
+  end
 
   # VC options
   opt.on("--issuer ISSUER") do |key|
@@ -740,8 +765,9 @@ case operation.to_s
 when "create", "confirm", 
      "fromW3C", "toW3C",
      "message", "jws", "encrypt-message", "sign-message",
-     "vc", "vc-proof", "vc-push", "vp", "vp-push", "vp-verify",
-     "dri", "encrypt", "decrypt"
+     "vc", "vc-proof", "vc-push", "vc-verify",
+     "vp", "vp-push", "vp-verify",
+     "dri", "encrypt"
     input_content = []
     ARGF.each_line { |line| input_content << line }
     content = JSON.parse(input_content.join("")) rescue nil
@@ -787,7 +813,7 @@ when "update"
         end
     end
 # JWT input
-when "decrypt-jwt", "verify-jws", "verify-signed-message"
+when "decrypt-jwt", "verify-jws", "verify-signed-message", "decrypt"
     content = []
     ARGF.each_line { |line| content << line }
     content = content.join('').strip
@@ -874,11 +900,15 @@ when "create"
             end
             exit(-1)
         else
-            if options[:silent].nil? || !options[:silent]
-                if options[:json].nil? || !options[:json]
-                    puts "created " + Oydid.percent_encode(retVal["did"].to_s)
-                else
-                    puts '{"did": "' + Oydid.percent_encode(retVal["did"].to_s) + '", "operation": "create"}'
+            if msg == "cmsm"
+                puts retVal.to_json
+            else
+                if options[:silent].nil? || !options[:silent]
+                    if options[:json].nil? || !options[:json]
+                        puts "created " + Oydid.percent_encode(retVal["did"].to_s)
+                    else
+                        puts '{"did": "' + Oydid.percent_encode(retVal["did"].to_s) + '", "operation": "create"}'
+                    end
                 end
             end
         end
@@ -921,6 +951,7 @@ when "update"
         didHash = didHash.delete_prefix("did:oyd:")
         # options[:digest] = Oydid.get_digest(didHash).first
         # options[:encode] = Oydid.get_encoding(didHash).first
+
         retVal, msg = Oydid.update(content, input_did, options)
         if retVal.nil?
             if msg.to_s != ""
@@ -1490,10 +1521,20 @@ when "vc", "vc-push"
             options[:issuer_privateKey] = options[:doc_enc].to_s
         end
     else
-        options[:issuer_privateKey] = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options).first
+        options[:issuer_privateKey] = Oydid.generate_private_key(options[:doc_pwd].to_s, options[:key_type] + '-priv', options).first
+    end
+    if options[:location]
+        options[:vc_location] = options[:location]
     end
     vc, msg = Oydid.create_vc(content, options)
-
+    if vc.nil?
+        if options[:json].nil? || !options[:json]
+            puts "⛔ " + msg
+        else
+            puts '{"error": "' + msg + '"}'
+        end
+        exit(-1)
+    end
     if operation == "vc-push"
         retVal, msg = Oydid.publish_vc(vc, options)
         if retVal.nil?
@@ -1513,7 +1554,26 @@ when "vc", "vc-push"
             end
         end
     else
-        puts JSON.pretty_generate(vc)
+        if options[:vc_type] == 'JsonWebSignature2020'
+            case options[:vc_format]
+            when 'ld-proof'
+                jwt = Oydid.jwt_from_vc(vc, options).first
+                parts = jwt.split('.')
+                detached_jws = "#{parts[0]}..#{parts[2]}"
+                vc_output = vc['vc'].dup
+                vc_output['proof'] = {
+                    type: 'JsonWebSignature2020',
+                    created: Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    proofPurpose: 'assertionMethod',
+                    verificationMethod: options[:issuer].to_s + '#key-doc',
+                    jws: detached_jws }
+                puts JSON.pretty_generate(vc_output)
+            when 'vc-jwt', nil, '', 'default'
+                puts Oydid.jwt_from_vc(vc, options).first
+            end
+        else
+            puts JSON.pretty_generate(vc)
+        end
     end
 
 when "vc-proof"
@@ -1526,7 +1586,7 @@ when "vc-proof"
             options[:issuer_privateKey] = options[:doc_enc].to_s
         end
     else
-        options[:issuer_privateKey] = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options).first
+        options[:issuer_privateKey] = Oydid.generate_private_key(options[:doc_pwd].to_s, options[:key_type]+'-priv', options).first
     end
     proof, msg = Oydid.create_vc_proof(content, options)
     puts JSON.pretty_generate(proof)
@@ -1541,7 +1601,7 @@ when "vc-read", "read-vc"
             options[:holder_privateKey] = options[:doc_enc].to_s
         end
     else
-        options[:holder_privateKey] = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options).first
+        options[:holder_privateKey] = Oydid.generate_private_key(options[:doc_pwd].to_s, options[:key_type]+'-priv', options).first
     end
     vc, msg = Oydid.read_vc(input_did, options)
     if vc.nil?
@@ -1555,6 +1615,22 @@ when "vc-read", "read-vc"
         puts JSON.pretty_generate(vc)
     end
 
+when "vc-verify"
+    result, msg = Oydid.verify_vc(content, options)
+    if result.nil?
+        if options[:json].nil? || !options[:json]
+            puts "invalid proof: " + msg
+        else
+            puts '{"error": "' + msg + '"}'
+        end
+    else
+        if options[:json].nil? || !options[:json]
+            puts "valid proof for " + result[:id].to_s
+        else
+            puts '{"VerifiableCredential":"' + result[:id].to_s + '", "valid": true}'
+        end
+    end
+
 when "vp", "vp-push"
     did_holder = options[:holder]
     if options[:doc_pwd].nil?
@@ -1565,7 +1641,7 @@ when "vp", "vp-push"
             options[:holder_privateKey] = options[:doc_enc].to_s
         end
     else
-        options[:holder_privateKey] = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options).first
+        options[:holder_privateKey] = Oydid.generate_private_key(options[:doc_pwd].to_s, options[:key_type]+'-priv', options).first
     end
     vp, msg = Oydid.create_vp(content, options)
 
@@ -1614,9 +1690,9 @@ when "vp-verify"
         end
     else
         if options[:json].nil? || !options[:json]
-            puts "valid proof for " + result[:identifier].to_s
+            puts "valid proof for " + result[:id].to_s
         else
-            puts '{"VerifiablePresentation":"' + result[:identifier].to_s + '", "valid": true}'
+            puts '{"VerifiablePresentation":"' + result[:id].to_s + '", "valid": true}'
         end
     end
 
@@ -1625,6 +1701,13 @@ when "dri"
     result = Oydid.hash(Oydid.canonical(content.to_json))
     puts result.to_s
 when "keygen"
+    if options[:key_type] != 'ed25519'
+        if options[:json].nil? || !options[:json]
+            puts "only supported for key-type 'ed25519'"
+        else
+            puts '{"error": "only supported for key-type \'ed25519\'"}'
+        end
+    end
     privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
     signgingPublicKey, msg = Oydid.public_key(privateKey, {}, 'ed25519-pub')
     encryptionPublicKey, msg = Oydid.public_key(privateKey, {}, 'x25519-pub')
@@ -1632,15 +1715,70 @@ when "keygen"
     puts "signing public key: " + signgingPublicKey.to_s
     puts "encryption public key: " + encryptionPublicKey.to_s
 when "encrypt"
-    privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
-    publicKey, msg = Oydid.public_key(privateKey, {}, 'x25519-pub')
-    result, msg = Oydid.encrypt(content.to_json, publicKey, {})
-    puts result.to_json
+    key_type = options[:key_type]
+    if input_did.to_s != ''
+        result, msg = Oydid.read(input_did, options)
+        publicKey = result['doc']['key'].split(':').first
+        key_type = Oydid.get_keytype(publicKey) rescue nil
+        if key_type.to_s != ''
+            options[:key_type] = key_type
+        end
+    end
+    case options[:key_type]
+    when 'ed25519'
+        privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
+        publicKey, msg = Oydid.public_key(privateKey, {}, 'x25519-pub')
+        result, msg = Oydid.encrypt(content.to_json, publicKey, options)
+        puts result.to_json
+    when 'p256-pub'
+        options[:kid] = input_did + '#key-doc'
+        result, msg = Oydid.encrypt(content.to_json, publicKey, options)
+        puts result
+    else
+        result = nil
+        msg = "only supported for key-type 'ed25519' or 'p256'"
+    end
+    if msg.to_s != ''
+        if options[:json].nil? || !options[:json]
+            puts msg
+        else
+            puts {"error" => msg}.to_json
+        end
+    end 
 when "decrypt"
-    privateKey, msg = Oydid.getPrivateKey(options[:doc_enc], options[:doc_pwd], nil, nil, options)
-    # privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
-    message, err = Oydid.decrypt(content.to_json, privateKey, options)
-    puts message.to_s
+    if content[0..1] = 'ey' # assume JWE
+        header = content.split('.').first
+        header_content = JSON.parse(Base64.urlsafe_decode64(header))
+        kid = header_content["kid"]
+        did10 = kid.delete_prefix("did:oyd:")[0,10]
+        f = File.open(did10 + "_private_key.enc")
+        private_key_encoded = f.read
+        f.close
+        message, err = Oydid.decrypt(content.to_s, private_key_encoded, options)
+        if err.to_s == ''
+            puts message.to_s
+        end
+    else
+        if options[:key_type] != 'ed25519'
+            if options[:json].nil? || !options[:json]
+                puts "only supported for key-type 'ed25519'"
+            else
+                puts '{"error": "only supported for key-type \'ed25519\'"}'
+            end
+        end
+        privateKey, msg = Oydid.getPrivateKey(options[:doc_enc], options[:doc_pwd], nil, nil, options)
+        message, err = Oydid.decrypt(content.to_json, privateKey, options)
+        if err.to_s == ''
+            puts message.to_s
+        end
+    end
+    if err.to_s != ''
+        if options[:json].nil? || !options[:json]
+            puts err
+        else
+            puts {"error" => err}.to_json
+        end
+    end 
 else
     print_help()
 end

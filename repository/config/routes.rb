@@ -13,6 +13,10 @@ Rails.application.routes.draw do
     match 'log/:did',             to: 'logs#create',            via: 'post', constraints: {did: /.*/}
     match 'doc/:did',             to: 'dids#delete',            via: 'delete', constraints: {did: /.*/}
 
+    # CMSM Support (Client-Managed-Secret-Mode)
+    match 'cmsm/:id',             to: 'cmsm#show',              via: 'get', constraints: {id: /.*/}
+    match 'cmsm',                 to: 'cmsm#create',            via: 'post'
+
     # VC & VP endpoints
     match 'credentials/:id',      to: 'credentials#show_vc',    via: 'get', constraints: {id: /.*/}
     match 'credentials',          to: 'credentials#publish_vc', via: 'post'
@@ -34,6 +38,9 @@ Rails.application.routes.draw do
     # helper functions
     match 'helper/encrypt', to: 'dids#encrypt',                 via: 'post'
     match 'helper/decrypt', to: 'dids#decrypt',                 via: 'post'
+
+    # did:web support
+    match ':did/did.json',  to: 'dids#web', via: 'get'
 
     # administrative
     root 'application#home'

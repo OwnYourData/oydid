@@ -1,0 +1,1 @@
+echo '' | oydid create -k p256 

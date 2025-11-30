@@ -1,31 +1,26 @@
-FROM ruby:2.6.9
-MAINTAINER "Christoph Fabianek" christoph@ownyourdata.eu
+FROM ruby:3.2.8
+LABEL org.opencontainers.image.authors="Christoph Fabianek <christoph@ownyourdata.eu>"
 
 WORKDIR /usr/src/app
-ENV RAILS_ROOT $WORKDIR
+ENV RAILS_ROOT=/usr/src/app/
 RUN mkdir -p $RAILS_ROOT/tmp/pids && \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-  		libsodium-dev \
+		libsodium-dev \
 		build-essential && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY Gemfile $WORKDIR
-
-COPY docker/local-gem/*.gem /tmp/
-RUN gem install /tmp/*.gem && \
-	bundle install
-
-COPY . .
+COPY Gemfile Gemfile.lock $RAILS_ROOT
 COPY docker/local-gem/*.gem /tmp/
 
-RUN gem update bundler && \
-	gem install bundler:1.17.3 && \
-	gem update --system 3.2.3 && \
+RUN gem install bundler && \
+	gem update bundler && \
+	gem update --system && \
 	gem install /tmp/*.gem && \
 	bundle install && \
-	bundle update && \
-	gem cleanup
+	bundle update
+
+COPY . .
 
 CMD ["./script/run.sh"]
 

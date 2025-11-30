@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "soya-cli": "^0.16.34"
+  }
+}

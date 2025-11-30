@@ -289,10 +289,13 @@ class Oydid
                 end
                 doc = doc.first["doc"]
                 if el["op"] == 2 # CREATE
-                    if !match_log_did?(el, doc)
-                        currentDID["error"] = 1
-                        currentDID["message"] = "Signatures in log don't match"
-                        return currentDID
+                    # signature for CREATE is optional (due to CMSM)
+                    if !el["sig"].nil?
+                        if !match_log_did?(el, doc)
+                            currentDID["error"] = 1
+                            currentDID["message"] = "Signatures in log don't match"
+                            return currentDID
+                        end
                     end
                 end
                 currentDID["did"] = doc_did
@@ -331,13 +334,20 @@ class Oydid
                 did_hash = did_hash.split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first
                 did10 = did_hash[0,10]
                 doc = retrieve_document_raw(doc_did, did10 + ".doc", doc_location, {})
+                doc = doc.first["doc"]
+
+                if !Oydid.match_log_did?(el, doc)
+                    currentDID["error"] = 1
+                    currentDID["message"] = "Signatures in log don't match"
+                    return currentDID
+                end
+
                 # since it retrieves a DID that previously existed, this test is not necessary
                 # if doc.first.nil?
                 #     currentDID["error"] = 2
                 #     currentDID["message"] = doc.last.to_s
                 #     return currentDID
                 # end
-                doc = doc.first["doc"]
                 term = doc["log"]
                 log_location = term.split(LOCATION_PREFIX).last.split(CGI.escape LOCATION_PREFIX).last rescue ""
                 if log_location.to_s == "" || log_location == term

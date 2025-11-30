@@ -1,0 +1,30 @@
+FROM arm64v8/ruby:3.2.8
+LABEL org.opencontainers.image.authors="Christoph Fabianek <christoph@ownyourdata.eu>"
+
+WORKDIR /usr/src/app
+ENV RAILS_ROOT /usr/src/app/
+RUN mkdir -p $RAILS_ROOT/tmp/pids && \
+	apt-get update && \
+	apt-get install -y --no-install-recommends \
+  		libsodium-dev \
+		build-essential && \
+	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+COPY Gemfile $RAILS_ROOT
+
+RUN gem install bundler && \
+	gem update bundler && \
+	gem update --system && \
+	bundle install && \
+	bundle update
+COPY . .
+
+COPY docker/local-gem/*.gem /tmp/
+RUN bundle install && \
+	gem install /tmp/*.gem && \
+	bundle update && \
+	gem cleanup
+
+CMD ["./script/run.sh"]
+
+EXPOSE 3000
