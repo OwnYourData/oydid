@@ -10,8 +10,8 @@ info:
   contact:
     email: office@ownyourdata.eu
   license:
-    name: MIT License
-    url: https://opensource.org/licenses/MIT
+    name: Apache 2.0 License
+    url: http://www.apache.org/licenses/LICENSE-2.0
 
 servers:
 - url: https://oydid.ownyourdata.eu/
