@@ -1,1 +1,6 @@
+# start Repo
 docker run -d --name oydid -p 3300:3000 -e DID_DB=local oydeu/oydid-base
+
+# start Pod with persistent DB
+docker-compose -f test/benchmark/docker-compose_pg.yml up -d
+docker-compose -f test/benchmark/docker-compose_pg.yml down

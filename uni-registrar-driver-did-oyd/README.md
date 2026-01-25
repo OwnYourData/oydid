@@ -434,4 +434,4 @@ If you want to contribute, please follow these steps:
 
 ## License
 
-[MIT License 2022](https://raw.githubusercontent.com/OwnYourData/oydid/main/LICENSE) - [OwnYourData.eu](https://www.OwnYourData.eu)
+[Apache 2.0 License](https://raw.githubusercontent.com/OwnYourData/oydid/main/LICENSE) - [OwnYourData.eu](https://www.OwnYourData.eu)

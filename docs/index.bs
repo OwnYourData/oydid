@@ -660,7 +660,7 @@ Reference Implementation {#implementation}
 
 Work in progress as part of a research project funded by the “IKT der Zukunft” program from the Federal Ministry for Transport, Innovation and Technology in Austria – [FFG Projekt 887052](https://projekte.ffg.at/projekt/4125456). 
 
-The following implementation artefacts are available (published under the open source MIT License):
+The following implementation artefacts are available (published under the open source Apache 2.0 License):
 * Command line tool `oydid`: [https://github.com/OwnYourData/oydid/tree/main/cli](https://github.com/OwnYourData/oydid/tree/main/cli) 
     * also available as Docker Image: [https://hub.docker.com/r/oydeu/oydid-cli](https://hub.docker.com/r/oydeu/oydid-cli)
     * find example usage scenarios in this Tutorial: [https://github.com/OwnYourData/oydid/tree/main/tutorial](https://github.com/OwnYourData/oydid/tree/main/tutorial)

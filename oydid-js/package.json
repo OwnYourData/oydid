@@ -11,7 +11,7 @@
     "prepublishOnly": "npm run build"
   },
   "author": "",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@types/node": "^20.11.19",
     "multibase": "^4.0.6",

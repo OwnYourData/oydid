@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: oydid
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resolver
+  namespace: oydid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resolver
+  template:
+    metadata:
+      name: resolver
+      labels:
+        app: resolver
+    spec:
+      containers:
+      - name: resolver
+        image: oydeu/oydid-resolver:250503
+        ports:
+        - containerPort: 3000
+        env:
+          - name: LANG
+            value: C.UTF-8
+          - name: RAILS_LOG_TO_STDOUT
+            value: "TRUE"
+          - name: LOG_LEVEL
+            value: "INFO"
+          - name: RAILS_SERVE_STATIC_FILES
+            value: "TRUE"
+          - name: RAILS_ENV
+            value: production
+          - name: RAILS_CONFIG_HOSTS
+            value: "oydid-resolver.data-container.net"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: resolver
+  namespace: oydid
+spec:
+  selector:
+    app: resolver
+  type: NodePort
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: resolver
+  namespace: oydid
+  annotations:
+    certmanager.io/issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - oydid-resolver.data-container.net
+    secretName: resolver-tls
+  rules:
+  - host: oydid-resolver.data-container.net
+    http:
+      paths:
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: resolver
+            port:
+              number: 80
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: resolver-tls
+  namespace: oydid
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-prod"
+spec:
+  secretName: resolver-tls
+  issuerRef:
+    group: cert-manager.io
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+  - 'oydid-resolver.data-container.net'
+  privateKey:
+    rotationPolicy: Always

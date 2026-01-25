@@ -7,7 +7,7 @@ Gem::Specification.new do |gem|
 
     gem.name                  = "oydid"
     gem.homepage              = "http://github.com/ownyourdata/oydid"
-    gem.license               = 'MIT'
+    gem.license               = 'Apache-2.0'
     gem.summary               = "Own Your Decentralized Identifier for Ruby."
     gem.description           = "This gem provides the basic methods for managing did:oyd."
     gem.metadata           = {
