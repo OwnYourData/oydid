@@ -12,7 +12,7 @@ partition Invocation {
     :API;
   end split
 }
-partition Preprocessing {
+partition Preprocessing (requires private key) {
     note
         internal data format
         ----
@@ -23,7 +23,8 @@ partition Preprocessing {
     end note
   :generate base data;
 }
-partition Store Data {
+partition Store Data (trustless, does not require private key) {
+:validate input;
 if (write method) then (local storage)
   :write to disc;
   note left
@@ -34,16 +35,15 @@ if (write method) then (local storage)
      *.log - DID Logs
   end note
 else (online repository)
-  :validate input;
   partition Transaction {
-  :write DID Document;
-  :write DID Logs;
+    :write DID Document;
+    :write DID Logs;
   }
 endif
 }
 :Response;
-note left
-DID Identifier
-end note
 stop
+note right
+  DID Identifier
+end note
 @enduml

@@ -137,6 +137,17 @@ class Oydid
         return n
     end
 
+    def self.deep_stringify_keys(object)
+        case object
+        when Hash
+            object.transform_keys(&:to_s).transform_values { |v| deep_stringify_keys(v) }
+        when Array
+            object.map { |e| deep_stringify_keys(e) }
+        else
+            object
+        end
+    end
+
     # key management ----------------------------
     def self.get_keytype(input)
         code, length, digest = multi_decode(input).first.unpack('SCa*')
@@ -958,6 +969,32 @@ class Oydid
 
     def self.base64_url_decode(str)
         Base64.urlsafe_decode64(str + '=' * (4 - str.length % 4))
+    end
+
+    def self.private_key_from_jwk(jwk, options = {})
+        begin
+            if jwk.is_a?(String)
+                jwk = JSON.parse(jwk)
+            end
+        rescue
+            return [nil, "invalid input"]
+        end
+        jwk = jwk.transform_keys(&:to_s)
+        if jwk["kty"] == "EC" && jwk["crv"] == "P-256"
+            digest = base64_url_decode(jwk["d"])
+            group = OpenSSL::PKey::EC::Group.new("prime256v1")
+            public_key = group.generator.mul(OpenSSL::BN.new(digest, 2))
+            point = public_key.to_bn.to_s(2)
+            x_calc = Base64.urlsafe_encode64(point[1, 32], padding: false)
+            y_calc = Base64.urlsafe_encode64(point[33, 32], padding: false)
+            return [nil, "x/y do not match d"] unless x_calc == jwk["x"] && y_calc == jwk["y"]
+
+            code = Multicodecs["p256-priv"].code
+            length = digest.bytesize
+            return multi_encode([code, length, digest].pack("SCa#{length}"), options)
+        else
+            return [nil, "unsupported key codec"]
+        end
     end
 
     def self.public_key_from_jwk(jwk, options = {})

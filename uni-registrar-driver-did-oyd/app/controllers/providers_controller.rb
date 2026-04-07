@@ -56,6 +56,10 @@ class ProvidersController < ApplicationController
         if options[:cmsm]
             doc = params.except(:options).except(:secret).except(:provider).except(:controller).except(:action)
             doc = JSON.parse(doc.to_json).transform_keys(&:to_sym)
+            if !doc[:key_hex].nil?
+                doc[:key] = Oydid.multi_encode(["ed01#{doc[:key_hex]}"].pack("H*"), options).first
+                doc.delete(:key_hex)
+            end
             if !options[:sig].nil?
                 doc[:opt] = {:sig => options[:sig]}
                 options.delete(:sig)

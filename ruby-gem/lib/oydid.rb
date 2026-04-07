@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require 'jwt'
+require 'jwt/eddsa'
 require 'rdf'
 require 'rdf/normalize'
 require 'json'
@@ -13,6 +14,7 @@ require 'httparty'
 require 'multibases'
 require 'multicodecs'
 require 'simple_dag'
+require 'securerandom'
 require 'json/canonicalization'
 require 'oydid/basic'
 require 'oydid/log'
