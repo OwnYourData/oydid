@@ -140,4 +140,39 @@ class Oydid
                     }.to_json)
         return retVal.parsed_response["access_token"]
     end
+
+    # other helpers -----------------------------
+    def self.build_jwks(content, input_did, options)
+
+        tmp_did_hash = input_did.delete_prefix("did:oyd:") rescue ""
+        tmp_did10 = tmp_did_hash[0,10] + "_private_key.enc" rescue ""
+        privateKey, msg = getPrivateKey(options[:doc_enc], options[:doc_pwd], options[:doc_key], tmp_did10, options)
+        if privateKey.nil?
+            return [nil, "private document key not available: " + msg.to_s]
+        end
+
+        code, length, digest = multi_decode(privateKey).first.unpack('SCa*')
+        case Multicodecs[code].name
+        when 'ed25519-priv'        
+            signing_key = Ed25519::SigningKey.new(digest)
+        else
+            return [nil, "unsupported key codec: " + Multicodecs[code].name.to_s]
+        end
+
+        jwk = content
+        jwk['iss'] = input_did
+        jwk['sub'] = input_did
+        jwk['iat'] = Time.now.to_i
+        jwk['exp'] = Time.now.to_i + 120
+        jwk['jti'] = SecureRandom.uuid
+
+        algorithm = 'EdDSA'
+        headers = {
+            alg: algorithm,
+            typ: 'JWT',
+            kid: input_did + '#key-doc' }
+
+        jwks = JWT.encode(jwk, signing_key, algorithm, headers)
+        return [jwks, nil]
+    end
 end

@@ -9,7 +9,7 @@ require 'oydid'
 
 LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
-VERSION = "0.5.8"
+VERSION = "0.6.1"
 LOG_HASH_OPTIONS = {:digest => "sha2-256", :encode => "base58btc"}
 
 # internal functions -------------------------------
@@ -515,6 +515,7 @@ def print_help()
     puts "  log        - print relevant log for given DID or log entry hash"
     puts "  logs       - print all available log entries for given DID or log hash"
     puts "  pubkeys    - list all authorized public keys for specified DID"
+    puts "  sign       - sign payload with provided private key"
     puts "  toW3C      - read OYDID internal document and convert to W3C-conform"
     puts "               DID document"
     # puts "  challenge - publish challenge for given DID and revoke specified as"
@@ -524,6 +525,9 @@ def print_help()
     puts "  message    - output plain DIDComm message, reads from STDIN"
     puts "  jws        - output signed DIDComm message, reads from STDIN"
     puts "  jws-verify - read JWS and verify signature"
+    puts ""
+    puts " -- JWK handling --"
+    puts "  jwks       - create JSON Web Key Set"
     puts ""
     puts "Semantic Container operations:"
     puts "  auth       - retrieve OAuth2 bearer token using DID Auth"
@@ -762,12 +766,12 @@ end
 
 case operation.to_s
 # JSON input
-when "create", "confirm", 
+when "create", "confirm",
      "fromW3C", "toW3C",
      "message", "jws", "encrypt-message", "sign-message",
      "vc", "vc-proof", "vc-push", "vc-verify",
      "vp", "vp-push", "vp-verify",
-     "dri", "encrypt"
+     "dri", "encrypt", "jwks", "jwk2mb"
     input_content = []
     ARGF.each_line { |line| input_content << line }
     content = JSON.parse(input_content.join("")) rescue nil
@@ -812,8 +816,8 @@ when "update"
             exit(-1)
         end
     end
-# JWT input
-when "decrypt-jwt", "verify-jws", "verify-signed-message", "decrypt"
+# JWT/raw input
+when "decrypt-jwt", "verify-jws", "verify-signed-message", "decrypt", "sign"
     content = []
     ARGF.each_line { |line| content << line }
     content = content.join('').strip
@@ -1158,6 +1162,41 @@ when "confirm"
             end
         end
     end
+when "sign"
+    # checks---
+    # require --doc-enc
+    if options[:doc_enc].to_s == ''
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Error: require private key provided as --doc-enc"
+            else
+                puts '{"error": "require private key provided as --doc-enc"}'
+            end
+        end
+        exit(-1)
+    end
+    retVal, msg = Oydid.sign(content, options[:doc_enc].to_s)
+    if retVal.nil?
+        if msg.to_s != ""
+            if options[:silent].nil? || !options[:silent]
+                if options[:json].nil? || !options[:json]
+                    puts "Error: " + msg.to_s
+                else
+                    puts '{"error": "' + msg + '"}'
+                end
+            end
+        end
+        exit(-1)
+    else
+        if options[:silent].nil? || !options[:silent]
+            if options[:json].nil? || !options[:json]
+                puts "Signature: " + retVal.to_s
+            else
+                puts "{\"sig\": \"#{retVal.to_s}\"}"
+            end
+        end
+    end
+
 when "pubkeys"
     retVal, msg = Oydid.getDelegatedPubKeysFromDID(input_did, options[:pubkey_type])
     if retVal.nil?
@@ -1696,6 +1735,17 @@ when "vp-verify"
         end
     end
 
+when "jwks"
+    result, msg = Oydid.build_jwks(content, input_did, options)
+    if msg.to_s != ''
+        if options[:json].nil? || !options[:json]
+            puts msg
+        else
+            puts {"error" => msg}.to_json
+        end
+    end
+    puts result
+
 # internal helper
 when "dri"
     result = Oydid.hash(Oydid.canonical(content.to_json))
@@ -1714,6 +1764,22 @@ when "keygen"
     puts "private key: " + privateKey.to_s
     puts "signing public key: " + signgingPublicKey.to_s
     puts "encryption public key: " + encryptionPublicKey.to_s
+when "jwk2mb"
+    privateKey, msg = Oydid.private_key_from_jwk(content, options)
+    if msg.to_s != '' || privateKey.nil?
+        if options[:json].nil? || !options[:json]
+            puts msg
+        else
+            puts {"error" => msg}.to_json
+        end
+    else
+        if options[:json].nil? || !options[:json]
+            puts "private key: " + privateKey.to_s
+        else
+            puts '{"private_key": "' + privateKey.to_s + '"}'
+        end
+    end
+
 when "encrypt"
     key_type = options[:key_type]
     if input_did.to_s != ''
