@@ -167,6 +167,77 @@ describe "OYDID handling" do
     end
   end
 
+  # P-256 predefined / deterministic key handling
+  it "derives a deterministic p256 private key from a seed/password" do
+    key1, _ = Oydid.generate_private_key("my-fixed-seed", "p256-priv", {key_type: "p256"})
+    key2, _ = Oydid.generate_private_key("my-fixed-seed", "p256-priv", {key_type: "p256"})
+    expect(key1).not_to be_nil
+    expect(key1).to eq key2
+    expect(Oydid.get_keytype(key1)).to eq "p256-priv"
+  end
+  it "derives different p256 keys for different seeds" do
+    key1, _ = Oydid.generate_private_key("seed-a", "p256-priv", {})
+    key2, _ = Oydid.generate_private_key("seed-b", "p256-priv", {})
+    expect(key1).not_to eq key2
+  end
+  it "produces a usable p256 keypair from a derived key (sign/verify roundtrip)" do
+    privkey, _ = Oydid.generate_private_key("roundtrip-seed", "p256-priv", {})
+    pubkey, _  = Oydid.public_key(privkey, {})
+    expect(pubkey).not_to be_nil
+    message = "hello oydid"
+    signature, _ = Oydid.sign(message, privkey, {})
+    expect(signature).not_to be_nil
+    expect(Oydid.verify(message, signature, pubkey).first).to eq true
+  end
+  it "preserves a predefined base64-encoded p256 private key" do
+    ec = OpenSSL::PKey::EC.generate('prime256v1')
+    b64 = Base64.encode64(ec.to_pem)
+    encoded, _ = Oydid.generate_private_key(b64, "p256-priv", {})
+    expect(encoded).not_to be_nil
+    decoded = Oydid.decode_private_key(encoded).first
+    expect(decoded.private_key.to_s(2)).to eq ec.private_key.to_s(2)
+  end
+  it "getPrivateKey honors key_type for password-derived keys" do
+    p256_key, _ = Oydid.getPrivateKey(nil, "shared-pwd", nil, nil, {key_type: "p256"})
+    ed_key, _   = Oydid.getPrivateKey(nil, "shared-pwd", nil, nil, {key_type: "ed25519"})
+    expect(Oydid.get_keytype(p256_key)).to eq "p256-priv"
+    expect(Oydid.get_keytype(ed_key)).to eq "ed25519-priv"
+  end
+  it "imports a hex-encoded p256 private key (matching the JWK conversion)" do
+    hex = "96fe0f41947d645c7a1858c48c7a0560e7e5bd3d45125b57a611a3a9a103626b"
+    jwk = {kty: "EC", crv: "P-256",
+           d: "lv4PQZR9ZFx6GFjEjHoFYOflvT1FEltXphGjqaEDYms",
+           x: "vK0MQ6yFnQVS2VtjkVYHP5wcT7GqlJDzY5qM8KKqrao",
+           y: "R3AQWDZ-AAdwQ3sys1UwhIA5MX2WNnmSerQRKDKxg48"}
+    from_hex, _ = Oydid.private_key_from_hex(hex, {key_type: "p256"})
+    from_jwk, _ = Oydid.private_key_from_jwk(jwk.to_json, {})
+    expect(from_hex).not_to be_nil
+    expect(Oydid.get_keytype(from_hex)).to eq "p256-priv"
+    expect(from_hex).to eq from_jwk
+  end
+  it "rejects malformed hex private keys" do
+    expect(Oydid.private_key_from_hex("xyz", {key_type: "p256"}).first).to be_nil
+    expect(Oydid.private_key_from_hex("96fe", {key_type: "p256"}).first).to be_nil
+    expect(Oydid.private_key_from_hex("00" * 32, {key_type: "p256"}).first).to be_nil
+  end
+  it "round-trips a p256 private key hex -> mb -> hex" do
+    hex = "96fe0f41947d645c7a1858c48c7a0560e7e5bd3d45125b57a611a3a9a103626b"
+    mb, _  = Oydid.private_key_from_hex(hex, {key_type: "p256"})
+    back, _ = Oydid.key_to_hex(mb, {})
+    expect(back).to eq hex
+  end
+  it "decodes a p256 public key from mb to uncompressed hex" do
+    privkey, _ = Oydid.private_key_from_hex(
+      "96fe0f41947d645c7a1858c48c7a0560e7e5bd3d45125b57a611a3a9a103626b",
+      {key_type: "p256"})
+    pub_mb, _ = Oydid.public_key(privkey, {})
+    pub_hex, _ = Oydid.key_to_hex(pub_mb, {})
+    expect(pub_hex).to eq "04bcad0c43ac859d0552d95b639156073f9c1c4fb1aa9490f3639a8cf0a2aaadaa47701058367e000770437b32b35530848039317d963679927ab4112832b1838f"
+  end
+  it "rejects an invalid multibase key in key_to_hex" do
+    expect(Oydid.key_to_hex("not-a-key", {}).first).to be_nil
+  end
+
   # storage functions
   it "should create 'filename' and put/read 'text'" do
     @buffer = StringIO.new()

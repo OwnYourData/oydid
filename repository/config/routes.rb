@@ -31,6 +31,11 @@ Rails.application.routes.draw do
     match '1.0/update',     to: 'dids#uniregistrar_update',     via: 'post'
     match '1.0/deactivate', to: 'dids#uniregistrar_deactivate', via: 'post'
 
+    # DID Provider endpoints (local storage)
+    match '1.0/createIdentifier',     to: 'providers#create',     via: 'post'
+    match '1.0/updateIdentifier',     to: 'providers#update',     via: 'post'
+    match '1.0/deactivateIdentifier', to: 'providers#deactivate', via: 'post'
+
     # OYDID Auth challenge
     match 'oydid/init',     to: 'dids#init',                    via: 'post'
     match 'oydid/token',    to: 'dids#token',                   via: 'post'

@@ -193,18 +193,31 @@ class Oydid
             end
             raw_key = raw_key.to_bytes
         when 'p256-priv'
-            key = OpenSSL::PKey::EC.new('prime256v1')
             if input == ""
+                # no seed provided => generate a random key
                 key = OpenSSL::PKey::EC.generate('prime256v1')
+                raw_key = key.private_key.to_s(2)
             else
-                # input for p256-priv requires valid base64 encoded private key
+                # try to interpret input as a base64-encoded existing private key first;
+                # otherwise derive the key deterministically from input (seed/password),
+                # mirroring the ed25519-priv behaviour above
+                key = nil
                 begin
-                    key = OpenSSL::PKey.read Base64.decode64(input)
+                    candidate = OpenSSL::PKey.read(Base64.decode64(input))
+                    key = candidate if candidate.is_a?(OpenSSL::PKey::EC)
                 rescue
-                    return [nil, "invalid input"]
+                    key = nil
+                end
+                if key.nil?
+                    # deterministic derivation: hash seed to a scalar in [1, n-1]
+                    order = OpenSSL::PKey::EC::Group.new('prime256v1').order
+                    scalar = (OpenSSL::BN.new(RbNaCl::Hash.sha256(input), 2) % (order - OpenSSL::BN.new(1))) + OpenSSL::BN.new(1)
+                    raw_key = scalar.to_s(2)
+                    raw_key = ("\x00".b * (32 - raw_key.bytesize)) + raw_key if raw_key.bytesize < 32
+                else
+                    raw_key = key.private_key.to_s(2)
                 end
             end
-            raw_key = key.private_key.to_s(2)
         else
             return [nil, "unsupported key codec"]
         end
@@ -284,7 +297,9 @@ class Oydid
                     privateKey, msg = read_private_key(dsk.to_s, options)
                 end
             else
-                privateKey, msg = generate_private_key(pwd, 'ed25519-priv', options)
+                kt = options[:key_type].to_s
+                kt = 'ed25519' if kt == ''
+                privateKey, msg = generate_private_key(pwd, kt + '-priv', options)
             end
         else
             privateKey, msg = decode_private_key(enc.to_s, options)
@@ -997,6 +1012,68 @@ class Oydid
         end
     end
 
+    # build an OYDID multibase-encoded private key from a raw hex-encoded key
+    # (e.g. an externally generated P-256 or Ed25519 key). The key type is taken
+    # from options[:key_type] (default 'ed25519').
+    def self.private_key_from_hex(hex, options = {})
+        hex = hex.to_s.strip.delete_prefix("0x").delete_prefix("0X")
+        unless hex =~ /\A[0-9a-fA-F]+\z/ && hex.length.even?
+            return [nil, "invalid hex input"]
+        end
+        raw = [hex].pack("H*")
+        key_type = options[:key_type].to_s
+        key_type = "ed25519" if key_type == ""
+        case key_type
+        when "p256"
+            unless raw.bytesize == 32
+                return [nil, "p256 private key must be 32 bytes (64 hex characters)"]
+            end
+            # scalar must be a valid private key in [1, n-1]
+            order = OpenSSL::PKey::EC::Group.new("prime256v1").order
+            scalar = OpenSSL::BN.new(raw, 2)
+            if scalar < OpenSSL::BN.new(1) || scalar >= order
+                return [nil, "p256 private key out of range"]
+            end
+            code = Multicodecs["p256-priv"].code
+        when "ed25519"
+            unless raw.bytesize == 32
+                return [nil, "ed25519 private key must be 32 bytes (64 hex characters)"]
+            end
+            code = Multicodecs["ed25519-priv"].code
+        else
+            return [nil, "unsupported key type"]
+        end
+        length = raw.bytesize
+        return multi_encode([code, length, raw].pack("SCa#{length}"), options)
+    end
+
+    # reverse of private_key_from_hex / public_key encoding:
+    # decode an OYDID Multibase-encoded key (private or public) back to raw hex.
+    def self.key_to_hex(key_encoded, options = {})
+        key_encoded = key_encoded.to_s.strip
+        key_type = get_keytype(key_encoded) rescue nil
+        if key_type.nil?
+            return [nil, "unsupported or invalid key"]
+        end
+        begin
+            raw = multi_decode(key_encoded).first
+            case key_type
+            when 'ed25519-priv', 'p256-priv'
+                # custom layout: [uint16 codec][uint8 length][raw key bytes]
+                _code, _length, digest = raw.unpack('SCa*')
+                hex = digest.unpack1('H*')
+            when 'ed25519-pub', 'p256-pub'
+                # multicodec varint prefix (2 bytes) followed by raw key material
+                hex = raw[2..].unpack1('H*')
+            else
+                return [nil, "unsupported key codec"]
+            end
+        rescue
+            return [nil, "invalid key"]
+        end
+        return [hex, ""]
+    end
+
     def self.public_key_from_jwk(jwk, options = {})
         begin
             if jwk.is_a?(String)
@@ -1069,6 +1146,11 @@ class Oydid
     end
 
     def self.retrieve_document(doc_identifier, doc_file, doc_location, options)
+        # in-process callers can supply the DID document directly (e.g. read from
+        # a local database) to avoid any HTTP/file lookup
+        if options[:local_doc].is_a?(Hash) && !options[:local_doc].empty?
+            return [options[:local_doc], ""]
+        end
         if doc_location == ""
             doc_location = DEFAULT_LOCATION
         end

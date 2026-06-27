@@ -6,9 +6,9 @@ RUN addgroup -S user && \
     apk add --no-cache libsodium-dev openssl openssl-dev git make gcc musl-dev jq bash curl gdbm gdbm-dev enscript ghostscript && \
     gem install httparty ed25519 multibases multihashes multicodecs optparse rbnacl dag uri json-canonicalization oydid securerandom && \
     gem install openssl -v "~> 3.3.2" && \
-    apk add --update --no-cache python3 pipx py3-setuptools py3-pytest py3-requests && \
+    apk add --update --no-cache python3 py3-pip pipx py3-setuptools py3-pytest py3-requests && \
     ln -sf python3 /usr/bin/python && \
-    apk add --no-cache py3-pytest-subprocess --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+    pip install --no-cache-dir --break-system-packages pytest-subprocess
 COPY oydid.rb /usr/local/bin/oydid
 COPY ./docker/start.sh /usr/local/bin/start.sh
 COPY docker/local-gem/*.gem /tmp/

@@ -541,6 +541,12 @@ class Oydid
     end
 
     def self.publish(did, didDocument, logs, options)
+        # in-process callers (e.g. a repository storing DIDs in its own database)
+        # can skip remote/file publishing and persist the returned logs themselves
+        if options[:skip_publish]
+            return [true, ""]
+        end
+
         did_hash = did.delete_prefix("did:oyd:")
         did10 = did_hash[0,10]
 
@@ -584,6 +590,13 @@ class Oydid
     end
 
     def self.persist_cmsm(pubkey, payload, options)
+        # in-process callers can supply a store object (responding to
+        # #set(pubkey, payload)) to persist CMSM data in a local database
+        if options[:cmsm_store]
+            options[:cmsm_store].set(pubkey, payload)
+            return [true, ""]
+        end
+
         doc_location = options[:doc_location]
         if doc_location.to_s == ""
             doc_location = DEFAULT_LOCATION
@@ -612,6 +625,17 @@ class Oydid
     end
 
     def self.check_cmsm(pubkey, options)
+        # in-process callers can supply a store object (responding to
+        # #get(pubkey)) to read CMSM data from a local database
+        if options[:cmsm_store]
+            payload = options[:cmsm_store].get(pubkey)
+            if payload.nil?
+                return [nil, "no persisted CMSM data for key"]
+            end
+            payload = payload.transform_keys(&:to_s) if payload.is_a?(Hash)
+            return [payload, ""]
+        end
+
         doc_location = options[:doc_location]
         if doc_location.to_s == ""
             doc_location = DEFAULT_LOCATION
@@ -937,7 +961,12 @@ class Oydid
         end
 
         # check if REVOCATION hash matches hash in TERMINATION
-        if did_info["log"][did_info["termination_log_id"]]["doc"] != multi_hash(canonical(revocationLog), LOG_HASH_OPTIONS).first
+        # the "doc" field of the TERMINATE log entry may carry a location suffix
+        # (e.g. "<hash>@http://localhost:3000") when the DID was created with -l,
+        # so strip the location prefix before comparing with the bare revocation hash
+        termination_doc = did_info["log"][did_info["termination_log_id"]]["doc"]
+        termination_doc = termination_doc.split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first
+        if termination_doc != multi_hash(canonical(revocationLog), LOG_HASH_OPTIONS).first
             return [nil, "invalid revocation information"]
         end
         revoc_log = JSON.parse(revocationLog)
@@ -957,9 +986,17 @@ class Oydid
             did_hash = hash_split[0]
             doc_location = hash_split[1]
         end
+        if did_hash.include?(CGI.escape LOCATION_PREFIX)
+            hash_split = did_hash.split(CGI.escape LOCATION_PREFIX)
+            did_hash = hash_split[0]
+            doc_location = hash_split[1]
+        end
         if doc_location.to_s == ""
             doc_location = DEFAULT_LOCATION
         end
+        # the location extracted from the DID may be percent-encoded
+        # (e.g. "http%3A%2F%2Flocalhost%3A3000"); decode before using as URL
+        doc_location = doc_location.to_s.gsub("%3A", ":").gsub("%2F", "/")
 
         # publish revocation log based on location
         case doc_location.to_s
@@ -985,6 +1022,11 @@ class Oydid
         revoc_log, msg = revoke_base(did, options)
         if revoc_log.nil?
             return [nil, msg]
+        end
+        # in-process callers persist the revocation log themselves; return it
+        # instead of publishing to a remote location / file
+        if options[:skip_publish]
+            return [revoc_log, ""]
         end
         success, msg = revoke_publish(did, revoc_log, options)
     end

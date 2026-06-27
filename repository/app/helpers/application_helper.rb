@@ -1,4 +1,61 @@
 module ApplicationHelper
+    # Persist a DID document and its log entries in the local database.
+    #
+    # didHash        : DID identifier without the "did:oyd:" prefix and without
+    #                  any location suffix
+    # didDocument    : the DID document (Hash or JSON string)
+    # logs           : array of log entries; entries with an "op" key are stored
+    #                  as new log records, entries with a "log" key carry an
+    #                  encrypted-revocation-log update for an existing record
+    #
+    # Returns [true, ""] on success or [false, message] on error.
+    def local_store_did(didHash, didDocument, logs)
+        didHash = didHash.to_s.delete_prefix("did:oyd:")
+        didHash = didHash.split(LOCATION_PREFIX).first rescue didHash
+
+        didDocumentJson = didDocument.is_a?(String) ? didDocument : didDocument.to_json
+        didDoc = JSON.parse(didDocumentJson) rescue nil
+        if didDoc.nil?
+            return [false, "cannot parse did-document"]
+        end
+        didPubKey = didDoc["key"].split(":").first rescue nil
+        if didPubKey.nil?
+            return [false, "missing public document key in did-document"]
+        end
+
+        if Did.find_by_did(didHash).nil?
+            Did.new(did: didHash, doc: didDocumentJson, public_key: didPubKey).save
+        end
+
+        Array(logs).compact.each do |raw_item|
+            item = JSON.parse(raw_item.to_json) rescue nil
+            next if item.nil? || !item.is_a?(Hash)
+
+            if item.key?("op")
+                if item["op"] == 1 # REVOKE
+                    my_hash = Oydid.multi_hash(Oydid.canonical(item.except("previous")), LOG_HASH_OPTIONS).first
+                else
+                    my_hash = Oydid.multi_hash(Oydid.canonical(item.slice("ts", "op", "doc", "sig", "previous")), LOG_HASH_OPTIONS).first
+                end
+                if Log.find_by_oyd_hash(my_hash).nil?
+                    Log.new(did: didHash, item: item.to_json, oyd_hash: my_hash, ts: Time.now.utc.to_i).save
+                end
+            else
+                # encrypted-revocation-log update for an existing log record
+                @log = Log.find_by_oyd_hash(item["log"]) rescue nil
+                if !@log.nil?
+                    payload = JSON.parse(@log.item) rescue nil
+                    if !payload.nil?
+                        payload["encrypted-revocation-log"] = item.slice("value", "nonce")
+                        @log.update(item: payload.to_json)
+                    end
+                end
+            end
+        end
+
+        return [true, ""]
+    end
+
     def resolve_did(did, options)
         if did.to_s == ""
             return nil
