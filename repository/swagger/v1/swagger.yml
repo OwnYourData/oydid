@@ -333,6 +333,131 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeactivateState'
+  /1.0/createIdentifier:
+    post:
+      summary: Create a DID and store it locally.
+      tags:
+        - DID Provider Interface
+      description:
+        <p>This endpoint creates a DID and stores the DID Document and provenance log directly in this
+        repository's database (no remote location is used). It returns the created DID together with the
+        generated key material.</p>
+        <p>The endpoint also supports the Client-Managed-Secret-Mode (CMSM) - when called with
+        <code>options.cmsm = true</code> and the public key (<code>key_hex</code>) but without a signature,
+        it persists the intermediate data and responds with HTTP 201 plus the value the client has to sign
+        (field <code>sign</code>). A second call with the same public key and the resulting
+        <code>options.sig</code> finishes the creation and returns HTTP 200.</p>
+      operationId: createIdentifier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderCreateRequest'
+      responses:
+        '200':
+          description: The DID was created and stored locally; the created DID and key material are returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderCreateResponse'
+        '201':
+          description:
+            CMSM phase 1 - the public key was registered and intermediate data persisted; the response
+            contains the value the client has to sign.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CmsmChallenge'
+        '400':
+          description: A problem with the input fields has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestBody'
+        '500':
+          description: An internal error has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestBody'
+  /1.0/updateIdentifier:
+    post:
+      summary: Update a locally stored DID.
+      tags:
+        - DID Provider Interface
+      description:
+        <p>This endpoint updates a DID whose current state is stored in this repository. The existing state is
+        read from the local database; the new DID Document and log entries are stored locally again.</p>
+        <p>In self-managed mode the controller keys are provided via the <code>secret</code> object. In
+        client-managed mode the caller additionally supplies a <code>didDocument</code> together with
+        pre-signed <code>log_revoke</code>, <code>log_update</code> and <code>log_terminate</code> records in
+        <code>options</code>.</p>
+      operationId: updateIdentifier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderUpdateRequest'
+      responses:
+        '200':
+          description: The DID was updated and the new state stored locally.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderUpdateResponse'
+        '400':
+          description: A problem with the input fields has occurred (e.g. invalid log signature).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestBody'
+        '404':
+          description: The DID to be updated is unknown to this repository.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestBody'
+        '500':
+          description: An internal error has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestBody'
+  /1.0/deactivateIdentifier:
+    post:
+      summary: Deactivate a locally stored DID.
+      tags:
+        - DID Provider Interface
+      description:
+        <p>This endpoint deactivates (revokes) a DID stored in this repository. The revocation log entry is
+        generated from the controller keys supplied in the <code>secret</code> object and stored in the local
+        database. In client-managed mode the caller can instead supply a pre-built <code>log_revoke</code>
+        record in <code>options</code>.</p>
+      operationId: deactivateIdentifier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderDeactivateRequest'
+      responses:
+        '200':
+          description: The DID was deactivated; the revocation log entry was stored locally.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderDeactivateResponse'
+        '404':
+          description: The DID to be deactivated is unknown to this repository.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestBody'
+        '500':
+          description: An internal error has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestBody'
 components:
   schemas:
     BadRequestBody:
@@ -542,3 +667,149 @@ components:
           type: object
         didDocument:
           type: object
+    ProviderKey:
+      description: A key entry as returned by the DID Provider endpoints.
+      type: object
+      properties:
+        kid:
+          type: string
+          example: "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh#key-doc"
+        kms:
+          type: string
+          example: "local"
+        type:
+          type: string
+          description: key type, e.g. Ed25519, X25519 or ES256
+          example: "Ed25519"
+        publicKeyHex:
+          type: string
+        privateKeyHex:
+          type: string
+          description: only present when the keys are managed by the repository (not in client-managed mode)
+        jwk:
+          type: object
+          description: present instead of the *Hex fields for ES256 keys
+    ProviderCreateRequest:
+      description: Input fields for the local create operation (createIdentifier).
+      type: object
+      properties:
+        options:
+          description:
+            Options for the create operation. Set <code>type</code> to "ES256" for a P-256 DID (otherwise an
+            ed25519 DID is created). For CMSM set <code>cmsm</code> to true and provide <code>sig</code> in the
+            second phase.
+          type: object
+          example: {"cmsm": true, "key_type": "ed25519"}
+        secret:
+          description: DID controller keys and other secrets needed for the operation.
+          type: object
+          example: {"doc_pwd": "secret", "rev_pwd": "other_secret"}
+        key_hex:
+          description: hex-encoded public document key; required for the Client-Managed-Secret-Mode (CMSM).
+          type: string
+    ProviderCreateResponse:
+      description: Result of a successful create operation.
+      type: object
+      properties:
+        did:
+          type: string
+          example: "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"
+        controllerKeyId:
+          type: string
+          example: "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh#key-doc"
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderKey'
+        services:
+          type: array
+          items:
+            type: object
+    CmsmChallenge:
+      description: Response of CMSM phase 1 - the value the client has to sign.
+      type: object
+      properties:
+        cmsm:
+          type: boolean
+          example: true
+        pk:
+          type: string
+          description: the registered public key (multibase encoded)
+        sign:
+          type: string
+          description: the value the client has to sign with its private document key
+    ProviderUpdateRequest:
+      description: Input fields for the local update operation (updateIdentifier).
+      type: object
+      required:
+        - args
+      properties:
+        args:
+          type: object
+          required:
+            - did
+          properties:
+            did:
+              type: string
+              example: "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"
+        didDocument:
+          description: new DID Document; required for a client-managed update.
+          type: object
+        options:
+          description:
+            Options for the update operation. For a client-managed update provide the pre-signed
+            <code>log_revoke</code>, <code>log_update</code> and <code>log_terminate</code> records here.
+          type: object
+        secret:
+          description: DID controller keys needed for a self-managed update.
+          type: object
+    ProviderUpdateResponse:
+      description: Result of a successful update operation.
+      type: object
+      properties:
+        did:
+          type: string
+        provider:
+          type: string
+        controllerKeyId:
+          type: string
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderKey'
+        services:
+          type: array
+          items:
+            type: object
+    ProviderDeactivateRequest:
+      description: Input fields for the local deactivate operation (deactivateIdentifier).
+      type: object
+      required:
+        - identifier
+      properties:
+        identifier:
+          type: object
+          required:
+            - did
+          properties:
+            did:
+              type: string
+              example: "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"
+        options:
+          description:
+            Options for the deactivate operation. For a client-managed deactivation provide a pre-built
+            <code>log_revoke</code> record here.
+          type: object
+        secret:
+          description: DID controller keys needed for a self-managed deactivation.
+          type: object
+    ProviderDeactivateResponse:
+      description: Result of a successful deactivate operation.
+      type: object
+      properties:
+        did:
+          type: string
+          example: "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"
+        success:
+          type: boolean
+          example: true

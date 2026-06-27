@@ -9,7 +9,7 @@ require 'oydid'
 
 LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
-VERSION = "0.6.1"
+VERSION = "0.6.4"
 LOG_HASH_OPTIONS = {:digest => "sha2-256", :encode => "base58btc"}
 
 # internal functions -------------------------------
@@ -45,7 +45,7 @@ def delete(did, options)
             end
             exit 1
         else
-            privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
+            privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, (options[:key_type] || 'ed25519') + '-priv', options)
         end
     else
         privateKey, msg = Oydid.read_private_key(options[:doc_key].to_s, options)
@@ -71,7 +71,7 @@ def delete(did, options)
             end
             exit 1
         else
-            revocationKey, msg = Oydid.generate_private_key(options[:rev_pwd].to_s, 'ed25519-priv', options)
+            revocationKey, msg = Oydid.generate_private_key(options[:rev_pwd].to_s, (options[:key_type] || 'ed25519') + '-priv', options)
         end
     else
         revocationKey, msg = Oydid.read_private_key(options[:rev_key].to_s, options)
@@ -308,7 +308,7 @@ def sc_token(did, options)
             end
             exit 1
         else
-            privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, 'ed25519-priv', options)
+            privateKey, msg = Oydid.generate_private_key(options[:doc_pwd].to_s, (options[:key_type] || 'ed25519') + '-priv', options)
         end
     else
         privateKey, msg = Oydid.read_private_key(options[:doc_key].to_s, options)
@@ -528,6 +528,10 @@ def print_help()
     puts ""
     puts " -- JWK handling --"
     puts "  jwks       - create JSON Web Key Set"
+    puts "  jwk2mb     - convert a private key from JWK (STDIN) to Multibase"
+    puts "  hex2mb     - convert a hex-encoded private key (STDIN) to Multibase"
+    puts "               (use -k p256 for P-256 keys; default ed25519)"
+    puts "  mb2hex     - convert a Multibase key (STDIN, private or public) to hex"
     puts ""
     puts "Semantic Container operations:"
     puts "  auth       - retrieve OAuth2 bearer token using DID Auth"
@@ -817,7 +821,7 @@ when "update"
         end
     end
 # JWT/raw input
-when "decrypt-jwt", "verify-jws", "verify-signed-message", "decrypt", "sign"
+when "decrypt-jwt", "verify-jws", "verify-signed-message", "decrypt", "sign", "hex2mb", "mb2hex"
     content = []
     ARGF.each_line { |line| content << line }
     content = content.join('').strip
@@ -1777,6 +1781,38 @@ when "jwk2mb"
             puts "private key: " + privateKey.to_s
         else
             puts '{"private_key": "' + privateKey.to_s + '"}'
+        end
+    end
+
+when "hex2mb"
+    privateKey, msg = Oydid.private_key_from_hex(content, options)
+    if msg.to_s != '' || privateKey.nil?
+        if options[:json].nil? || !options[:json]
+            puts msg
+        else
+            puts({"error" => msg}.to_json)
+        end
+    else
+        if options[:json].nil? || !options[:json]
+            puts "private key: " + privateKey.to_s
+        else
+            puts '{"private_key": "' + privateKey.to_s + '"}'
+        end
+    end
+
+when "mb2hex"
+    hexKey, msg = Oydid.key_to_hex(content, options)
+    if msg.to_s != '' || hexKey.nil?
+        if options[:json].nil? || !options[:json]
+            puts msg
+        else
+            puts({"error" => msg}.to_json)
+        end
+    else
+        if options[:json].nil? || !options[:json]
+            puts hexKey.to_s
+        else
+            puts '{"hex": "' + hexKey.to_s + '"}'
         end
     end
 

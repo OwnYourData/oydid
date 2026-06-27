@@ -211,35 +211,12 @@ class DidsController < ApplicationController
             end
         end
 
-        @did = Did.find_by_did(didHash)
-        if @did.nil?
-            Did.new(did: didHash, doc: didDocument.to_json, public_key: didPubKey).save
+        ok, store_msg = local_store_did(didHash, didDocument, new_logs + update_logs)
+        if !ok
+            render json: {"error": store_msg},
+                   status: 500
+            return
         end
-        new_logs.each do |item|
-            if item["op"] == 1 # REVOKE
-                my_hash = Oydid.multi_hash(Oydid.canonical(item.except("previous")), LOG_HASH_OPTIONS).first
-                @log = Log.find_by_oyd_hash(my_hash) rescue nil
-                if @log.nil?
-                    Log.new(did: didHash, item: item.to_json, oyd_hash: my_hash, ts: Time.now.utc.to_i).save
-                end
-            else
-                my_hash = Oydid.multi_hash(Oydid.canonical(item.slice("ts","op","doc","sig","previous")), LOG_HASH_OPTIONS).first
-                @log = Log.find_by_oyd_hash(my_hash) rescue nil
-                if @log.nil?
-                    Log.new(did: didHash, item: item.to_json, oyd_hash: my_hash, ts: Time.now.utc.to_i).save
-                end
-            end
-        end
-        update_logs.each do |item|
-            @log = Log.find_by_oyd_hash(item["log"])
-            if !@log.nil?
-                payload = JSON.parse(@log.item) rescue nil
-                if !payload.nil?
-                    payload["encrypted-revocation-log"] = item.slice(:value, :nonce)
-                    @log.update_attributes(item: payload.to_json)
-                end
-            end
-        end unless update_logs.count == 0
 
         render plain: "",
                stauts: 200

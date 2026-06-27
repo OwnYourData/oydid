@@ -24,6 +24,11 @@ class Oydid
     end
 
     def self.retrieve_log(did_hash, log_file, log_location, options)
+        # in-process callers can supply the raw log array directly (e.g. read from
+        # a local database) to avoid any HTTP/file lookup
+        if options[:local_log].is_a?(Array)
+            return [options[:local_log], ""]
+        end
         if log_location == ""
             log_location = DEFAULT_LOCATION
         end
