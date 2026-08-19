@@ -791,9 +791,13 @@ class Oydid
         rescue
             return [nil, "cannot read file"]
         end
-        key_type = get_keytype(key_encoded) || options[:key_type] rescue options[:key_type]
+        # get_keytype raises for anything that is not a valid key, and the
+        # inline rescue below only guards the assignment - so key_type can end up
+        # nil when the caller passes no :key_type either. Coerce to a string
+        # instead of calling String methods on nil (raised NoMethodError before).
+        key_type = (get_keytype(key_encoded) || options[:key_type] rescue options[:key_type]).to_s
         if key_type.include?('-')
-            key_type = key_type.split('-').first || options[:key_type] rescue options[:key_type]
+            key_type = (key_type.split('-').first || options[:key_type]).to_s
         end
         if key_type == 'p256'
             begin

@@ -1,11 +1,11 @@
-# This workflow runs continuous CI across different versions of ruby on all branches and pull requests to develop.
+# Continuous CI for the oydid ruby gem, on all branches and pull requests.
 
 name: CI
 on:
   push:
     branches: [ '**' ]
   pull_request:
-    branches: [ develop ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -15,28 +15,34 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: true
-      ALLOW_FAILURES: ${{ endsWith(matrix.ruby, 'head') }}
+      # the multicodecs gem reads its code table via CSV and raises
+      # CSV::InvalidEncodingError without a UTF-8 locale
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
     strategy:
       fail-fast: false
       matrix:
+        # oydid.gemspec requires ruby >= 3.0 and pins openssl ~> 3.3 /
+        # stringio ~> 3.2, so anything below 3.2 cannot even bundle install
         ruby:
-          - 2.6
+          - '3.2'
+          - '3.3'
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-      - name: Install dependencies
-        working-directory: ruby-gem
-        run: bundle install --jobs 4 --retry 3
+          bundler-cache: true
+          working-directory: ruby-gem
       - name: Run tests
         working-directory: ruby-gem
-        run: ruby --version; bundle exec rspec spec || $ALLOW_FAILURES
-      - name: Coveralls GitHub Action
-        uses: coverallsapp/github-action@v1.1.2
-        if: "matrix.ruby == '2.6'"
+        run: ruby --version && bundle exec rspec spec
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
+        if: "matrix.ruby == '3.3'"
+        continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: "./ruby-gem/coverage/lcov.info"
+          file: "./ruby-gem/coverage/lcov.info"

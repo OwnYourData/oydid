@@ -123,7 +123,9 @@ describe "OYDID handling" do
     it "generates #{input.split('/').last}" do
       expected = File.read(input.sub('input', 'output'))
       data = File.read(input)
-      expect(Oydid.generate_private_key(data, {}).first).to eq expected
+      # signature is (input, method, options) - passing options as the 2nd
+      # argument made this resolve the codec {} and always return nil
+      expect(Oydid.generate_private_key(data, "ed25519-priv", {}).first).to eq expected
     end
   end
   it "handles unknown key codec" do
