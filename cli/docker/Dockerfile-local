@@ -8,7 +8,7 @@ RUN addgroup -S user && \
     gem install openssl -v "~> 3.3.2" && \
     apk add --update --no-cache python3 py3-pip pipx py3-setuptools py3-pytest py3-requests && \
     ln -sf python3 /usr/bin/python && \
-    pip install --no-cache-dir --break-system-packages pytest-subprocess
+    pip install --no-cache-dir --break-system-packages pytest-subprocess pyserial
 COPY oydid.rb /usr/local/bin/oydid
 COPY ./docker/start.sh /usr/local/bin/start.sh
 COPY docker/local-gem/*.gem /tmp/
