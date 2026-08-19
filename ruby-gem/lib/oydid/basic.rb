@@ -1012,14 +1012,23 @@ class Oydid
         end
     end
 
-    # build an OYDID multibase-encoded private key from a raw hex-encoded key
-    # (e.g. an externally generated P-256 or Ed25519 key). The key type is taken
-    # from options[:key_type] (default 'ed25519').
-    def self.private_key_from_hex(hex, options = {})
+    # normalize and validate hex input shared by the hex-based converters below:
+    # strips whitespace and an optional '0x' prefix and rejects anything that is
+    # not an even number of hex digits. Returns [normalized_hex, ""] or [nil, msg].
+    def self.normalize_hex(hex)
         hex = hex.to_s.strip.delete_prefix("0x").delete_prefix("0X")
         unless hex =~ /\A[0-9a-fA-F]+\z/ && hex.length.even?
             return [nil, "invalid hex input"]
         end
+        return [hex, ""]
+    end
+
+    # build an OYDID multibase-encoded private key from a raw hex-encoded key
+    # (e.g. an externally generated P-256 or Ed25519 key). The key type is taken
+    # from options[:key_type] (default 'ed25519').
+    def self.private_key_from_hex(hex, options = {})
+        hex, msg = normalize_hex(hex)
+        return [nil, msg] if hex.nil?
         raw = [hex].pack("H*")
         key_type = options[:key_type].to_s
         key_type = "ed25519" if key_type == ""
@@ -1047,12 +1056,15 @@ class Oydid
         return multi_encode([code, length, raw].pack("SCa#{length}"), options)
     end
 
-    # counterpart to private_key_from_hex for public keys
+    # counterpart to private_key_from_hex for public keys.
+    #
+    # NOTE on the p256 length check: multicodec 0x1200 ('p256-pub') is specified
+    # for compressed points, but Oydid.public_key() emits uncompressed ones
+    # (OpenSSL's default point_conversion_form), so both forms are accepted here
+    # to stay compatible with keys this library produces itself.
     def self.public_key_from_hex(hex, options = {})
-        hex = hex.to_s.strip.delete_prefix("0x").delete_prefix("0X")
-        unless hex =~ /\A[0-9a-fA-F]+\z/ && hex.length.even?
-            return [nil, "invalid hex input"]
-        end
+        hex, msg = normalize_hex(hex)
+        return [nil, msg] if hex.nil?
         raw = [hex].pack("H*")
         key_type = options[:key_type].to_s
         key_type = "ed25519" if key_type == ""
@@ -1061,11 +1073,25 @@ class Oydid
             unless [33, 65].include?(raw.bytesize)
                 return [nil, "p256 public key must be 33 (compressed) or 65 (uncompressed) bytes"]
             end
+            # the length alone says nothing: verify that the input actually
+            # decodes to a point on prime256v1 (this also rejects a wrong
+            # leading byte), otherwise an unusable key would be encoded happily
+            begin
+                OpenSSL::PKey::EC::Point.new(
+                    OpenSSL::PKey::EC::Group.new("prime256v1"),
+                    OpenSSL::BN.new(hex, 16))
+            rescue StandardError
+                return [nil, "p256 public key is not a valid point on the curve"]
+            end
             code = Multicodecs["p256-pub"].code
         when "ed25519"
             unless raw.bytesize == 32
                 return [nil, "ed25519 public key must be 32 bytes (64 hex characters)"]
             end
+            # there is no cheap point validation for ed25519 (Ed25519::VerifyKey
+            # accepts any 32 bytes), and a private key has the same length - so
+            # passing a *private* key with --public silently yields a public key
+            # multibase. Callers have to know what they hand in.
             code = Multicodecs["ed25519-pub"].code
         else
             return [nil, "unsupported key type"]
@@ -1075,13 +1101,14 @@ class Oydid
 
     # convert raw hex data (no multicodec prefix, e.g. a signature) to Multibase
     def self.hex_to_multibase(hex, options = {})
-        hex = hex.to_s.strip.delete_prefix("0x").delete_prefix("0X")
-        unless hex =~ /\A[0-9a-fA-F]+\z/ && hex.length.even?
-            return [nil, "invalid hex input"]
-        end
-        # the multibases gem raises on all-zero input, so reject it here
+        hex, msg = normalize_hex(hex)
+        return [nil, msg] if hex.nil?
+        # the multibases gem cannot represent an all-zero byte string: packing
+        # raises NoMethodError and unpacking the correct base58btc form ("z1111")
+        # raises RangeError. Leading zero bytes in otherwise non-zero input are
+        # handled correctly, so only the all-zero case has to be rejected.
         if hex.delete("0") == ""
-            return [nil, "invalid hex input"]
+            return [nil, "all-zero input is not supported by the multibase encoder"]
         end
         return multi_encode([hex].pack("H*"), options)
     end

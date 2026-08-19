@@ -531,8 +531,13 @@ def print_help()
     puts "  jwk2mb     - convert a private key from JWK (STDIN) to Multibase"
     puts "  hex2mb     - convert a hex-encoded key (STDIN) to Multibase"
     puts "               (default: private key; --public for a public key,"
-    puts "                --raw for data without multicodec, e.g. a signature)"
+    puts "                --raw for data without multicodec, e.g. a signature;"
+    puts "                --public and --raw are mutually exclusive)"
     puts "               (use -k p256 for P-256 keys; default ed25519)"
+    puts "               note: --public cannot detect that a *private* key was"
+    puts "                     passed by mistake - both are 32 bytes for ed25519"
+    puts "               note: output of --raw carries no multicodec and can"
+    puts "                     therefore not be converted back with mb2hex"
     puts "  mb2hex     - convert a Multibase key (STDIN, private or public) to hex"
     puts ""
     puts "Semantic Container operations:"
@@ -647,10 +652,15 @@ opt_parser = OptionParser.new do |opt|
   opt.on("-k KEY-TYPE", "--key-type KEY-TYPE") do |t|
     options[:key_type] = t
   end
+  # --public / --raw select the input type for hex2mb; they are recorded
+  # separately so that specifying both can be rejected instead of silently
+  # depending on the order on the command line
   opt.on("--public") do |p|
+    options[:hex_mode_flags] = ((options[:hex_mode_flags] || []) | ["--public"])
     options[:hex_mode] = "public"
   end
   opt.on("--raw") do |r|
+    options[:hex_mode_flags] = ((options[:hex_mode_flags] || []) | ["--raw"])
     options[:hex_mode] = "raw"
   end
   opt.on("--credential-type VC-TYPE") do |t|
@@ -766,6 +776,16 @@ opt_parser = OptionParser.new do |opt|
 
 end
 opt_parser.parse!
+
+if (options[:hex_mode_flags] || []).length > 1
+    hex_mode_error = options[:hex_mode_flags].sort.join(" and ") + " are mutually exclusive"
+    if options[:json].nil? || !options[:json]
+        puts "Error: " + hex_mode_error
+    else
+        puts({"error" => hex_mode_error}.to_json)
+    end
+    exit(-1)
+end
 
 operation = ARGV.shift rescue ""
 input_did = ARGV.shift rescue ""

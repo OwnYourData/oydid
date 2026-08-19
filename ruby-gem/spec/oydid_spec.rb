@@ -238,6 +238,82 @@ describe "OYDID handling" do
     expect(Oydid.key_to_hex("not-a-key", {}).first).to be_nil
   end
 
+  # hex2mb: public keys (--public)
+  it "encodes an ed25519 public key from hex identically to public_key()" do
+    privkey, _ = Oydid.private_key_from_hex("aa" * 32, {key_type: "ed25519"})
+    pub_mb, _  = Oydid.public_key(privkey, {})
+    pub_hex, _ = Oydid.key_to_hex(pub_mb, {})
+    from_hex, msg = Oydid.public_key_from_hex(pub_hex, {key_type: "ed25519"})
+    expect(msg).to eq ""
+    expect(from_hex).to eq pub_mb
+    expect(Oydid.get_keytype(from_hex)).to eq "ed25519-pub"
+  end
+  it "encodes a p256 public key from hex identically to public_key()" do
+    privkey, _ = Oydid.private_key_from_hex(
+      "96fe0f41947d645c7a1858c48c7a0560e7e5bd3d45125b57a611a3a9a103626b",
+      {key_type: "p256"})
+    pub_mb, _  = Oydid.public_key(privkey, {})
+    pub_hex, _ = Oydid.key_to_hex(pub_mb, {})
+    from_hex, msg = Oydid.public_key_from_hex(pub_hex, {key_type: "p256"})
+    expect(msg).to eq ""
+    expect(from_hex).to eq pub_mb
+    expect(Oydid.get_keytype(from_hex)).to eq "p256-pub"
+  end
+  it "round-trips a public key hex -> mb -> hex" do
+    hex = "e734ea6c2b6257de72355e472aa05a4c487e6b463c029ed306df2f01b5636b58"
+    mb, _   = Oydid.public_key_from_hex(hex, {key_type: "ed25519"})
+    back, _ = Oydid.key_to_hex(mb, {})
+    expect(back).to eq hex
+  end
+  it "accepts a compressed p256 public key" do
+    hex = "03bcad0c43ac859d0552d95b639156073f9c1c4fb1aa9490f3639a8cf0a2aaadaa"
+    mb, msg = Oydid.public_key_from_hex(hex, {key_type: "p256"})
+    expect(msg).to eq ""
+    expect(Oydid.get_keytype(mb)).to eq "p256-pub"
+  end
+  it "rejects a p256 public key that is not a point on the curve" do
+    mb, msg = Oydid.public_key_from_hex("04" + "11" * 64, {key_type: "p256"})
+    expect(mb).to be_nil
+    expect(msg).to match(/not a valid point/)
+  end
+  it "rejects malformed public key hex" do
+    expect(Oydid.public_key_from_hex("xyz", {key_type: "ed25519"}).first).to be_nil
+    expect(Oydid.public_key_from_hex("aa" * 31, {key_type: "ed25519"}).first).to be_nil
+    expect(Oydid.public_key_from_hex("aa" * 32, {key_type: "p256"}).first).to be_nil
+    expect(Oydid.public_key_from_hex("aa" * 32, {key_type: "secp256k1"}).first).to be_nil
+  end
+  it "defaults to ed25519 when no key type is given for a public key" do
+    hex = "e734ea6c2b6257de72355e472aa05a4c487e6b463c029ed306df2f01b5636b58"
+    expect(Oydid.get_keytype(Oydid.public_key_from_hex(hex, {}).first)).to eq "ed25519-pub"
+  end
+
+  # hex2mb: raw data (--raw)
+  it "encodes raw hex data to multibase without a multicodec prefix" do
+    mb, msg = Oydid.hex_to_multibase("deadbeef", {})
+    expect(msg).to eq ""
+    expect(Oydid.multi_decode(mb).first.unpack1("H*")).to eq "deadbeef"
+    # no multicodec prefix -> deliberately not readable back as a key
+    expect(Oydid.key_to_hex(mb, {}).first).to be_nil
+  end
+  it "preserves leading zero bytes in raw hex data" do
+    mb, _ = Oydid.hex_to_multibase("00deadbeef", {})
+    expect(Oydid.multi_decode(mb).first.unpack1("H*")).to eq "00deadbeef"
+  end
+  it "accepts a 0x prefix and surrounding whitespace in raw hex data" do
+    expect(Oydid.hex_to_multibase(" 0xdeadbeef\n", {}).first).to \
+      eq Oydid.hex_to_multibase("deadbeef", {}).first
+  end
+  it "rejects all-zero raw hex data with a specific message" do
+    mb, msg = Oydid.hex_to_multibase("00" * 4, {})
+    expect(mb).to be_nil
+    expect(msg).to match(/all-zero/)
+  end
+  it "rejects malformed raw hex data" do
+    expect(Oydid.hex_to_multibase("xyz", {}).first).to be_nil
+    expect(Oydid.hex_to_multibase("abc", {}).first).to be_nil
+    expect(Oydid.hex_to_multibase("", {}).first).to be_nil
+  end
+
   # storage functions
   it "should create 'filename' and put/read 'text'" do
     @buffer = StringIO.new()
