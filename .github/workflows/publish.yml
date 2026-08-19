@@ -25,7 +25,7 @@ jobs:
           # bikeshed 7.x moved its group registry to speced/bikeshed-boilerplate,
           # where "w3c-ccg" is missing, so it reports a fatal "Unknown Group".
           # The document itself still renders byte-identically, so suppress the
-          # gate until the group is added upstream, then drop this line again.
+          # gate until speced/bikeshed-boilerplate#207 lands, then drop it again.
           BUILD_FAIL_ON: nothing
           # both steps upload a build artifact; upload-artifact@v4 rejects a
           # duplicate name within one run with a 409, so name them apart
