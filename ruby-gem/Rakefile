@@ -1,10 +1,18 @@
 #!/usr/bin/env ruby
 $:.unshift(File.expand_path(File.join(File.dirname(__FILE__), 'lib')))
 require 'rubygems'
+require 'fileutils'
 
 namespace :gem do
   desc "Build the oydid-#{File.read('VERSION').chomp}.gem file"
   task :build do
+    # gem build copies the on-disk file mode into the archive and RubyGems
+    # restores it on install. A source file that happens to be 0600 locally is
+    # then unreadable for every non-root consumer - that is how 0.6.5 and 0.6.6
+    # shipped an unloadable lib/oydid/log.rb. git cannot catch this: it only
+    # tracks the executable bit.
+    FileUtils.chmod(0644, Dir.glob('lib/**/*.rb') + %w(AUTHORS README.md LICENSE VERSION))
+    FileUtils.mkdir_p('pkg')
     sh "gem build oydid.gemspec && mv oydid-#{File.read('VERSION').chomp}.gem pkg/"
   end
 
