@@ -1047,6 +1047,45 @@ class Oydid
         return multi_encode([code, length, raw].pack("SCa#{length}"), options)
     end
 
+    # counterpart to private_key_from_hex for public keys
+    def self.public_key_from_hex(hex, options = {})
+        hex = hex.to_s.strip.delete_prefix("0x").delete_prefix("0X")
+        unless hex =~ /\A[0-9a-fA-F]+\z/ && hex.length.even?
+            return [nil, "invalid hex input"]
+        end
+        raw = [hex].pack("H*")
+        key_type = options[:key_type].to_s
+        key_type = "ed25519" if key_type == ""
+        case key_type
+        when "p256"
+            unless [33, 65].include?(raw.bytesize)
+                return [nil, "p256 public key must be 33 (compressed) or 65 (uncompressed) bytes"]
+            end
+            code = Multicodecs["p256-pub"].code
+        when "ed25519"
+            unless raw.bytesize == 32
+                return [nil, "ed25519 public key must be 32 bytes (64 hex characters)"]
+            end
+            code = Multicodecs["ed25519-pub"].code
+        else
+            return [nil, "unsupported key type"]
+        end
+        return multi_encode(Multibases::DecodedByteArray.new((to_varint(code) << raw.bytes).flatten).to_s(Encoding::BINARY), options)
+    end
+
+    # convert raw hex data (no multicodec prefix, e.g. a signature) to Multibase
+    def self.hex_to_multibase(hex, options = {})
+        hex = hex.to_s.strip.delete_prefix("0x").delete_prefix("0X")
+        unless hex =~ /\A[0-9a-fA-F]+\z/ && hex.length.even?
+            return [nil, "invalid hex input"]
+        end
+        # the multibases gem raises on all-zero input, so reject it here
+        if hex.delete("0") == ""
+            return [nil, "invalid hex input"]
+        end
+        return multi_encode([hex].pack("H*"), options)
+    end
+
     # reverse of private_key_from_hex / public_key encoding:
     # decode an OYDID Multibase-encoded key (private or public) back to raw hex.
     def self.key_to_hex(key_encoded, options = {})

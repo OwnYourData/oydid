@@ -529,7 +529,9 @@ def print_help()
     puts " -- JWK handling --"
     puts "  jwks       - create JSON Web Key Set"
     puts "  jwk2mb     - convert a private key from JWK (STDIN) to Multibase"
-    puts "  hex2mb     - convert a hex-encoded private key (STDIN) to Multibase"
+    puts "  hex2mb     - convert a hex-encoded key (STDIN) to Multibase"
+    puts "               (default: private key; --public for a public key,"
+    puts "                --raw for data without multicodec, e.g. a signature)"
     puts "               (use -k p256 for P-256 keys; default ed25519)"
     puts "  mb2hex     - convert a Multibase key (STDIN, private or public) to hex"
     puts ""
@@ -605,6 +607,7 @@ opt_parser = OptionParser.new do |opt|
   options[:simulate] = false
   options[:authentication] = false
   options[:key_type] = 'ed25519'
+  options[:hex_mode] = 'private'
   options[:vc_type] = 'Ed25519Signature2020'
   options[:x25519_keyAgreement] = false
   options[:followAlsoKnownAs] = false
@@ -643,6 +646,12 @@ opt_parser = OptionParser.new do |opt|
   end
   opt.on("-k KEY-TYPE", "--key-type KEY-TYPE") do |t|
     options[:key_type] = t
+  end
+  opt.on("--public") do |p|
+    options[:hex_mode] = "public"
+  end
+  opt.on("--raw") do |r|
+    options[:hex_mode] = "raw"
   end
   opt.on("--credential-type VC-TYPE") do |t|
     options[:vc_type] = t
@@ -1785,8 +1794,23 @@ when "jwk2mb"
     end
 
 when "hex2mb"
-    privateKey, msg = Oydid.private_key_from_hex(content, options)
-    if msg.to_s != '' || privateKey.nil?
+    # the key type cannot be read from hex input, so it is specified by
+    # --public / --raw (default: private key, as in earlier versions)
+    case options[:hex_mode].to_s
+    when "public"
+        mbKey, msg = Oydid.public_key_from_hex(content, options)
+        label = "public key: "
+        json_key = "public_key"
+    when "raw"
+        mbKey, msg = Oydid.hex_to_multibase(content, options)
+        label = ""
+        json_key = "multibase"
+    else
+        mbKey, msg = Oydid.private_key_from_hex(content, options)
+        label = "private key: "
+        json_key = "private_key"
+    end
+    if msg.to_s != '' || mbKey.nil?
         if options[:json].nil? || !options[:json]
             puts msg
         else
@@ -1794,9 +1818,9 @@ when "hex2mb"
         end
     else
         if options[:json].nil? || !options[:json]
-            puts "private key: " + privateKey.to_s
+            puts label + mbKey.to_s
         else
-            puts '{"private_key": "' + privateKey.to_s + '"}'
+            puts({json_key => mbKey.to_s}.to_json)
         end
     end
 
