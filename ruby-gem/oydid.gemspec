@@ -23,7 +23,9 @@ Gem::Specification.new do |gem|
     gem.files                 = %w(AUTHORS README.md LICENSE VERSION) + Dir.glob('lib/**/*.rb')
     gem.test_files            = Dir.glob('spec/**/*.rb') + Dir.glob('spec/**/*.json') + Dir.glob('spec/**/*.doc')
 
-    gem.required_ruby_version = '>= 3.0.0'
+    # 3.2 is what CI tests and what the service images run; the hard floor
+    # from dependencies is 3.1 (securerandom ~> 0.4.1)
+    gem.required_ruby_version = '>= 3.2.0'
     gem.requirements          = []
     gem.add_dependency 'simple_dag',            '~> 0.0.1'
     gem.add_dependency 'stringio',              '~> 3.2.0'
