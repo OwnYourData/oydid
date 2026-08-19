@@ -87,3 +87,9 @@ __pycache__
 # Rails logfiles of the repository service
 repository/log/*
 !repository/log/.keep
+
+# Rails logfiles of the resolver and registrar services
+uniresolver-plugin/log/*
+!uniresolver-plugin/log/.keep
+uni-registrar-driver-did-oyd/log/*
+!uni-registrar-driver-did-oyd/log/.keep
