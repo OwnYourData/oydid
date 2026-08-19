@@ -22,17 +22,23 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    addressable (2.9.0)
+      public_suffix (>= 2.0.2, < 8.0)
     base64 (0.3.0)
     bcp47_spec (0.2.1)
     benchmark-ips (2.14.0)
     bigdecimal (3.3.1)
     byebug (12.0.0)
+    crack (1.0.1)
+      bigdecimal
+      rexml
     csv (3.3.6)
     diff-lcs (1.6.2)
     docile (1.4.1)
     ed25519 (1.4.0)
     ffi (1.17.4-arm64-darwin)
     ffi (1.17.4-x86_64-linux-gnu)
+    hashdiff (1.2.1)
     htmlentities (4.4.2)
     httparty (0.24.2)
       csv
@@ -65,6 +71,7 @@ GEM
     multicodecs (1.0.0)
     openssl (3.3.3)
     ostruct (0.6.3)
+    public_suffix (7.0.5)
     rack (3.2.7)
     rake (13.3.0)
     rbnacl (7.1.2)
@@ -106,6 +113,10 @@ GEM
     simplecov-lcov (0.9.0)
     simplecov_json_formatter (0.1.4)
     stringio (3.2.0)
+    webmock (3.26.2)
+      addressable (>= 2.8.0)
+      crack (>= 0.3.2)
+      hashdiff (>= 0.4.0, < 2.0.0)
 
 PLATFORMS
   arm64-darwin
@@ -119,6 +130,7 @@ DEPENDENCIES
   rspec (~> 3.10)
   simplecov (~> 0.21)
   simplecov-lcov (~> 0.8)
+  webmock (~> 3.25)
 
 BUNDLED WITH
   4.0.12

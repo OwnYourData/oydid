@@ -25,6 +25,9 @@ end
 
 require 'oydid'
 
+# spec/support/http_stubs.rb keeps the suite off the network
+Dir[File.expand_path("support/**/*.rb", __dir__)].sort.each { |f| require f }
+
 ::RSpec.configure do |c|
   c.filter_run focus: true
   c.run_all_when_everything_filtered = true
