@@ -29,40 +29,7 @@ class DidsController < ApplicationController
         end
         result = resolve_did(did, options)
         if result["error"] != 0
-            # puts "Error: " + result["message"].to_s
-            render json: {"error": result["message"].to_s}.to_json,
-                   status: 500
-        else
-            render json: result["doc"],
-                   status: 200
-        end
-    end
-
-    def show
-        options = {}
-        if ENV["DID_LOCATION"].to_s != ""
-            options[:location] = ENV["DID_LOCATION"].to_s
-            if options[:doc_location].nil?
-                options[:doc_location] = options[:location]
-            end
-            if options[:log_location].nil?
-                options[:log_location] = options[:location]
-            end
-        end
-        did = params[:did]
-        options_followAlsoKnownAs = params[:followAlsoKnownAs].to_s.downcase
-        if options_followAlsoKnownAs == ""
-            options[:followAlsoKnownAs] = false
-        elsif options_followAlsoKnownAs == "true"
-            options[:followAlsoKnownAs] = true
-        else
-            options[:followAlsoKnownAs] = false
-        end
-        result = resolve_did(did, options)
-        if result["error"] != 0
-            # puts "Error: " + result["message"].to_s
-            render json: {"error": result["message"].to_s}.to_json,
-                   status: 500
+            render_resolution_error(result)
         else
             render json: result["doc"],
                    status: 200
@@ -266,8 +233,7 @@ class DidsController < ApplicationController
         options[:encode] = Oydid.get_encoding(didHash).first
         result = resolve_did(did, options)
         if result["error"] != 0
-            render json: {"error": result["message"].to_s}.to_json,
-                   status: result["error"]
+            render_resolution_error(result)
         else
             w3c_did = Oydid.w3c(result, options)
             render plain: w3c_did.to_json,
@@ -275,6 +241,76 @@ class DidsController < ApplicationController
                    content_type: 'application/ld+json',
                    status: 200
         end
+    end
+
+    # GET /1.0/resolve/:did
+    #
+    # Full DID Resolution Result (didDocument + didResolutionMetadata +
+    # didDocumentMetadata), i.e. the payload the Universal Resolver used to
+    # return for did:oyd. /1.0/identifiers/:did keeps returning the bare
+    # DID Document for backwards compatibility.
+    def resolve_full
+        started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        did = params[:did].to_s
+        didHash = remove_location(did)
+
+        options = {}
+        # pub-key identifiers (z6M...) carry no digest/encoding information
+        unless didHash.start_with?("z6M") && didHash.length == 48
+            options[:digest] = Oydid.get_digest(didHash).first
+            options[:encode] = Oydid.get_encoding(didHash).first
+        end
+        options[:followAlsoKnownAs] = ENV['FOLLOW_ALSOKNOWNAS'].to_s.downcase != 'false'
+
+        result, read_msg = resolve_did_any(did, options)
+        if result.nil?
+            if read_msg.to_s == "revoked"
+                render_resolution_error({"error" => REVOKED_ERROR, "message" => "revoked"})
+            else
+                render json: {"error": "not found"},
+                       status: 404
+            end
+            return
+        end
+        if result["error"] != 0
+            render_resolution_error(result)
+            return
+        end
+
+        keys, key_error = resolution_keys(result)
+        if keys.nil?
+            render json: {"error": key_error.to_s},
+                   status: 500
+            return
+        end
+
+        did_identifier = result["did"].to_s
+        did_identifier = "did:oyd:" + did_identifier unless did_identifier.start_with?("did:oyd")
+        duration = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
+
+        render json: {
+            "didDocument": Oydid.w3c(Marshal.load(Marshal.dump(result)), options),
+            "didResolutionMetadata": {
+                "contentType": "application/did+ld+json",
+                "pattern": "^(did:oyd:.+)$",
+                "driverUrl": request.base_url.to_s + "/1.0/resolve/$1",
+                "duration": duration,
+                "did": {
+                    "didString": did_identifier,
+                    "methodSpecificId": didHash,
+                    "method": "oyd"
+                }
+            },
+            "didDocumentMetadata": {
+                "did": Oydid.percent_encode(did_identifier),
+                "keys": keys,
+                "registry": Oydid.get_location(result["did"].to_s),
+                "log_hash": result["doc"]["log"].to_s,
+                "log": result["log"],
+                "document_log_id": result["doc_log_id"].to_i,
+                "termination_log_id": result["termination_log_id"].to_i
+            }
+        }, status: 200
     end
 
     def legacy_resolve
@@ -287,8 +323,7 @@ class DidsController < ApplicationController
         options[:encode] = Oydid.get_encoding(didHash).first
         result = resolve_did(did, options)
         if result["error"] != 0
-            render json: {"error": result["message"].to_s}.to_json,
-                   status: result["error"]
+            render_resolution_error(result)
         else
             w3c_did = Oydid.w3c_legacy(result, options)
             render plain: w3c_did.to_json,
@@ -759,15 +794,25 @@ class DidsController < ApplicationController
             options[:encode] = Oydid.get_encoding(didHash).first
         end
         options[:followAlsoKnownAs] = ENV['FOLLOW_ALSOKNOWNAS'].to_s.downcase != 'false'
-        result = Oydid.read(did, options).first rescue nil
+        # Resolve through exactly the same path as /doc/{id} so that the did:web
+        # bridge cannot serve a document the did:oyd resolution rejects. For DIDs
+        # stored in this repository that is the local resolution path; only DIDs
+        # hosted elsewhere are resolved remotely through the gem.
+        result, read_msg = resolve_did_any(did, options)
         if result.nil?
-            render json: {"error": "not found"},
-                   status: 404
+            # retrieve_document collapses every non-200 answer of the hosting
+            # repository into nil, so a remote 410 would otherwise be reported as
+            # "not found" - keep the revocation distinguishable
+            if read_msg.to_s == "revoked"
+                render_resolution_error({"error" => REVOKED_ERROR, "message" => "revoked"})
+            else
+                render json: {"error": "not found"},
+                       status: 404
+            end
             return
         end
         if result["error"] != 0
-            render json: {"error": result["message"].to_s},
-                   status: result["error"]
+            render_resolution_error(result)
             return
         end
 

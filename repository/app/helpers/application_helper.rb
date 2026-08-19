@@ -124,6 +124,8 @@ module ApplicationHelper
 
     def dag_update(currentDID, options)
         i = 0
+        revoked = false
+        rotation_performed = false
         initial_did = currentDID["did"].to_s
         initial_did = initial_did.delete_prefix("did:oyd:")
         initial_did = initial_did.split(LOCATION_PREFIX).first
@@ -304,6 +306,12 @@ module ApplicationHelper
                             end
                         end
                     end
+                    # the revocation record is published and no UPDATE record
+                    # builds on it: this DID is revoked. The verdict is only
+                    # acted upon after the log has been walked completely, so
+                    # that DID Rotation (handled in the REVOKE entry below) can
+                    # still take precedence.
+                    revoked = !update_term_found
                 else
                     if verification_output
                         currentDID["verification"] += "Revocation reference in log record: " + revoc_term.to_s + "\n"
@@ -341,6 +349,7 @@ module ApplicationHelper
 
                                     currentDID["did"] = rotate_DID
                                     currentDID["doc"]["doc"] = rotate_ddoc["didDocument"]
+                                    rotation_performed = true
                                     if verification_output
                                         currentDID["verification"] += "DID rotation to: " + rotate_DID.to_s + "\n"
                                         currentDID["verification"] += "✅ original DID (" + did_orig + ") revoked and referenced in alsoKnownAs\n"
@@ -366,7 +375,103 @@ module ApplicationHelper
             end
             i += 1
         end unless currentDID["log"].nil?
+
+        # fail closed: a revoked DID has no resolvable DID Document unless the
+        # controller rotated it to another DID via alsoKnownAs
+        if revoked && !rotation_performed
+            currentDID["error"] = REVOKED_ERROR
+            currentDID["message"] = "revoked"
+        end
         return currentDID
+    end
+
+    # HTTP status for an internal resolution error code as produced by
+    # resolve_did / Oydid.read. Internal codes (1, 2, ...) are not HTTP status
+    # codes and must never be handed to `render status:` directly.
+    def http_status_for(error_code)
+        case error_code.to_i
+        when 0                then 200
+        when 404              then 404
+        when REVOKED_ERROR    then revoked_http_status
+        else                       500
+        end
+    end
+
+    # 410 Gone by default; set REVOKED_HTTP_STATUS=404 for clients or caches
+    # that handle 410 poorly
+    def revoked_http_status
+        ENV["REVOKED_HTTP_STATUS"].to_s == "404" ? 404 : 410
+    end
+
+    # Render a failed DID resolution. A revoked DID answers 410 Gone with
+    # {"error":"revoked"} and is explicitly not cacheable.
+    def render_resolution_error(result)
+        status = http_status_for(result["error"])
+        if result["error"].to_i == REVOKED_ERROR
+            response.headers["Cache-Control"] = "no-store"
+            render json: {"error": "revoked"},
+                   status: status
+        else
+            render json: {"error": result["message"].to_s},
+                   status: status
+        end
+    end
+
+    # Resolve a DID through the local path when it is stored in this repository
+    # and remotely through the gem otherwise. Both branches evaluate the full
+    # did:oyd resolution including the revocation record.
+    # Returns [result, message]; result is nil when the DID cannot be retrieved,
+    # in which case the message carries the reason ("revoked" for a remote 410).
+    def resolve_did_any(did, options)
+        if local_retrieve_document(remove_location(did)).last.nil?
+            Oydid.read(did, options) rescue [nil, ""]
+        else
+            [resolve_did(did, options), ""]
+        end
+    end
+
+    # Verification keys in the didDocumentMetadata format used by the universal
+    # resolver. Returns [keys, error_message].
+    def resolution_keys(result)
+        pubDocKey = result["doc"]["key"].split(":")[0]
+        pubkey = Oydid.multi_decode(pubDocKey).first
+        if pubkey.bytes.length == 34
+            code = pubkey.bytes.first
+        elsif pubkey.start_with?("\x80\x24".dup.force_encoding('ASCII-8BIT'))
+            # 0x80 0x24 is the varint encoding of multicodec 0x1200 (p256-pub)
+            code = 4608
+        else
+            code = pubkey.unpack('n').first
+        end
+
+        did_id = result["did"].to_s
+        did_id = "did:oyd:" + did_id unless did_id.start_with?("did:oyd")
+        doc_key = result["doc"]["key"].split(":").first
+        rev_key = result["doc"]["key"].split(":").last
+
+        case Multicodecs[code].name
+        when 'ed25519-pub'
+            keys = [
+                {"kid" => Oydid.percent_encode(did_id) + '#key-doc', "kms" => "local", "type" => "Ed25519",
+                 "publicKeyHex" => Oydid.multi_decode(doc_key).first.unpack('H*').first},
+                {"kid" => Oydid.percent_encode(did_id) + '#key-rev', "kms" => "local", "type" => "Ed25519",
+                 "publicKeyHex" => Oydid.multi_decode(rev_key).first.unpack('H*').first}
+            ]
+        when 'p256-pub'
+            doc_jwk, msg = Oydid.public_key_to_jwk(doc_key)
+            return [nil, "document key: " + msg.to_s] if doc_jwk.nil?
+            rev_jwk, msg = Oydid.public_key_to_jwk(rev_key)
+            return [nil, "revocation key: " + msg.to_s] if rev_jwk.nil?
+            keys = [
+                {"kid" => Oydid.percent_encode(did_id) + '#key-doc', "kms" => "local",
+                 "type" => "JsonWebKey2020", "publicKeyJwk" => doc_jwk},
+                {"kid" => Oydid.percent_encode(did_id) + '#key-rev', "kms" => "local",
+                 "type" => "JsonWebKey2020", "publicKeyJwk" => rev_jwk}
+            ]
+        else
+            return [nil, "unsupported key codec (" + Multicodecs[code].name.to_s + ")"]
+        end
+        [keys, nil]
     end
 
     def local_retrieve_document(doc_identifier)

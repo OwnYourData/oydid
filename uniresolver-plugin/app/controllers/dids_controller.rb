@@ -24,9 +24,24 @@ class DidsController < ApplicationController
             options[:encode] = Oydid.get_encoding(didHash).first
         end
         options[:followAlsoKnownAs] = ENV['FOLLOW_ALSOKNOWNAS'].to_s.downcase != 'false'
-        result = Oydid.read(did, options).first rescue nil
-        if result.nil? || result["error"] != 0
+        result, read_msg = (Oydid.read(did, options) rescue [nil, ""])
+        # A revoked DID is reported two ways: as error 410 when this process
+        # resolved the log itself, and as the message "revoked" when the hosting
+        # repository answered 410 (retrieve_document collapses every non-200 into
+        # nil, so without the message the revocation would degrade to "not found").
+        revoked = (!result.nil? && result["error"].to_i == REVOKED_ERROR) ||
+                  read_msg.to_s == "revoked"
+        # a revoked DID must not fall through to the legacy resolver: that path
+        # does not evaluate the revocation record and would serve the old
+        # DID Document again
+        if !revoked && (result.nil? || result["error"] != 0)
             result = resolve_did_legacy(did, options)
+        end
+        if revoked
+            response.headers["Cache-Control"] = "no-store"
+            render json: {"error": "revoked"},
+                   status: (ENV["REVOKED_HTTP_STATUS"].to_s == "404" ? 404 : 410)
+            return
         end
         if result.nil?
             render json: {"error": "not found"},
@@ -34,8 +49,9 @@ class DidsController < ApplicationController
             return
         end
         if result["error"] != 0
+            # internal error codes (1, 2, ...) are not HTTP status codes
             render json: {"error": result["message"].to_s},
-                   status: result["error"]
+                   status: (result["error"].to_i == 404 ? 404 : 500)
             return
         end
 

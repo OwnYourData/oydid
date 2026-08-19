@@ -23,8 +23,11 @@ Rails.application.routes.draw do
     match 'presentations/:id',    to: 'credentials#show_vp',    via: 'get', constraints: {id: /.*/}
     match 'presentations',        to: 'credentials#publish_vp', via: 'post'
 
-    # Uniresolver endpoint
+    # Uniresolver endpoint (bare DID Document, kept for backwards compatibility)
     match '1.0/identifiers/:did',    to: 'dids#resolve',        via: 'get', constraints: {did: /.*/}
+
+    # full DID Resolution Result (used by the resolver UI on the start page)
+    match '1.0/resolve/:did',        to: 'dids#resolve_full',   via: 'get', constraints: {did: /.*/}
 
     # Uniregistrar endpoints
     match '1.0/create',     to: 'dids#uniregistrar_create',     via: 'post'

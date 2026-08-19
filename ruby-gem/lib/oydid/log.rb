@@ -141,6 +141,7 @@ class Oydid
         terminate_entries = 0
         terminate_overall = 0
         terminate_index = nil
+        revoked_terminate_found = false
         logs.each do |el|
             if el["op"].to_i == 0 # TERMINATE
                 if dag.vertices[i].successors.length == 0
@@ -154,6 +155,7 @@ class Oydid
                     dag.vertices[i].predecessors.each do |l|
                         if logs[l[:id]]["op"].to_i == 0 # TERMINATE
                             terminate_index = l[:id]
+                            revoked_terminate_found = true
                         end
                     end
                 end
@@ -161,11 +163,18 @@ class Oydid
             i += 1
         end unless logs.nil?
 
+        # NOTE: this is a structural check on the log and must not depend on how
+        # verbose the caller wants to be. Suppressing it under :silent returned a
+        # DID document for logs that cannot be resolved.
         if terminate_entries != 1 && !options[:log_complete] && !options[:followAlsoKnownAs]
-            if options[:silent].nil? || !options[:silent]
+            # a revoked DID has no tangling TERMINATE entry (its TERMINATE is
+            # followed by the REVOKE record). That is not a broken log: continue
+            # so that dag_update can report the revocation - or apply DID
+            # Rotation - instead of the unspecific "cannot resolve DID".
+            unless terminate_entries == 0 && revoked_terminate_found
                 return [nil, nil, nil, "cannot resolve DID" ]
             end
-        end 
+        end
 
         # create actual edges between vertices (but only use last terminate index for delegates)
         dag = DAG.new
@@ -254,8 +263,14 @@ class Oydid
         result.uniq
     end
 
+    # a DID is revoked when the REVOCATION record referenced by the current
+    # TERMINATE record has been published and no UPDATE record follows it
+    REVOKED_ERROR_CODE = 410
+
     def self.dag_update(currentDID, options)
         i = 0
+        revoked = false
+        rotation_performed = false
         doc_location = options[:doc_location].to_s
         initial_did = currentDID["did"].to_s.dup
         initial_did = initial_did.delete_prefix("did:oyd:")
@@ -501,6 +516,12 @@ class Oydid
                         end
                     end
 
+                    # the revocation record is published and no UPDATE record
+                    # builds on it: this DID is revoked. The verdict is only
+                    # acted upon after the log has been walked completely, so
+                    # that DID Rotation (handled in the REVOKE entry below) can
+                    # still take precedence.
+                    revoked = !update_term_found
                 else
                     if verification_output
                         currentDID["verification"] += "Revocation reference in log record: " + revoc_term.to_s + "\n"
@@ -538,6 +559,7 @@ class Oydid
                                     # 2) das new DID reference back original DID
                                     currentDID["did"] = rotate_DID
                                     currentDID["doc"]["doc"] = rotate_ddoc
+                                    rotation_performed = true
                                     if verification_output
                                         currentDID["verification"] += "DID rotation to: " + rotate_DID.to_s + "\n"
                                         currentDID["verification"] += "✅ original DID (" + did_orig + ") revoked and referenced in alsoKnownAs\n"
@@ -563,6 +585,13 @@ class Oydid
             end
             i += 1
         end unless currentDID["log"].nil?
+
+        # fail closed: a revoked DID has no resolvable DID Document unless the
+        # controller rotated it to another DID via alsoKnownAs
+        if revoked && !rotation_performed
+            currentDID["error"] = REVOKED_ERROR_CODE
+            currentDID["message"] = "revoked"
+        end
         return currentDID
     end
 end
