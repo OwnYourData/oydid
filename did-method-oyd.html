@@ -3,12 +3,14 @@
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
   <title>OYD DID Method</title>
-  <meta content="w3c/CG-DRAFT" name="w3c-status">
+  <meta content="CG-DRAFT" name="w3c-status">
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
-  <meta content="Bikeshed version 82ce88815, updated Thu Sep 7 16:33:55 2023 -0700" name="generator">
+  <meta content="Bikeshed version d113b2e81, updated Tue Jun 9 14:57:55 2026 -0700" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
-  <meta content="8e0841826ae06be63df77515753e49df2e31b634" name="document-revision">
+  <meta content="0ca47eb17aa85601f524b3719288d7c639022e40" name="revision">
+  <meta content="dark light" name="color-scheme">
+  <link href="https://www.w3.org/StyleSheets/TR/2021/dark.css" media="(prefers-color-scheme: dark)" rel="stylesheet" type="text/css">
 <style>/* Boilerplate: style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
     color: var(--a-normal-text);
@@ -80,7 +82,6 @@ pre .property::before, pre .property::after {
 }
 </style>
 <style>/* Boilerplate: style-colors */
-
 /* Any --*-text not paired with a --*-bg is assumed to have a transparent bg */
 :root {
     color-scheme: light dark;
@@ -303,7 +304,7 @@ pre .property::before, pre .property::after {
 </style>
 <style>/* Boilerplate: style-counters */
 body {
-    counter-reset: example figure issue;
+    counter-reset: example figure issue table;
 }
 .issue {
     counter-increment: issue;
@@ -320,7 +321,7 @@ body {
 }
 .invalid.example:not(.no-marker)::before,
 .illegal.example:not(.no-marker)::before {
-    content: "Invalid Example" counter(example);
+    content: "Invalid Example " counter(example);
 }
 
 figcaption {
@@ -328,6 +329,13 @@ figcaption {
 }
 figcaption:not(.no-marker)::before {
     content: "Figure " counter(figure) " ";
+}
+
+figure.table figcaption {
+    counter-increment: table;
+}
+figure.table figcaption:not(.no-marker)::before {
+    content: "Table " counter(table) " ";
 }
 </style>
 <style>/* Boilerplate: style-issues */
@@ -350,7 +358,6 @@ a[href].issue-return {
 }
 </style>
 <style>/* Boilerplate: style-selflinks */
-
 :root {
     --selflink-text: white;
     --selflink-bg: gray;
@@ -410,7 +417,6 @@ a.self-link::before            { content: "¶"; }
 dfn > a.self-link::before      { content: "#"; }
 </style>
 <style>/* Boilerplate: style-syntax-highlighting */
-
 code.highlight { padding: .1em; border-radius: .3em; }
 pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em 0; overflow: auto; border-radius: 0; }
 
@@ -467,7 +473,6 @@ c-[vc] { color: #0077aa } /* Name.Variable.Class */
 c-[vg] { color: #0077aa } /* Name.Variable.Global */
 c-[vi] { color: #0077aa } /* Name.Variable.Instance */
 c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
-
 
 @media (prefers-color-scheme: dark) {
     .highlight:not(.idl) { background: rgba(255, 255, 255, .05); }
@@ -531,12 +536,40 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     c-[vm] { color: #cb4b16 } /* Name.Variable.Magic */
     c-[il] { color: #657b83 } /* Literal.Number.Integer.Long */
 }
+
+@media print {
+    /* Darken colors for print that would otherwise print too faintly */
+    c-[c]  { color: #555555 } /* Comment */
+    c-[d]  { color: #555555 } /* Comment.Multiline */
+    c-[cp] { color: #555555 } /* Comment.Preproc */
+    c-[c1] { color: #555555 } /* Comment.Single */
+    c-[cs] { color: #555555 } /* Comment.Special */
+    c-[o]  { color: #222222 } /* Operator */
+    c-[p]  { color: #222222 } /* Punctuation */
+    c-[ow] { color: #222222 } /* Operator.Word */
+    c-[s]  { color: #664400 } /* Literal.String */
+    c-[t]  { color: #664400 } /* Literal.String.Single */
+    c-[u]  { color: #664400 } /* Literal.String.Double */
+    c-[sb] { color: #664400 } /* Literal.String.Backtick */
+    c-[sc] { color: #664400 } /* Literal.String.Char */
+    c-[sd] { color: #664400 } /* Literal.String.Doc */
+    c-[se] { color: #664400 } /* Literal.String.Escape */
+    c-[sh] { color: #664400 } /* Literal.String.Heredoc */
+    c-[si] { color: #664400 } /* Literal.String.Interpol */
+    c-[sx] { color: #664400 } /* Literal.String.Other */
+    c-[sr] { color: #664400 } /* Literal.String.Regex */
+    c-[ss] { color: #664400 } /* Literal.String.Symbol */
+}
 </style>
  <body class="h-entry">
   <div class="head">
-   <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
-   <h1 class="p-name no-ref" id="title">OYD DID Method</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2024-02-21">21 February 2024</time></p>
+   <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/">
+    <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72">
+</a>
+</p>
+   <h1 class="no-ref p-name" id="title">OYD DID Method</h1>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types/#CG-DRAFT">Draft Community Group Report</a>,
+    <time class="dt-updated" datetime="2026-08-19">19 August 2026</time></p>
    <details open>
     <summary>More details about this document</summary>
     <div data-fill-with="spec-metadata">
@@ -546,27 +579,28 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
       <dt>Issue Tracking:
       <dd><a href="https://github.com/OwnYourData/oydid/issues/">GitHub</a>
       <dt class="editor">Editors:
-      <dd class="editor p-author h-card vcard"><a class="p-name fn u-url url" href="https://www.linkedin.com/in/fabianek/">Christoph Fabianek</a> (<a class="p-org org" href="https://OwnYourData.eu">OwnYourData</a>) <a class="u-email email" href="mailto:christoph@ownyourdata.eu">christoph@ownyourdata.eu</a>
-      <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:wolfgang.kampichler@gmail.com">Wolfgang Kampichler</a> (<a class="p-org org" href="https://OwnYourData.eu">OwnYourData</a>)
+      <dd class="editor h-card p-author vcard"><a class="fn p-name u-url url" href="https://www.linkedin.com/in/fabianek/">Christoph Fabianek</a> (<a class="org p-org" href="https://OwnYourData.eu">OwnYourData</a>) <a class="email u-email" href="mailto:christoph@ownyourdata.eu">christoph@ownyourdata.eu</a>
+      <dd class="editor h-card p-author vcard"><a class="email fn p-name u-email" href="mailto:wolfgang.kampichler@gmail.com">Wolfgang Kampichler</a> (<a class="org p-org" href="https://OwnYourData.eu">OwnYourData</a>)
      </dl>
     </div>
    </details>
    <div data-fill-with="warning"></div>
-   <p class="copyright" data-fill-with="copyright"><a href="https://www.w3.org/policies/#copyright">Copyright</a> © 2024 <a href="https://www.w3.org/">World Wide Web Consortium</a>. <abbr title="World Wide Web Consortium">W3C</abbr><sup>®</sup> <a href="https://www.w3.org/policies/#Legal_Disclaimer">liability</a>, <a href="https://www.w3.org/policies/#W3C_Trademarks">trademark</a> and <a href="https://www.w3.org/copyright/software-license/" rel="license" title="W3C Software and Document License">permissive document license</a> rules apply. </p>
+   <p class="copyright" data-fill-with="copyright"><a href="https://www.w3.org/policies/#copyright">Copyright</a> © 2026 <a href="https://www.w3.org/">World Wide Web Consortium</a>. <abbr title="World Wide Web Consortium">W3C</abbr><sup>®</sup> <a href="https://www.w3.org/policies/#Legal_Disclaimer">liability</a>, <a href="https://www.w3.org/policies/#W3C_Trademarks">trademark</a> and <a href="https://www.w3.org/copyright/software-license/" rel="license" title="W3C Software and Document License">permissive document license</a> rules apply.
+</p>
    <hr title="Separator for header">
   </div>
   <div class="p-summary" data-fill-with="abstract">
-   <h2 class="no-num no-toc no-ref heading settled" id="abstract"><span class="content">Abstract</span></h2>
+   <h2 class="heading no-num no-ref no-toc settled" id="abstract"><span class="content">Abstract</span></h2>
    <p>Draft recommendations for use of a self-sustained environment to manage decentralized identifiers</p>
   </div>
-  <h2 class="no-num no-toc no-ref heading settled" id="sotd"><span class="content">Status of this document</span></h2>
+  <h2 class="heading no-num no-ref no-toc settled" id="sotd"><span class="content">Status of this document</span></h2>
   <div data-fill-with="status">
    <p></p>
   </div>
   <div data-fill-with="at-risk"></div>
   <nav data-fill-with="table-of-contents" id="toc">
-   <h2 class="no-num no-toc no-ref" id="contents">Table of Contents</h2>
-   <ol class="toc" role="directory">
+   <h2 class="no-num no-ref no-toc" id="contents">Table of Contents</h2>
+   <ol class="toc">
     <li><a href="#intro"><span class="secno">1</span> <span class="content">Introduction</span></a>
     <li><a href="#format"><span class="secno">2</span> <span class="content">The <code>did:oyd</code> Format</span></a>
     <li>
@@ -629,7 +663,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
      <ol class="toc">
       <li><a href="#normative"><span class="secno"></span> <span class="content">Normative References</span></a>
-      <li><a href="#informative"><span class="secno"></span> <span class="content">Informative References</span></a>
+      <li><a href="#informative"><span class="secno"></span> <span class="content">Non-Normative References</span></a>
      </ol>
    </ol>
   </nav>
@@ -651,11 +685,11 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <h2 class="heading settled" data-level="2" id="format"><span class="secno">2. </span><span class="content">The <code>did:oyd</code> Format</span><a class="self-link" href="#format"></a></h2>
    <p>The format for the <code>did:oyd</code> method conforms to the DID core specification <a data-link-type="biblio" href="#biblio-did-core" title="Decentralized Identifiers (DIDs) v1.0">[DID-CORE]</a> as outlined by W3C. It consists of the <code>did:oyd</code> prefix, followed by a Multibase <a data-link-type="biblio" href="#biblio-multibase" title="IETF Multibase Data Format specification">[MULTIBASE]</a> (default: <code>base58-btc</code>) encoded value that is a Multihash <a data-link-type="biblio" href="#biblio-multihash" title="Multihash - protocol for differentiating outputs from various well-established cryptographic hash functions">[MULTIHASH]</a> (default: <code>sha2-256</code>) value of composed of information from the payload, keys, and log.</p>
    <p>The detailed calculation of the DID identifier from the internal document and log information via ABNF is described here:</p>
-<pre class="include-code highlight"><c- c1>; !syntax("abnf")</c->
+<pre class="highlight include-code"><c- c1>; !syntax("abnf")</c->
 <c- nc>did-oyd-format</c->                     <c- o>=</c-> <c- l>"did:oyd:"</c-> <c- nc>identifier</c->
 <c- nc>identifier</c->                         <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>did-information-hash</c-> <c- p>)</c->
-<c- nc>did-information-hash</c->               <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>did-canoncial-information</c-> <c- p>)</c->
-<c- nc>did-canonical-information</c->          <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonicla</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>did-information</c->>
+<c- nc>did-information-hash</c->               <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>did-canonical-information</c-> <c- p>)</c->
+<c- nc>did-canonical-information</c->          <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonical</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>did-information</c->>
 <c- nc>did-information</c->                    <c- o>=</c-> <c- l>"{doc:"</c-> <c- nc>payload</c-> <c- l>",key:"</c-> <c- nc>key-value</c-> <c- l>",log:"</c-> <c- nc>log-value</c-> <c- l>"}"</c->
 <c- nc>payload</c->                            <c- o>=</c-> &lt;<c- nc>json-grammar-rules</c->>
 <c- nc>key-value</c->                          <c- o>=</c-> <c- nc>public-doc-key-encoded</c-> <c- l>":"</c-> <c- nc>public-revocation-key-encoded</c->
@@ -668,17 +702,17 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
 <c- nc>public-revocation-key</c->              <c- o>=</c-> &lt;<c- nc>public</c-> <c- nc>key</c-> <c- nc>from</c-> <c- nc>key</c-> <c- nc>pair</c-> <c- nc>used</c-> <c- nc>for</c-> <c- nc>verifying</c-> <c- nc>revocations</c->>
 <c- nc>termination-hash-encoded</c->           <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>termination-log-entry-hash</c-> <c- p>)</c->
 <c- nc>termination-log-entry-hash</c->         <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>termination-canonical-log-entry</c-> <c- p>)</c->
-<c- nc>termination-canonical-log-entry</c->    <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonicla</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>termination-log-entry</c->>
+<c- nc>termination-canonical-log-entry</c->    <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonical</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>termination-log-entry</c->>
 <c- nc>termination-log-entry</c->              <c- o>=</c-> <c- l>"{op:"</c-> <c- k>DIGIT</c-> <c- l>",ts:"</c-> <c- k>DIGIT</c-> <c- l>",doc:"</c-> <c- nc>revoke-encoded</c-> <c- l>",sig:"</c-> <c- nc>sig-revoke-encoded</c-> <c- l>",previous: []}"</c->
 <c- nc>revoke-encoded</c->                     <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>revoke-hash</c-> <c- p>)</c->
 <c- nc>revoke-hash</c->                        <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>sub-revocation-canonical-log-entry</c-> <c- p>)</c->
-<c- nc>sub-revocation-canonical-log-entry</c-> <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonicla</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>sub-revocation-log-entry</c->>
+<c- nc>sub-revocation-canonical-log-entry</c-> <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonical</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>sub-revocation-log-entry</c->>
 <c- nc>sub-revocation-log-entry</c->           <c- o>=</c-> <c- l>"{op:"</c-> <c- k>DIGIT</c-> <c- l>", ts:"</c-> <c- k>DIGIT</c-> <c- l>", doc:"</c-> <c- nc>sub-doc-encoded</c-> <c- l>", sig:"</c-> <c- nc>sig-sub-doc-encoded</c-> <c- l>"}"</c->
 <c- nc>sig-revoke-encoded</c->                 <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sig-revoke</c-> <c- p>)</c->
 <c- nc>sig-revoke</c->                         <c- o>=</c-> &lt;<c- nc>signed</c-> <c- nc>revoke-encoded</c-> <c- nc>with</c-> <c- nc>private</c-> <c- nc>key</c-> <c- nc>corresponding</c-> <c- nc>to</c-> <c- nc>public-revocation-key</c-> <c- nc>in</c-> <c- nc>payload</c->>
 <c- nc>sub-doc-encoded</c->                    <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sub-doc-hash</c-> <c- p>)</c->
 <c- nc>sub-doc-hash</c->                       <c- o>=</c-> <c- nc>MULTIHASH</c-> <c- p>(</c-> <c- nc>hash-identifier</c-> <c- nc>sub-doc-canonical</c-> <c- p>)</c->
-<c- nc>sub-doc-canonical</c->                  <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonicla</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>sub-doc</c->>
+<c- nc>sub-doc-canonical</c->                  <c- o>=</c-> &lt;<c- nc>create</c-> <c- nc>JSON</c-> <c- nc>canonical</c-> <c- nc>representation</c-> <c- nc>according</c-> <c- nc>to</c-> <c- nc>RFC</c-> <c- o>8785</c-> <c- nc>from</c-> <c- nc>sub-doc</c->>
 <c- nc>sub-doc</c->                            <c- o>=</c-> <c- l>"{doc:"</c-> <c- nc>payload</c-> <c- l>",key:"</c-> <c- nc>key-value</c-> <c- l>"}"</c->
 <c- nc>sig-sub-doc-encoded</c->                <c- o>=</c-> <c- nc>MULTIBASE</c-> <c- p>(</c-> <c- nc>base-identifier</c-> <c- nc>sig-sub-doc</c-> <c- p>)</c->
 <c- nc>sig-sub-doc</c->                        <c- o>=</c-> &lt;<c- nc>sign</c-> <c- nc>sub-doc-encoded</c-> <c- nc>with</c-> <c- nc>private</c-> <c- nc>key</c-> <c- nc>corresponding</c-> <c- nc>to</c-> <c- nc>public-doc-key</c-> <c- nc>in</c-> <c- nc>payload</c->>
@@ -698,7 +732,10 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <p>in the format described in Section <a href="#format">§ 2 The did:oyd Format</a>.</p>
    <p>The DID document and associated log entries are stored in a registry accessible by relevant stakeholders. An example is given below (<em><a href="#example_did_artefacts">EXAMPLE 1</a></em>) listing a payload, internal and W3C conform DID document, log entries, private keys, and private revocation document.</p>
    <div class="example" id="example_did_artefacts">
-    <a class="self-link" href="#example_did_artefacts"></a> An example DID with all associated information and representations: 
+    <a class="self-link" href="#example_did_artefacts"></a>
+An example DID with all associated information and representations:
+
+
     <ul>
      <li data-md>
       <p>DID</p>
@@ -807,8 +844,14 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    </ol>
    <p>An example is given below (<em><a href="#example_did_resolving">EXAMPLE 2</a></em>) depicting the log entries to be evaluated for linking an old DID identifier (DID v1) to the content of DID v2.</p>
    <div class="example" id="example_did_resolving">
-    <a class="self-link" href="#example_did_resolving"></a> Visualization and process of linked log entries to resolve a DID identifier 
-    <p align="center"> <img src="res/DIDv2dag.png" width="350"><br> <em>Figure 1: Visualization of log entries</em> </p>
+    <a class="self-link" href="#example_did_resolving"></a>
+Visualization and process of linked log entries to resolve a DID identifier
+
+
+    <p align="center">
+  <img src="res/DIDv2dag.png" width="350"><br>
+  <em>Figure 1: Visualization of log entries</em>
+</p>
    </div>
    <p>Process:</p>
    <ol>
@@ -834,7 +877,10 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <h4 class="heading settled" data-level="3.2.1" id="pubkey_identifier"><span class="secno">3.2.1. </span><span class="content">Public Key Identifier</span><a class="self-link" href="#pubkey_identifier"></a></h4>
    <p>Inspired by <a href="https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/EBSI+DID+Method">EBSI DID v2</a> it is now also possible for the <code>did:oyd</code> method to use the document public key as identifier.</p>
    <div class="example" id="example_did_pubkey_identifier">
-    <a class="self-link" href="#example_did_pubkey_identifier"></a> Both DIDs resolve to the same DID Document: 
+    <a class="self-link" href="#example_did_pubkey_identifier"></a>
+Both DIDs resolve to the same DID Document:
+
+
     <ul>
      <li data-md>
       <p>with cryptographic hash value: <code>did:oyd:zQmNXp9zTLQECaLwWcXy4ctdKctnPLghHWftwdJsfGd8Erz</code></p>
@@ -845,7 +891,10 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <h3 class="heading settled" data-level="3.3" id="update"><span class="secno">3.3. </span><span class="content">Update</span><a class="self-link" href="#update"></a></h3>
    <p>Updating in <code>did:oyd</code> is providing a new DID document and/or new keys for key rotation while also publishing the revocation document and signing with original keys to prove ownership. An example is given below (<em><a href="#example_did_update">EXAMPLE 3</a></em>) of all log entries for an updated DID.</p>
    <div class="example" id="example_did_update">
-    <a class="self-link" href="#example_did_update"></a> Log information of an update DID. 
+    <a class="self-link" href="#example_did_update"></a>
+Log information of an update DID.
+
+
 <pre>[{
     "ts": 1633300869,
     "op": 2,
@@ -882,7 +931,10 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    </div>
    <h3 class="heading settled" data-level="3.4" id="deactivate"><span class="secno">3.4. </span><span class="content">Deactivate</span><a class="self-link" href="#deactivate"></a></h3>
    <p>Deactivating an OYDID is simply done by publishing the private revocation entry without providing any update record. The figure below depicts the log representing a deactivated DID.</p>
-   <p align="center"> <img src="res/DIDdeactivated.png" width="400"><br> <em>Figure 3: Visualization of log graph for a deactivated DID</em> </p>
+   <p align="center">
+  <img src="res/DIDdeactivated.png" width="400"><br>
+  <em>Figure 3: Visualization of log graph for a deactivated DID</em>
+</p>
    <h2 class="heading settled" data-level="4" id="log"><span class="secno">4. </span><span class="content">DID Log</span><a class="self-link" href="#log"></a></h2>
    <p>The log is a directed acyclic graph (DAG) and represents the life cycle of a DID. Each element in this graph holds the following attributes:</p>
 <pre class="highlight"><c- p>{</c->
@@ -897,19 +949,37 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <p>The following list describes all available log operations (<code>op</code>) and specific use of attributes:</p>
    <ul>
     <li data-md>
-     <p><strong>Terminate</strong> (<code>op=0</code>): confirms last entry until revoke entry is published<br> <em>doc</em>: hash of revoke entry<br> <em>sig</em>: doc signed by private document key<br> <em>previous</em>: can reference Clone or Delegate log entries for confirmation</p>
+     <p><strong>Terminate</strong> (<code>op=0</code>): confirms last entry until revoke entry is published<br>
+<em>doc</em>: hash of revoke entry<br>
+<em>sig</em>: doc signed by private document key<br>
+<em>previous</em>: can reference Clone or Delegate log entries for confirmation</p>
     <li data-md>
-     <p><strong>Revoke</strong> (<code>op=1</code>): invalidates a Terminate log entry; only published for new information<br> <em>doc</em>: hash of doc and key in DID Document<br> <em>sig</em>: doc signed by private revocation key<br> <em>previous</em>: can reference "Create" or "Update" and always "Terminate"</p>
+     <p><strong>Revoke</strong> (<code>op=1</code>): invalidates a Terminate log entry; only published for new information<br>
+<em>doc</em>: hash of doc and key in DID Document<br>
+<em>sig</em>: doc signed by private revocation key<br>
+<em>previous</em>: can reference "Create" or "Update" and always "Terminate"</p>
     <li data-md>
-     <p><strong>Create</strong> (<code>op=2</code>): start new DID<br> <em>doc</em>: hash of DID Document<br> <em>sig</em>: doc signed by private document key<br> <em>previous</em>: has only a reference when created using clone pointing to this clone entry</p>
+     <p><strong>Create</strong> (<code>op=2</code>): start new DID<br>
+<em>doc</em>: hash of DID Document<br>
+<em>sig</em>: doc signed by private document key<br>
+<em>previous</em>: has only a reference when created using clone pointing to this clone entry</p>
     <li data-md>
-     <p><strong>Update</strong> (<code>op=3</code>): update DID<br> <em>doc</em>: hash of DID Document<br> <em>sig</em>: doc signed by private document key from previous version DID version<br> <em>previous</em>: reference previous revoke log entry</p>
+     <p><strong>Update</strong> (<code>op=3</code>): update DID<br>
+<em>doc</em>: hash of DID Document<br>
+<em>sig</em>: doc signed by private document key from previous version DID version<br>
+<em>previous</em>: reference previous revoke log entry</p>
     <li data-md>
-     <p><strong>Clone</strong> (<code>op=4</code>): create linked DID with same "doc" but new keys and logs<br> <em>doc</em>: hash of new DID Document (same payload but different keys and logs)<br> <em>sig</em>: doc signed by the new private document key<br> <em>previous</em>: reference Create or Update log entry</p>
+     <p><strong>Clone</strong> (<code>op=4</code>): create linked DID with same "doc" but new keys and logs<br>
+<em>doc</em>: hash of new DID Document (same payload but different keys and logs)<br>
+<em>sig</em>: doc signed by the new private document key<br>
+<em>previous</em>: reference Create or Update log entry</p>
    </ul>
    <h3 class="heading settled" data-level="4.2" id="verification"><span class="secno">4.2. </span><span class="content">Verification Steps</span><a class="self-link" href="#verification"></a></h3>
    <p>Processing the log provides unambiguous evidence for authenticity, correctness, and timeliness of resolving a DID to the DID document. This section describes all operations to perform independent verification when resolving a DID.</p>
-   <p align="center"> <img src="res/verification.png" width="550"><br> <em>Figure 4: Types of verification</em> </p>
+   <p align="center">
+  <img src="res/verification.png" width="550"><br>
+  <em>Figure 4: Types of verification</em>
+</p>
    <p>Resolving a DID requires 3 different types of verifications as depicted in <em>Figure 4</em>:</p>
    <ol>
     <li data-md>
@@ -920,9 +990,13 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <p><strong>Log Record Retrieval:</strong> hash and signature verification in an untrusted repository guarantee imutability and it is up to the DID owner to ensure that DID documents and log records are publicly available</p>
    </ol>
    <p>The following sub-sections describes those verification methods in detail.</p>
-   <p class="note" role="note"><span class="marker">Note:</span> Use the <code>--show-verification</code> flag in the [<code>oydid</code> command line utility](https://github.com/OwnYourData/oydid/tree/main/cli) to retrieve raw data for performing verification. <em><a href="#example_verification">EXAMPLE 4</a></em> is the output of such a verification.</p>
+   <p class="note" role="note"><span class="marker">Note:</span> Use the <code>--show-verification</code> flag in the <a href="https://github.com/OwnYourData/oydid/tree/main/cli"><code>oydid</code> command line utility</a> to retrieve raw data for performing verification. <em><a href="#example_verification">EXAMPLE 4</a></em> is the output of such a verification.</p>
    <div class="example" id="example_verification">
-    <a class="self-link" href="#example_verification"></a> Output of command<br> <code>oydid read --show-verification did:oyd:zQmYhESMRSvN9BkrCf7YcBfxNzigVphyBUbFMfJpEm1fdPF</code> 
+    <a class="self-link" href="#example_verification"></a>
+Output of command<br>
+<code>oydid read --show-verification did:oyd:zQmYhESMRSvN9BkrCf7YcBfxNzigVphyBUbFMfJpEm1fdPF</code>
+
+
 <pre>identifier: zQmYhESMRSvN9BkrCf7YcBfxNzigVphyBUbFMfJpEm1fdPF
 ✅ is hash of DID Document:
 {
@@ -1014,11 +1088,16 @@ Revocation reference in log record: zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS
    <p>Perform the following steps to verify that a hash value conforms to a message:</p>
    <ol>
     <li data-md>
-     <p>identify encoding algorithm in multibase string (first character)<br> you can use the information here: <a href="https://github.com/multiformats/multibase">https://github.com/multiformats/multibase</a><br> example: if the string starts with "z" it is base58btc-encoding</p>
+     <p>identify encoding algorithm in multibase string (first character)<br>
+you can use the information here: <a href="https://github.com/multiformats/multibase">https://github.com/multiformats/multibase</a><br>
+example: if the string starts with "z" it is base58btc-encoding</p>
     <li data-md>
-     <p>identify hashing algorithm in multibase string (second &amp; third character)<br> you can use the information here: <a href="https://github.com/multiformats/multicodec#multicodec-table">https://github.com/multiformats/multicodec#multicodec-table</a><br> example: if the string starts with "zQm" it is the sha2-256 hash algorithm</p>
+     <p>identify hashing algorithm in multibase string (second &amp; third character)<br>
+you can use the information here: <a href="https://github.com/multiformats/multicodec#multicodec-table">https://github.com/multiformats/multicodec#multicodec-table</a><br>
+example: if the string starts with "zQm" it is the sha2-256 hash algorithm</p>
     <li data-md>
-     <p>if the message is a JSON is must be transformed to its canonical form based on this standard: <a href="https://datatracker.ietf.org/doc/html/rfc8785">https://datatracker.ietf.org/doc/html/rfc8785</a></p>
+     <p>if the message is a JSON is must be transformed to its canonical form based on this standard:
+<a href="https://datatracker.ietf.org/doc/html/rfc8785">https://datatracker.ietf.org/doc/html/rfc8785</a></p>
     <li data-md>
      <p>calculate hash value from message (check if pre-processing step #3 applies!) using the algorithm from step #2</p>
     <li data-md>
@@ -1039,7 +1118,9 @@ Revocation reference in log record: zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS
        <p>public key used for verification: this is provided in the corresponding DID Document; for UPDATE log records it must be the <code>public-doc-key</code> of the old DID Document to proof original ownership</p>
      </ul>
     <li data-md>
-     <p>identify cryptographic algorithm in multibase encoded string of <code>key</code><br> you can use the information here: <a href="https://github.com/multiformats/multicodec#multicodec-table">https://github.com/multiformats/multicodec#multicodec-table</a><br> example: if the string start with "z6M" it is an Ed25519 public key</p>
+     <p>identify cryptographic algorithm in multibase encoded string of <code>key</code><br>
+you can use the information here: <a href="https://github.com/multiformats/multicodec#multicodec-table">https://github.com/multiformats/multicodec#multicodec-table</a><br>
+example: if the string start with "z6M" it is an Ed25519 public key</p>
     <li data-md>
      <p>use the public key to verify the validity of the payload’s signature; adhere to the respective encodings for each attribute</p>
    </ol>
@@ -1075,46 +1156,61 @@ Revocation reference in log record: zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS
    <h3 class="heading settled" data-level="5.1" id="samples"><span class="secno">5.1. </span><span class="content">Samples</span><a class="self-link" href="#samples"></a></h3>
    <p>This section provides samples of typical OYDID DIDs.</p>
    <div class="example" id="sample_new">
-    <a class="self-link" href="#sample_new"></a> A DID created with a simple payload: 
+    <a class="self-link" href="#sample_new"></a>
+A DID created with a simple payload:
+
+
     <p><code>did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh</code></p>
    </div>
    <div class="example" id="sample_update">
-    <a class="self-link" href="#sample_update"></a> A DID created and updated can be resolved using the following two identifier: 
+    <a class="self-link" href="#sample_update"></a>
+A DID created and updated can be resolved using the following two identifier:
+
+
     <p><code>did:oyd:zQmdXNRiMWEYTiYF58a9BaiUkfB2xWUgL7G7ozyCCNPqjKV</code></p>
     <p><code>did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR</code></p>
    </div>
    <div class="example" id="sample_external">
-    <a class="self-link" href="#sample_external"></a> A DID created at a non-default location: 
+    <a class="self-link" href="#sample_external"></a>
+A DID created at a non-default location:
+
+
     <p><code>did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W@did2.data-container.net</code></p>
     <p class="note" role="note"><span class="marker">Note:</span> a W3C conform representation is the percent-encoded <code>@</code><br><code>did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W%40did2.data-container.net</code></p>
    </div>
    <h3 class="heading settled" data-level="5.2" id="cli"><span class="secno">5.2. </span><span class="content">Command line tool</span><a class="self-link" href="#cli"></a></h3>
    <p><em>Prerequisite:</em> install the <code>oydid</code> command from <a href="https://github.com/OwnYourData/oydid/tree/main/cli">https://github.com/OwnYourData/oydid/tree/main/cli</a> or
-use the following Docker command to run the OYDID command line tool without installation (based on [public Docker image <code>oydeu\oydid-cli</code>](https://hub.docker.com/r/oydeu/oydid-cli)):</p>
-<pre class="language-bash highlight">docker run -it --rm oydeu/oydid-cli
+use the following Docker command to run the OYDID command line tool without installation (based on <a href="https://hub.docker.com/r/oydeu/oydid-cli">public Docker image <code>oydeu\oydid-cli</code></a>):</p>
+<pre class="highlight language-bash">docker run -it --rm oydeu/oydid-cli
 </pre>
    <div class="example" id="example_cli">
-    <a class="self-link" href="#example_cli"></a> Various DIDs and useful commands. 
+    <a class="self-link" href="#example_cli"></a>
+Various DIDs and useful commands.
+
+
     <ul>
      <li data-md>
       <p><code>did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh</code> (new DID)</p>
       <p>→ show information with:</p>
-<pre class="language-bash highlight">oydid read did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
+<pre class="highlight language-bash">oydid read did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
 </pre>
      <li data-md>
       <p><code>did:oyd:zQmeArtmfxJ1JB6CXvoFdcQCyxPcYii5DUTBR44g4xYpCLR</code> (updated DID)</p>
       <p>→ show DID document using old DID</p>
-<pre class="language-bash highlight">oydid read zQmdXNRiMWEYTiYF58a9BaiUkfB2xWUgL7G7ozyCCNPqjKV
+<pre class="highlight language-bash">oydid read zQmdXNRiMWEYTiYF58a9BaiUkfB2xWUgL7G7ozyCCNPqjKV
 </pre>
       <p class="note" role="note"><span class="marker">Note:</span> you can omit <code>did:oyd</code> when using the command line tool</p>
      <li data-md>
       <p><code>did:oyd:zQmQMvhHrccgcP2XzE2rM4E8MDx9P8D5FWPdDF1DTPikF4F</code> (deactivated DID)</p>
       <p>→ DID cannot be resolved</p>
-<pre class="language-bash highlight">oydid read zQmQMvhHrccgcP2XzE2rM4E8MDx9P8D5FWPdDF1DTPikF4F
+<pre class="highlight language-bash">oydid read zQmQMvhHrccgcP2XzE2rM4E8MDx9P8D5FWPdDF1DTPikF4F
 </pre>
-      <p><strong>Result:</strong> <code>Error: cannot resolve DID</code></p>
+      
+<strong>Result:</strong> <code>Error: cannot resolve DID</code>
+
+
       <p>→ Logs can be shown with the command</p>
-<pre class="language-bash highlight">oydid logs zQmQMvhHrccgcP2XzE2rM4E8MDx9P8D5FWPdDF1DTPikF4F
+<pre class="highlight language-bash">oydid logs zQmQMvhHrccgcP2XzE2rM4E8MDx9P8D5FWPdDF1DTPikF4F
 </pre>
     </ul>
    </div>
@@ -1173,7 +1269,7 @@ use the following Docker command to run the OYDID command line tool without inst
    </ul>
    <h2 class="heading settled" data-level="8" id="implementation"><span class="secno">8. </span><span class="content">Reference Implementation</span><a class="self-link" href="#implementation"></a></h2>
    <p>Work in progress as part of a research project funded by the “IKT der Zukunft” program from the Federal Ministry for Transport, Innovation and Technology in Austria – <a href="https://projekte.ffg.at/projekt/4125456">FFG Projekt 887052</a>.</p>
-   <p>The following implementation artefacts are available (published under the open source MIT License):</p>
+   <p>The following implementation artefacts are available (published under the open source Apache 2.0 License):</p>
    <ul>
     <li data-md>
      <p>Command line tool <code>oydid</code>: <a href="https://github.com/OwnYourData/oydid/tree/main/cli">https://github.com/OwnYourData/oydid/tree/main/cli</a></p>
@@ -1192,12 +1288,12 @@ use the following Docker command to run the OYDID command line tool without inst
     <li data-md>
      <p><a href="https://github.com/decentralized-identity/universal-resolver/">Universal Resolver</a> driver: <a href="https://github.com/OwnYourData/oydid/tree/main/uniresolver-plugin">https://github.com/OwnYourData/oydid/tree/main/uniresolver-plugin</a></p>
     <li data-md>
-     <p>JS library for [<code>did-resolver</code>](https://github.com/decentralized-identity/did-resolver): <a href="https://github.com/OwnYourData/oydid/tree/main/js-resolver">https://github.com/OwnYourData/oydid/tree/main/js-resolver</a></p>
+     <p>JS library for <a href="https://github.com/decentralized-identity/did-resolver"><code>did-resolver</code></a>: <a href="https://github.com/OwnYourData/oydid/tree/main/js-resolver">https://github.com/OwnYourData/oydid/tree/main/js-resolver</a></p>
    </ul>
   </main>
   <div data-fill-with="conformance">
-   <h2 class="no-ref no-num heading settled" id="w3c-conformance"><span class="content">Conformance</span><a class="self-link" href="#w3c-conformance"></a></h2>
-   <h3 class="no-ref no-num heading settled" id="w3c-conventions"><span class="content">Document conventions</span><a class="self-link" href="#w3c-conventions"></a></h3>
+   <h2 class="heading no-num no-ref settled" id="w3c-conformance"><span class="content">Conformance</span><a class="self-link" href="#w3c-conformance"></a></h2>
+   <h3 class="heading no-num no-ref settled" id="w3c-conventions"><span class="content">Document conventions</span><a class="self-link" href="#w3c-conventions"></a></h3>
    <p>Conformance requirements are expressed
     with a combination of descriptive assertions
     and RFC 2119 terminology.
@@ -1205,31 +1301,41 @@ use the following Docker command to run the OYDID command line tool without inst
     in the normative parts of this document
     are to be interpreted as described in RFC 2119.
     However, for readability,
-    these words do not appear in all uppercase letters in this specification. </p>
+    these words do not appear in all uppercase letters in this specification.
+
+    </p>
    <p>All of the text of this specification is normative
-    except sections explicitly marked as non-normative, examples, and notes. <a data-link-type="biblio" href="#biblio-rfc2119" title="Key words for use in RFCs to Indicate Requirement Levels">[RFC2119]</a> </p>
+    except sections explicitly marked as non-normative, examples, and notes. <a data-link-type="biblio" href="#biblio-rfc2119" title="Key words for use in RFCs to Indicate Requirement Levels">[RFC2119]</a>
+
+    </p>
    <p>Examples in this specification are introduced with the words “for example”
     or are set apart from the normative text
     with <code>class="example"</code>,
-    like this: </p>
+    like this:
+
+    </p>
    <div class="example" id="w3c-example">
-    <a class="self-link" href="#w3c-example"></a> 
-    <p>This is an example of an informative example. </p>
+    <a class="self-link" href="#w3c-example"></a>
+        
+    <p>This is an example of an informative example.
+    </p>
    </div>
    <p>Informative notes begin with the word “Note”
     and are set apart from the normative text
     with <code>class="note"</code>,
-    like this: </p>
+    like this:
+
+    </p>
    <p class="note" role="note">Note, this is an informative note.</p>
   </div>
-<script src="https://www.w3.org/scripts/TR/2021/fixup.js"></script>
-  <h2 class="no-num no-ref heading settled" id="references"><span class="content">References</span><a class="self-link" href="#references"></a></h2>
-  <h3 class="no-num no-ref heading settled" id="normative"><span class="content">Normative References</span><a class="self-link" href="#normative"></a></h3>
+  <script src="https://www.w3.org/scripts/TR/2021/fixup.js"></script>
+  <h2 class="heading no-num no-ref settled" id="references"><span class="content">References</span><a class="self-link" href="#references"></a></h2>
+  <h3 class="heading no-num no-ref settled" id="normative"><span class="content">Normative References</span><a class="self-link" href="#normative"></a></h3>
   <dl>
    <dt id="biblio-rfc2119">[RFC2119]
    <dd>S. Bradner. <a href="https://datatracker.ietf.org/doc/html/rfc2119"><cite>Key words for use in RFCs to Indicate Requirement Levels</cite></a>. March 1997. Best Current Practice. URL: <a href="https://datatracker.ietf.org/doc/html/rfc2119">https://datatracker.ietf.org/doc/html/rfc2119</a>
   </dl>
-  <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
+  <h3 class="heading no-num no-ref settled" id="informative"><span class="content">Non-Normative References</span><a class="self-link" href="#informative"></a></h3>
   <dl>
    <dt id="biblio-did-core">[DID-CORE]
    <dd>Manu Sporny; et al. <a href="https://www.w3.org/TR/did-core/"><cite>Decentralized Identifiers (DIDs) v1.0</cite></a>. W3C Proposed Recommendation. URL: <a href="https://www.w3.org/TR/did-core/">https://www.w3.org/TR/did-core/</a>
