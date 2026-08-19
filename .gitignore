@@ -83,3 +83,7 @@ uniresolver-plugin/tmp/
 #pytest
 .pytest_cache
 __pycache__
+
+# Rails logfiles of the repository service
+repository/log/*
+!repository/log/.keep
