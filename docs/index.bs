@@ -2,9 +2,9 @@
 Title: OYD DID Method
 Shortname: oydid-spec
 Level: 1
-Status: w3c/CG-DRAFT
-Group: w3c-ccg
+Status: LD
 URL: https://ownyourdata.github.io/oydid/
+Repository: OwnYourData/oydid
 
 Editor: Christoph Fabianek, OwnYourData https://OwnYourData.eu, christoph@ownyourdata.eu, https://www.linkedin.com/in/fabianek/
 Editor: Wolfgang Kampichler, OwnYourData https://OwnYourData.eu, wolfgang.kampichler@gmail.com
@@ -33,7 +33,7 @@ Markup Shorthands: markdown yes
 }
 </pre>
 
-This specification is not a W3C Standard nor is it on the W3C Standards Track. Learn more about [W3C Community and Business Groups](https://www.w3.org/community/). [GitHub Issues](https://github.com/OwnYourData/oydid/issues) are preferred for discussion of this specification.
+This specification is published by [OwnYourData](https://www.ownyourdata.eu) as the defining document for the `did:oyd` DID method. It is **not** a W3C Standard, is not on the W3C Standards Track, and is not a work item of the W3C Credentials Community Group or any other W3C group. The `did:oyd` method is registered in the [W3C Decentralized Identifier Extensions](https://www.w3.org/TR/did-extensions/) registry; registration is a purely informative listing and does not imply review or endorsement by W3C. [GitHub Issues](https://github.com/OwnYourData/oydid/issues) are preferred for discussion of this specification.
 
 
 ## History ## {#history}
