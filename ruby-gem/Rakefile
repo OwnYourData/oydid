@@ -11,7 +11,12 @@ namespace :gem do
     # then unreadable for every non-root consumer - that is how 0.6.5 and 0.6.6
     # shipped an unloadable lib/oydid/log.rb. git cannot catch this: it only
     # tracks the executable bit.
-    FileUtils.chmod(0644, Dir.glob('lib/**/*.rb') + %w(AUTHORS README.md LICENSE VERSION))
+    #
+    # The spec globs mirror gem.test_files in oydid.gemspec - those files end up
+    # in the archive too, and 0.7.0 was first built with two of them at 0600.
+    FileUtils.chmod(0644, Dir.glob('lib/**/*.rb') +
+                          Dir.glob('spec/**/*.{rb,json,doc}') +
+                          %w(AUTHORS README.md LICENSE VERSION))
     FileUtils.mkdir_p('pkg')
     sh "gem build oydid.gemspec && mv oydid-#{File.read('VERSION').chomp}.gem pkg/"
   end
