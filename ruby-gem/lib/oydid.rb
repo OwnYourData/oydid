@@ -26,13 +26,36 @@ class Oydid
     LOCATION_PREFIX = "@"
     DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
     DEFAULT_DIGEST = "sha2-256"
-    SUPPORTED_DIGESTS = ["sha2-256", "sha2-512", "sha3-224", "sha3-256", "sha3-384", "sha3-512", "blake2b-16", "blake2b-32", "blake2b-64"]
+    # BLAKE2b digests are named by digest size in BYTES here (house convention,
+    # e.g. "blake2b-16" is a 16 byte / 128 bit digest). This deliberately
+    # deviates from the multicodec registry, where blake2b-N counts bits.
+    SUPPORTED_DIGESTS = ["sha2-256", "sha2-512", "sha3-224", "sha3-256", "sha3-384", "sha3-512",
+                         "blake2b-16", "blake2b-17", "blake2b-18", "blake2b-19", "blake2b-20",
+                         "blake2b-21", "blake2b-22", "blake2b-23", "blake2b-32", "blake2b-64"]
     DEFAULT_ENCODING = "base58btc"
     SUPPORTED_ENCODINGS = ["base16", "base32", "base58btc", "base64"]
     LOG_HASH_OPTIONS = {:digest => "sha2-256", :encode => "base58btc"}
     ED25519_SECURITY_SUITE = "https://w3id.org/security/suites/ed25519-2020/v1"
     JWS_SECURITY_SUITE = "https://w3id.org/security/suites/jws-2020/v1"
     DEFAULT_PUBLIC_RESOLVER = "https://dev.uniresolver.io/1.0/identifiers/"
+
+    # Single-byte multicodec codes for the intermediate BLAKE2b digest sizes
+    # (17-23 bytes), needed to keep a did:oyd identifier short enough for the
+    # 50 character URL limit of the EU Digital Product Passport registry.
+    #
+    # These sizes cannot take their code from Multicodecs[]: multi_hash packs
+    # the code into a single byte, which effectively truncates the registry's
+    # two-byte blake2b codes to their low byte - and those collide with the SHA
+    # codes already in use (0xb212 -> 0x12 = sha2-256, 0xb214 -> 0x14 =
+    # sha3-512, 0xb216 -> 0x16 = sha3-256, 0xb217 -> 0x17 = sha3-224).
+    #
+    # Instead the free, contiguous range 0x0B-0x11 is used (code = size - 6).
+    # Codes are kept low and single-byte on purpose: the value of the leading
+    # byte feeds into the base58btc length, and a low code saves a character.
+    BLAKE2B_EXTRA_CODES = {
+        17 => 0x0B, 18 => 0x0C, 19 => 0x0D, 20 => 0x0E,
+        21 => 0x0F, 22 => 0x10, 23 => 0x11
+    }.freeze
 
     # full Multicodecs table: https://github.com/multiformats/multicodec/blob/master/table.csv
     # Multicodecs.register(code: 0x1305, name: 'rsa-priv', tag: 'key')

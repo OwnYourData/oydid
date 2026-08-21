@@ -35,6 +35,9 @@ class Oydid
 
     def self.multi_hash(message, options)
         method = options[:digest] || DEFAULT_DIGEST
+        # only set within the case statement for digests that are not looked up
+        # in the multicodec registry (see BLAKE2B_EXTRA_CODES)
+        code = nil
         case method.to_s
         when "sha2-256"
             digest = RbNaCl::Hash.sha256(message)
@@ -44,6 +47,11 @@ class Oydid
             digest = OpenSSL::Digest.digest(method, message)
         when "blake2b-16"
             digest = RbNaCl::Hash.blake2b(message, {digest_size: 16})
+        when "blake2b-17", "blake2b-18", "blake2b-19", "blake2b-20",
+             "blake2b-21", "blake2b-22", "blake2b-23"
+            digest_size = method.to_s.split("-").last.to_i
+            digest = RbNaCl::Hash.blake2b(message, {digest_size: digest_size})
+            code = BLAKE2B_EXTRA_CODES[digest_size]
         when "blake2b-32"
             digest = RbNaCl::Hash.blake2b(message, {digest_size: 32})
         when "blake2b-64"
@@ -51,7 +59,7 @@ class Oydid
         else
             return [nil, "unsupported digest: '" + method.to_s + "'"]
         end
-        code = Multicodecs[method].code
+        code = Multicodecs[method].code if code.nil?
         length = digest.bytesize
         encoded = multi_encode([code, length, digest].pack("CCa#{length}"), options)
         # encoded = multi_encode(Multihashes.encode(digest, method.to_s), options)
@@ -80,6 +88,13 @@ class Oydid
             return ["blake2b-64", ""]
         else
             code, length, digest = decoded_message.unpack('CCa*')
+            # intermediate BLAKE2b sizes carry a code outside the multicodec
+            # registry; require the length byte to match so a stray code
+            # cannot be mistaken for one of them
+            blake2b_size = BLAKE2B_EXTRA_CODES.key(code)
+            if !blake2b_size.nil? && length == blake2b_size
+                return ["blake2b-" + blake2b_size.to_s, ""]
+            end
             retVal = Multicodecs[code].name rescue nil
             if !retVal.nil?
                 return [retVal, ""]

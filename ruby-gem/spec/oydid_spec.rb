@@ -1,4 +1,7 @@
 require_relative 'spec_helper'
+require 'tmpdir'
+require 'securerandom'
+require 'digest'
 
 describe "OYDID handling" do
   # basic functions - base58btc encoding
@@ -105,6 +108,133 @@ describe "OYDID handling" do
       expect(Oydid.multi_hash(data, {digest: "blake2b-64"}).first).to eq expected
     end
   end
+
+  # intermediate BLAKE2b digest sizes (17-23 bytes) ---------------------------
+  # Needed so a did:oyd fits into the 50 character URL limit of the EU Digital
+  # Product Passport registry: sha2-256 yields a 55 character identifier,
+  # blake2b-16 is only 128 bit and therefore too weak for a 30 year lifetime.
+  BLAKE2B_EXTRA_SIZES = (17..23).to_a
+
+  # Backwards compatibility: recorded before the intermediate sizes were added.
+  # multi_hash must stay byte-identical for every digest that existed before,
+  # otherwise DIDs already in the wild stop resolving.
+  legacy_hashes = JSON.parse(File.read(File.expand_path("../fixtures/multi_hash_legacy.json", __FILE__)))
+  legacy_hashes.group_by { |e| [e["digest"], e["encode"]] }.each do |(digest, encode), entries|
+    it "keeps multi_hash byte-identical for #{digest} in #{encode}" do
+      entries.each do |entry|
+        message = [entry["message"]].pack("H*")
+        expect(Oydid.multi_hash(message, {digest: digest, encode: encode}).first).to eq entry["expected"]
+      end
+    end
+    it "keeps get_digest working for #{digest} in #{encode}" do
+      entries.each do |entry|
+        expect(Oydid.get_digest(entry["expected"]).first).to eq entry["name"]
+      end
+    end
+  end
+
+  BLAKE2B_EXTRA_SIZES.each do |size|
+    digest = "blake2b-#{size}"
+
+    it "advertises #{digest} as supported" do
+      expect(Oydid::SUPPORTED_DIGESTS).to include digest
+    end
+
+    it "round-trips #{digest} through multi_hash and get_digest" do
+      hash = Oydid.multi_hash('{"a":1}', {digest: digest, encode: "base58btc"}).first
+      expect(hash).not_to be_nil
+      expect(Oydid.get_digest(hash).first).to eq digest
+      # the raw digest really has the requested size
+      decoded, _ = Oydid.multi_decode(hash)
+      expect(decoded.bytesize).to eq size + 2
+      expect(decoded[1].ord).to eq size
+    end
+
+    it "encodes #{digest} in every supported encoding" do
+      Oydid::SUPPORTED_ENCODINGS.each do |encoding|
+        hash = Oydid.multi_hash("payload", {digest: digest, encode: encoding}).first
+        expect(hash).not_to be_nil
+        expect(Oydid.get_digest(hash).first).to eq digest
+      end
+    end
+  end
+
+  # base58btc length varies with the leading byte, so pin the maximum over a
+  # few hundred random inputs rather than a single sample
+  {17 => 27, 18 => 28, 19 => 29, 20 => 31, 21 => 32, 22 => 34, 23 => 35}.each do |size, expected_length|
+    it "produces a base58btc identifier of at most #{expected_length} characters for blake2b-#{size}" do
+      lengths = 500.times.map do |i|
+        Oydid.multi_hash(SecureRandom.hex(24) + i.to_s, {digest: "blake2b-#{size}", encode: "base58btc"}).first.length
+      end
+      expect(lengths.max).to eq expected_length
+      expect("did:oyd:".length + lengths.max).to eq expected_length + 8
+    end
+  end
+
+  it "assigns the acceptance size for the DPP use case" do
+    identifier = Oydid.multi_hash(Oydid.canonical({"a" => 1}), {digest: "blake2b-18", encode: "base58btc"}).first
+    expect(identifier.length).to eq 28
+    expect(("did:oyd:" + identifier).length).to eq 36
+  end
+
+  it "assigns collision-free single byte codes to all supported digests" do
+    codes = Oydid::SUPPORTED_DIGESTS.map do |digest|
+      hash = Oydid.multi_hash("collision check", {digest: digest, encode: "base58btc"}).first
+      Oydid.multi_decode(hash).first[0].ord
+    end
+    expect(codes.length).to eq Oydid::SUPPORTED_DIGESTS.length
+    expect(codes.uniq.length).to eq codes.length
+  end
+
+  it "keeps the new codes out of the range used by the pre-existing digests" do
+    # 0x02/0x04/0x08 are blake2b-16/-32/-64, 0x12-0x17 are the SHA digests
+    expect(Oydid::BLAKE2B_EXTRA_CODES.values.sort).to eq (0x0B..0x11).to_a
+    expect(Oydid::BLAKE2B_EXTRA_CODES.keys.sort).to eq BLAKE2B_EXTRA_SIZES
+    expect(Oydid::BLAKE2B_EXTRA_CODES.values & [0x02, 0x04, 0x08, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17]).to be_empty
+  end
+
+  it "keeps the defaults unchanged" do
+    expect(Oydid::DEFAULT_DIGEST).to eq "sha2-256"
+    expect(Oydid::LOG_HASH_OPTIONS).to eq({:digest => "sha2-256", :encode => "base58btc"})
+  end
+
+  BLAKE2B_EXTRA_SIZES.each do |size|
+    it "creates and reads a DID with blake2b-#{size}" do
+      Dir.mktmpdir do |dir|
+        Dir.chdir(dir) do
+          result, msg = Oydid.create({"hello" => "dpp"}, {
+            digest: "blake2b-#{size}", encode: "base58btc",
+            doc_location: "local", location: "local",
+            return_secrets: true, key_type: "ed25519", silent: true})
+          expect(msg).to eq ""
+          expect(result).not_to be_nil
+          did = result["did"]
+          identifier = did.delete_prefix("did:oyd:").split(Oydid::LOCATION_PREFIX).first
+          expect(Oydid.get_digest(identifier).first).to eq "blake2b-#{size}"
+
+          read_result, read_msg = Oydid.read(did, {doc_location: "local", log_location: "local", silent: true})
+          expect(read_msg).to eq ""
+          expect(read_result).not_to be_nil
+          expect(read_result["doc"]["doc"]).to eq({"hello" => "dpp"})
+        end
+      end
+    end
+  end
+
+  it "does not shadow sha1, which shares code 0x11 with blake2b-23" do
+    # 0x11 is unused among the digests oydid produces, but the multicodec
+    # registry maps it to sha1. The length byte keeps the two apart: sha1 is
+    # always 20 bytes, blake2b-23 always 23.
+    sha1_multihash = Oydid.multi_encode([0x11, 20, Digest::SHA1.digest("test")].pack("CCa20"),
+                                        {encode: "base58btc"}).first
+    expect(Oydid.get_digest(sha1_multihash).first).to eq "sha1"
+    expect(Oydid.get_digest(Oydid.multi_hash("test", {digest: "blake2b-23"}).first).first).to eq "blake2b-23"
+  end
+
+  it "still rejects an unsupported digest" do
+    expect(Oydid.multi_hash("data", {digest: "blake2b-24"}).last).to eq "unsupported digest: 'blake2b-24'"
+  end
+
   Dir.glob(File.expand_path("../input/basic/*.json", __FILE__)).each do |input|
     it "converts #{input.split('/').last}" do
       expected = File.read(input.sub('input', 'output'))
