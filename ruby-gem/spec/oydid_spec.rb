@@ -528,4 +528,60 @@ describe "OYDID handling" do
     end
   end
 
+  # W3C conversion of verification relationships carried in the payload
+  describe "verification relationships in the payload" do
+    let(:did) { "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" }
+    let(:keys) do
+      "z6MktULudTtAsAhRegYPiZ6631RV3viv12qd4GQF8z1xB22S:" \
+      "z6MkqGC3nWZhYieEVTVDKW5v588CiGfsDSmRVG9ZwwWTvLSK"
+    end
+    let(:attestation) do
+      { "id" => "#key-attest",
+        "type" => "Ed25519VerificationKey2020",
+        "publicKeyMultibase" => "z6Mkg49NtQR2LyYRDCQFK4w1VVHqhypZSSRo7HsyuN7SV7v5" }
+    end
+
+    def convert(payload)
+      Oydid.w3c({ "did" => did, "doc" => { "doc" => payload, "key" => keys } }, {})
+    end
+
+    it "prefixes the DID onto a key named by fragment" do
+      wd = convert({ "authentication" => ["#key-doc"] })
+      expect(wd["authentication"]).to eq ["#{did}#key-doc"]
+    end
+
+    it "prefixes the DID onto an embedded verification method" do
+      wd = convert({ "assertionMethod" => [attestation] })
+      expect(wd["assertionMethod"].first["id"]).to eq "#{did}#key-attest"
+    end
+
+    # a client cannot supply the controller: the DID is the hash of the
+    # document that would contain it
+    it "fills in the controller of an embedded verification method" do
+      wd = convert({ "assertionMethod" => [attestation] })
+      expect(wd["assertionMethod"].first["controller"]).to eq did
+    end
+
+    it "keeps a controller the payload already carries" do
+      own = attestation.merge("controller" => "did:oyd:zSomeoneElse")
+      wd = convert({ "assertionMethod" => [own] })
+      expect(wd["assertionMethod"].first["controller"]).to eq "did:oyd:zSomeoneElse"
+    end
+
+    # regression: a payload carrying a service took a different branch and was
+    # merged verbatim, leaving fragments unresolved
+    it "handles relationships next to a service entry" do
+      wd = convert({ "assertionMethod" => [attestation],
+                     "service" => [{ "id" => "#payload", "type" => "Custom" }] })
+      expect(wd["assertionMethod"].first["id"]).to eq "#{did}#key-attest"
+      expect(wd["assertionMethod"].first["controller"]).to eq did
+      expect(wd["service"]).to be_an(Array)
+    end
+
+    it "accepts a single embedded method that is not wrapped in an array" do
+      wd = convert({ "assertionMethod" => attestation })
+      expect(wd["assertionMethod"].first["id"]).to eq "#{did}#key-attest"
+    end
+  end
+
 end
