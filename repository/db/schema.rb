@@ -10,13 +10,15 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_02_06_001845) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_22_090000) do
   create_table "cmsms", force: :cascade do |t|
     t.string "pubkey"
     t.text "payload"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["pubkey"], name: "index_cmsms_on_pubkey", unique: true
+    t.string "session"
+    t.index ["pubkey"], name: "index_cmsms_on_pubkey"
+    t.index ["session"], name: "index_cmsms_on_session", unique: true
   end
 
   create_table "credentials", force: :cascade do |t|
