@@ -342,11 +342,24 @@ paths:
         <p>This endpoint creates a DID and stores the DID Document and provenance log directly in this
         repository's database (no remote location is used). It returns the created DID together with the
         generated key material.</p>
-        <p>The endpoint also supports the Client-Managed-Secret-Mode (CMSM) - when called with
-        <code>options.cmsm = true</code> and the public key (<code>key_hex</code>) but without a signature,
-        it persists the intermediate data and responds with HTTP 201 plus the value the client has to sign
-        (field <code>sign</code>). A second call with the same public key and the resulting
-        <code>options.sig</code> finishes the creation and returns HTTP 200.</p>
+        <p>The endpoint also supports the Client-Managed-Secret-Mode (CMSM), in which no private key ever
+        reaches this repository. The client sends <code>options.cmsm = true</code> and its public key(s) as
+        hex; every field besides <code>options</code>, <code>secret</code>, <code>key_hex</code> and
+        <code>rev_key_hex</code> becomes the DID Document.</p>
+        <p>Each incomplete phase answers with HTTP 201 and a challenge - <code>sign</code> is the value to
+        sign and <code>with</code> names the key to sign it with. Every following call carries nothing but
+        <code>options.session</code> and <code>options.sig</code>. The last phase answers with HTTP 200.</p>
+        <p>With <code>key_hex</code> <em>and</em> <code>rev_key_hex</code> the revocation key is
+        client-managed and the flow has four phases - <code>key-rev</code> over the revocation record,
+        <code>key-doc</code> over the termination entry, <code>key-doc</code> over the creation entry. The
+        order is forced by the data - each value is the hash of a structure containing the previous
+        signature. With <code>key_hex</code> alone the revocation key is generated here and the flow has
+        three phases; kept for compatibility, but the secret is then not client-managed.</p>
+        <p>A session expires after 15 minutes and is deleted once the flow completes.</p>
+        <p><strong>The <code>log_revoke</code> record returned with HTTP 200 has to be stored by the
+        client.</strong> Its signature was made by a key this repository never sees, and a secure element
+        does not have to sign deterministically, so the record cannot be rebuilt. Without it the DID can
+        neither be updated nor revoked. It is a log entry, not a secret.</p>
       operationId: createIdentifier
       requestBody:
         content:
@@ -362,8 +375,8 @@ paths:
                 $ref: '#/components/schemas/ProviderCreateResponse'
         '201':
           description:
-            CMSM phase 1 - the public key was registered and intermediate data persisted; the response
-            contains the value the client has to sign.
+            An incomplete CMSM phase - the intermediate data was persisted under the returned session and
+            the response says which value to sign next, and with which key.
           content:
             application/json:
               schema:
@@ -392,6 +405,20 @@ paths:
         client-managed mode the caller additionally supplies a <code>didDocument</code> together with
         pre-signed <code>log_revoke</code>, <code>log_update</code> and <code>log_terminate</code> records in
         <code>options</code>.</p>
+        <p>In the Client-Managed-Secret-Mode (<code>options.cmsm = true</code>) the update runs in four
+        phases, like the create flow. The first call carries the new <code>didDocument</code>, the new public
+        key(s) as <code>key_hex</code> / <code>rev_key_hex</code>, and in <code>options.log_revoke_old</code>
+        the revocation record the client received when the DID was created or last updated. Revoking the
+        current document therefore needs no signature - the record already exists.</p>
+        <p>The three challenges are <code>key-rev</code> over the revocation record of the new document,
+        <code>key-doc</code> over its termination entry, and <code>key-doc-old</code> over the update entry.
+        The last one is signed with the document key of the DID being replaced, which is what authorises the
+        transition - that key has to still exist at this point. From the second phase on the request carries
+        nothing but <code>options.session</code> and <code>options.sig</code>; which DID is being updated
+        comes from the session.</p>
+        <p><code>log_revoke_old</code> is checked against the current document, against the revocation key in
+        it, and against the hash the TERMINATE entry of that document committed. A record belonging to a
+        different DID cannot pass.</p>
       operationId: updateIdentifier
       requestBody:
         content:
@@ -405,8 +432,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProviderUpdateResponse'
+        '201':
+          description:
+            An incomplete CMSM phase - the response says which value to sign next, and with which key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CmsmChallenge'
         '400':
-          description: A problem with the input fields has occurred (e.g. invalid log signature).
+          description:
+            A problem with the input fields has occurred (invalid log signature, unusable or missing
+            <code>log_revoke_old</code>, unknown or expired session).
           content:
             application/json:
               schema:
@@ -431,8 +467,13 @@ paths:
       description:
         <p>This endpoint deactivates (revokes) a DID stored in this repository. The revocation log entry is
         generated from the controller keys supplied in the <code>secret</code> object and stored in the local
-        database. In client-managed mode the caller can instead supply a pre-built <code>log_revoke</code>
-        record in <code>options</code>.</p>
+        database.</p>
+        <p>A client whose keys never reach this repository instead supplies the <code>log_revoke</code>
+        record it received when the DID was created or last updated. No signature is made at this point - the
+        record was signed back then. It is checked against the current document, against the revocation key
+        in it, and against the hash the TERMINATE entry of that document committed, and is then linked into
+        the log. A re-signed record does not pass, because its hash would differ from the committed one -
+        which is why clients have to keep the record they were given.</p>
       operationId: deactivateIdentifier
       requestBody:
         content:
@@ -446,6 +487,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProviderDeactivateResponse'
+        '400':
+          description:
+            The supplied <code>log_revoke</code> record does not belong to the current document of this DID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestBody'
         '404':
           description: The DID to be deactivated is unknown to this repository.
           content:
@@ -696,16 +744,24 @@ components:
         options:
           description:
             Options for the create operation. Set <code>type</code> to "ES256" for a P-256 DID (otherwise an
-            ed25519 DID is created). For CMSM set <code>cmsm</code> to true and provide <code>sig</code> in the
-            second phase.
+            ed25519 DID is created). For CMSM set <code>cmsm</code> to true; from the second phase on give
+            <code>session</code> and <code>sig</code> instead of the public keys.
           type: object
-          example: {"cmsm": true, "key_type": "ed25519"}
+          example: {"cmsm": true, "key_type": "Secp256r1"}
         secret:
           description: DID controller keys and other secrets needed for the operation.
           type: object
           example: {"doc_pwd": "secret", "rev_pwd": "other_secret"}
         key_hex:
-          description: hex-encoded public document key; required for the Client-Managed-Secret-Mode (CMSM).
+          description:
+            hex-encoded public document key; required in the first CMSM phase. No multicodec and no
+            multibase - 32 bytes for ed25519, 33 (compressed) or 65 (uncompressed) bytes for P-256.
+          type: string
+        rev_key_hex:
+          description:
+            hex-encoded public revocation key. Supplying it makes the revocation key client-managed and adds
+            a phase in which the client signs the revocation record. Without it the revocation key is
+            generated by this repository and the secret is not fully client-managed.
           type: string
     ProviderCreateResponse:
       description: Result of a successful create operation.
@@ -725,19 +781,58 @@ components:
           type: array
           items:
             type: object
+        log_revoke:
+          description:
+            CMSM only - the revocation record of the new document. The client has to store it - without it
+            the DID can neither be updated nor revoked, and it cannot be rebuilt because its signature was
+            made by a key this repository never sees.
+          $ref: '#/components/schemas/RevocationRecord'
+    RevocationRecord:
+      description:
+        A REVOKE log entry. Its hash is committed in the TERMINATE entry of the document it belongs to,
+        which is what makes it both unforgeable and impossible to re-create with a fresh signature.
+      type: object
+      properties:
+        ts:
+          type: integer
+          example: 1787306400
+        op:
+          type: integer
+          example: 1
+        doc:
+          type: string
+          description: hash of the document this record revokes
+        sig:
+          type: string
+          description: signature over the <code>doc</code> value by the revocation key
     CmsmChallenge:
-      description: Response of CMSM phase 1 - the value the client has to sign.
+      description:
+        Response of an incomplete CMSM phase - the value to sign next and the key to sign it with.
       type: object
       properties:
         cmsm:
           type: boolean
           example: true
+        session:
+          type: string
+          description: handle of this flow; send it back with every following call
+          example: "cmsm-7f3a91c4"
+        phase:
+          type: integer
+          description: number of signatures already collected plus one
+          example: 1
         pk:
           type: string
-          description: the registered public key (multibase encoded)
+          description: the registered public document key (multibase encoded)
         sign:
           type: string
-          description: the value the client has to sign with its private document key
+          description: the value the client has to sign
+        with:
+          type: string
+          description:
+            which key to sign with - <code>key-rev</code> the revocation key, <code>key-doc</code> the
+            document key, <code>key-doc-old</code> the document key of the DID being replaced
+          enum: [key-rev, key-doc, key-doc-old]
     ProviderUpdateRequest:
       description: Input fields for the local update operation (updateIdentifier).
       type: object
@@ -758,8 +853,16 @@ components:
         options:
           description:
             Options for the update operation. For a client-managed update provide the pre-signed
-            <code>log_revoke</code>, <code>log_update</code> and <code>log_terminate</code> records here.
+            <code>log_revoke</code>, <code>log_update</code> and <code>log_terminate</code> records here. For
+            CMSM set <code>cmsm</code> to true and provide <code>log_revoke_old</code> in the first phase,
+            then <code>session</code> and <code>sig</code>.
           type: object
+        key_hex:
+          description: hex-encoded new public document key; first CMSM phase only.
+          type: string
+        rev_key_hex:
+          description: hex-encoded new public revocation key; first CMSM phase only.
+          type: string
         secret:
           description: DID controller keys needed for a self-managed update.
           type: object
@@ -768,6 +871,9 @@ components:
       type: object
       properties:
         did:
+          type: string
+        did_old:
+          description: the DID that was replaced
           type: string
         provider:
           type: string
@@ -781,6 +887,11 @@ components:
           type: array
           items:
             type: object
+        log_revoke:
+          description:
+            The revocation record of the new document; it replaces the one the client kept for the previous
+            document and has to be stored in its place.
+          $ref: '#/components/schemas/RevocationRecord'
     ProviderDeactivateRequest:
       description: Input fields for the local deactivate operation (deactivateIdentifier).
       type: object
@@ -797,8 +908,8 @@ components:
               example: "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"
         options:
           description:
-            Options for the deactivate operation. For a client-managed deactivation provide a pre-built
-            <code>log_revoke</code> record here.
+            Options for the deactivate operation. For a client-managed deactivation provide the
+            <code>log_revoke</code> record the client stored here.
           type: object
         secret:
           description: DID controller keys needed for a self-managed deactivation.
