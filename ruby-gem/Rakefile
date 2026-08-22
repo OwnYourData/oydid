@@ -21,6 +21,15 @@ namespace :gem do
     sh "gem build oydid.gemspec && mv oydid-#{File.read('VERSION').chomp}.gem pkg/"
   end
 
+  desc "Build and install the gem locally (dev loop against repository/)"
+  task :install => :build do
+    # --no-document skips RubyGems' rdoc/ri generation. Nobody reads the local
+    # rdoc of this gem, it costs seconds on every dev cycle, and with more than
+    # one rdoc version installed it prints a wall of
+    # "warning: already initialized constant RDoc::..." lines.
+    sh "gem install --no-document pkg/oydid-#{File.read('VERSION').chomp}.gem"
+  end
+
   desc "Release the oydid-#{File.read('VERSION').chomp}.gem file"
   task :release do
     sh "gem push pkg/oydid-#{File.read('VERSION').chomp}.gem"
