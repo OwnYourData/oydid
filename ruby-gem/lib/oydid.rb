@@ -1367,6 +1367,44 @@ class Oydid
         end
     end
 
+    # Verification relationships in the payload either name a key by fragment
+    # ("#key-doc") or embed a whole verification method. Both need the DID
+    # prefixed onto the identifier; an embedded method additionally needs a
+    # controller, which the client cannot supply - the DID is the hash of the
+    # document that would have to contain it, so it is not known while the
+    # document is being written.
+    def self.expand_verification_methods(payload, wd, did)
+        return wd if !payload.is_a?(Hash)
+
+        [ "authentication",
+          "assertionMethod",
+          "keyAgreement",
+          "capabilityInvocation",
+          "capabilityDelegation" ].each do |vm|
+            next if payload[vm].to_s == ""
+            entries = payload[vm]
+            entries = [entries] if entries.is_a?(Hash) || entries.is_a?(String)
+
+            new_entries = []
+            entries.each do |el|
+                if el.is_a?(String)
+                    new_entries << percent_encode(did) + el
+                else
+                    new_el = el.transform_keys(&:to_s)
+                    new_el["id"] = percent_encode(did) + new_el["id"].to_s
+                    if new_el["controller"].to_s == ""
+                        new_el["controller"] = percent_encode(did)
+                    end
+                    new_entries << new_el
+                end
+            end
+
+            wd[vm] = new_entries.length > 0 ? new_entries : payload[vm]
+            payload.delete(vm)
+        end
+        wd
+    end
+
     def self.w3c(did_info, options)
         # check if doc is already W3C DID
         is_already_w3c_did = (did_info.transform_keys(&:to_s)["doc"]["doc"].has_key?("@context") &&
@@ -1527,6 +1565,10 @@ class Oydid
             if location.nil?
                 location = get_location(did_info["did"].to_s)
             end
+            # a payload carrying a service used to skip the handling below
+            # entirely and get merged verbatim, which left fragment identifiers
+            # unresolved and embedded methods without a controller
+            wd = expand_verification_methods(didDoc["doc"], wd, did)
             wd = wd.merge(didDoc["doc"])
             if wd["service"] != []
                 if wd["service"].is_a?(Array)
@@ -1547,33 +1589,7 @@ class Oydid
             if didDoc["doc"].is_a?(Hash)
                 if didDoc["doc"] != {}
                     didDoc = didDoc["doc"]
-                    # special handling for Verification Methods
-                    vms = [ "authentication", 
-                            "assertionMethod", 
-                            "keyAgreement", 
-                            "capabilityInvocation",
-                            "capabilityDelegation" ]
-
-                    vms.each do |vm|
-                        if didDoc[vm].to_s != ""
-                            new_entries = []
-                            didDoc[vm].each do |el|
-                                if el.is_a?(String)
-                                    new_entries << percent_encode(did) + el
-                                else
-                                    new_el = el.transform_keys(&:to_s)
-                                    new_el["id"] = percent_encode(did) + new_el["id"]
-                                    new_entries << new_el
-                                end
-                            end unless didDoc[vm].nil?
-                            if new_entries.length > 0
-                                wd[vm] = new_entries
-                            else
-                                wd[vm] = didDoc[vm]
-                            end
-                            didDoc.delete(vm)
-                        end
-                    end
+                    wd = expand_verification_methods(didDoc, wd, did)
                     if didDoc["alsoKnownAs"].to_s != ""
                         if didDoc["alsoKnownAs"].is_a?(Array)
                             dda = didDoc["alsoKnownAs"]
