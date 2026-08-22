@@ -1490,7 +1490,7 @@ Possible extra rowspan handling
 </style>
   <meta content="Bikeshed version ac92c2f0d, updated Fri Aug 21 16:01:29 2026 -0700" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="3fe55786a668273c6239f1a3c2775db828a61f58" name="revision">
+  <meta content="38fc43b4aee5d5e7c6cd24da7da711068a87e89c" name="revision">
   <meta content="dark light" name="color-scheme">
 <style>/* Boilerplate: style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
@@ -2047,7 +2047,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <p data-fill-with="logo"></p>
    <h1 class="no-ref p-name" id="title">OYD DID Method</h1>
    <h2 class="heading no-num no-ref no-toc settled" id="profile-and-date"><span class="content">Living Document,
-    <time class="dt-updated" datetime="2026-08-21">21 August 2026</time></span></h2>
+    <time class="dt-updated" datetime="2026-08-22">22 August 2026</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -2063,7 +2063,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <p class="copyright" data-fill-with="copyright"><a href="http://creativecommons.org/publicdomain/zero/1.0/" rel="license"><img alt="CC0" height="15" src="https://licensebuttons.net/p/zero/1.0/80x15.png" width="80"></a>
 To the extent possible under law, the editors have waived all copyright
 and related or neighboring rights to this work.
-In addition, as of 21 August 2026,
+In addition, as of 22 August 2026,
 the editors have made this specification available under the
 <a href="https://www.openwebfoundation.org/the-agreements/the-owf-1-0-agreements-granted-claims/owfa-1-0" rel="license">Open Web Foundation Agreement Version 1.0</a>,
 which is available at https://www.openwebfoundation.org/the-agreements/the-owf-1-0-agreements-granted-claims/owfa-1-0.
@@ -2100,9 +2100,10 @@ Parts of this work may be from another specification document.  If so, those par
       <li>
        <a href="#verification"><span class="secno">4.2</span> <span class="content">Verification Steps</span></a>
        <ol class="toc">
-        <li><a href="#calculate_hash"><span class="secno">4.2.1</span> <span class="content">Hash value calculation</span></a>
-        <li><a href="#verify_signature"><span class="secno">4.2.2</span> <span class="content">Signature verification</span></a>
-        <li><a href="#retrieve_log"><span class="secno">4.2.3</span> <span class="content">Log record retrieval</span></a>
+        <li><a href="#digests"><span class="secno">4.2.1</span> <span class="content">Digest Algorithms</span></a>
+        <li><a href="#calculate_hash"><span class="secno">4.2.2</span> <span class="content">Hash value calculation</span></a>
+        <li><a href="#verify_signature"><span class="secno">4.2.3</span> <span class="content">Signature verification</span></a>
+        <li><a href="#retrieve_log"><span class="secno">4.2.4</span> <span class="content">Log record retrieval</span></a>
        </ol>
      </ol>
     <li>
@@ -2158,7 +2159,7 @@ Parts of this work may be from another specification document.  If so, those par
    <p>While DLT-based DID Methods have great decentralization characteristics, and some of the more centralized DID Methods provide strong system control guarantees, the general approaches tend to be expensive to set up and operate. OYDID takes the approach to not maintain DID and DID Document on a public ledger but on one or more local storages (that might be publicly available). Through cryptographically linking the DID Identifier to the DID Document, and furthermore linking the DID Document to a chained provenance trail the same security and validation properties as a traditional DID can be maintained while avoiding highly redundant storage and also works in settings without general public access.</p>
    <p>The rest of this document outlines the syntax for the <code>did:oyd</code> method, the operations it supports, and some security and privacy considerations as well as ehtical aspects that implementers might want to be aware of when using this DID method.</p>
    <h2 class="heading settled" data-level="2" id="format"><span class="secno">2. </span><span class="content">The <code>did:oyd</code> Format</span><a class="self-link" href="#format"></a></h2>
-   <p>The format for the <code>did:oyd</code> method conforms to the DID core specification <a data-link-type="biblio" href="#biblio-did-core" title="Decentralized Identifiers (DIDs) v1.0">[DID-CORE]</a> as outlined by W3C. It consists of the <code>did:oyd</code> prefix, followed by a Multibase <a data-link-type="biblio" href="#biblio-multibase" title="IETF Multibase Data Format specification">[MULTIBASE]</a> (default: <code>base58-btc</code>) encoded value that is a Multihash <a data-link-type="biblio" href="#biblio-multihash" title="Multihash - protocol for differentiating outputs from various well-established cryptographic hash functions">[MULTIHASH]</a> (default: <code>sha2-256</code>) value of composed of information from the payload, keys, and log.</p>
+   <p>The format for the <code>did:oyd</code> method conforms to the DID core specification <a data-link-type="biblio" href="#biblio-did-core" title="Decentralized Identifiers (DIDs) v1.0">[DID-CORE]</a> as outlined by W3C. It consists of the <code>did:oyd</code> prefix, followed by a Multibase <a data-link-type="biblio" href="#biblio-multibase" title="IETF Multibase Data Format specification">[MULTIBASE]</a> (default: <code>base58-btc</code>) encoded value that is a Multihash <a data-link-type="biblio" href="#biblio-multihash" title="Multihash - protocol for differentiating outputs from various well-established cryptographic hash functions">[MULTIHASH]</a> (default: <code>sha2-256</code>) value of composed of information from the payload, keys, and log. The digest algorithms an implementation has to recognise, and the codes identifying them, are listed in <a href="#digests">§ 4.2.1 Digest Algorithms</a>.</p>
    <p>The detailed calculation of the DID identifier from the internal document and log information via ABNF is described here:</p>
 <pre class="highlight include-code"><c- c1>; !syntax("abnf")</c->
 <c- nc>did-oyd-format</c->                     <c- o>=</c-> <c- l>"did:oyd:"</c-> <c- nc>identifier</c->
@@ -2559,7 +2560,140 @@ Revocation reference in log record: zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS
 {"doc":["new payload"],"key":"z6Muztkm7Nrf6uEPCPhe5Cu1vL4NfXJwaCKxWd5tgHbvk6qm:z6Mv1Zdz5SqYx94YmG7UrpPVSXNQSJKCMBanHvLx1SdPUgfH","log":"zQmaRxpQFsvP9i1ZyZhT5X4V2h7pNqZ4an7vgwpwK3yW7x8"}
 </pre>
    </div>
-   <h4 class="heading settled" data-level="4.2.1" id="calculate_hash"><span class="secno">4.2.1. </span><span class="content">Hash value calculation</span><a class="self-link" href="#calculate_hash"></a></h4>
+   <h4 class="heading settled" data-level="4.2.1" id="digests"><span class="secno">4.2.1. </span><span class="content">Digest Algorithms</span><a class="self-link" href="#digests"></a></h4>
+   <p>Every hash value in OYDID is a Multihash <a data-link-type="biblio" href="#biblio-multihash" title="Multihash - protocol for differentiating outputs from various well-established cryptographic hash functions">[MULTIHASH]</a>: a one byte code identifying
+the digest algorithm, a one byte digest length, and the digest itself. The
+following algorithms are supported, with <code>sha2-256</code> as the default.</p>
+   <table class="data">
+    <thead>
+     <tr>
+      <th>algorithm
+      <th>digest size
+      <th>code
+      <th>identifier length
+
+    <tbody>
+     <tr>
+      <td><code>sha2-256</code>
+      <td>32 bytes
+      <td><code>0x12</code>
+      <td>47
+
+     <tr>
+      <td><code>sha2-512</code>
+      <td>64 bytes
+      <td><code>0x13</code>
+      <td>91
+
+     <tr>
+      <td><code>sha3-224</code>
+      <td>28 bytes
+      <td><code>0x17</code>
+      <td>42
+
+     <tr>
+      <td><code>sha3-256</code>
+      <td>32 bytes
+      <td><code>0x16</code>
+      <td>47
+
+     <tr>
+      <td><code>sha3-384</code>
+      <td>48 bytes
+      <td><code>0x15</code>
+      <td>69
+
+     <tr>
+      <td><code>sha3-512</code>
+      <td>64 bytes
+      <td><code>0x14</code>
+      <td>91
+
+     <tr>
+      <td><code>blake2b-16</code>
+      <td>16 bytes
+      <td><code>0x02</code>
+      <td>25
+
+     <tr>
+      <td><code>blake2b-17</code>
+      <td>17 bytes
+      <td><code>0x0B</code> †
+      <td>27
+
+     <tr>
+      <td><code>blake2b-18</code>
+      <td>18 bytes
+      <td><code>0x0C</code> †
+      <td>28
+
+     <tr>
+      <td><code>blake2b-19</code>
+      <td>19 bytes
+      <td><code>0x0D</code> †
+      <td>29
+
+     <tr>
+      <td><code>blake2b-20</code>
+      <td>20 bytes
+      <td><code>0x0E</code> †
+      <td>31
+
+     <tr>
+      <td><code>blake2b-21</code>
+      <td>21 bytes
+      <td><code>0x0F</code> †
+      <td>32
+
+     <tr>
+      <td><code>blake2b-22</code>
+      <td>22 bytes
+      <td><code>0x10</code> †
+      <td>34
+
+     <tr>
+      <td><code>blake2b-23</code>
+      <td>23 bytes
+      <td><code>0x11</code> †
+      <td>35
+
+     <tr>
+      <td><code>blake2b-32</code>
+      <td>32 bytes
+      <td><code>0x04</code>
+      <td>47
+
+     <tr>
+      <td><code>blake2b-64</code>
+      <td>64 bytes
+      <td><code>0x08</code>
+      <td>91
+
+   </table>
+   <p>The identifier length is the maximum length of the base58btc encoded Multihash. A
+complete DID is 8 characters longer because of the <code>did:oyd:</code> prefix.</p>
+   <p><strong>Naming.</strong> The BLAKE2b algorithms are named by digest size in <em>bytes</em>, not in
+bits. This deviates from the Multicodec registry, where <code>blake2b-256</code> denotes a
+256 bit digest, and follows the naming OYDID has used for <code>blake2b-16</code>,
+<code>blake2b-32</code> and <code>blake2b-64</code> since its first release.</p>
+   <p><strong>Codes marked †</strong> are specific to this DID method and MUST NOT be looked up in
+the Multicodec registry. OYDID writes the algorithm code as a single byte, while
+the registry assigns BLAKE2b two byte codes; truncated to their low byte these
+collide with SHA codes already in use — <code>0xb212</code> (BLAKE2b, 18 bytes) would become
+<code>0x12</code>, which is <code>sha2-256</code>. The intermediate sizes therefore use the otherwise
+unassigned range <code>0x0B</code> to <code>0x11</code>, where the code is the digest size in bytes
+minus six. Keeping these codes low and one byte wide also keeps the identifier
+short, because the leading byte enters the base58btc encoding.</p>
+   <p class="note" role="note"><span class="marker">Note:</span> <code>0x11</code> is <code>sha1</code> in the Multicodec registry. OYDID never produces <code>sha1</code>
+digests, and the two cannot be confused because the length byte distinguishes
+them — a <code>sha1</code> digest is always 20 bytes, a <code>blake2b-23</code> digest always 23. An
+implementation MUST verify the length byte before resolving a code from the
+range above.</p>
+   <p>The intermediate sizes exist for deployments that have to carry a <code>did:oyd</code>
+inside a length-constrained URL. The EU Digital Product Passport registry, for
+instance, limits that URL to 50 characters, which a 55 character <code>sha2-256</code>
+identifier cannot meet, while <code>blake2b-16</code> offers only 128 bits of digest —​too little for a document expected to remain verifiable for decades.</p>
+   <h4 class="heading settled" data-level="4.2.2" id="calculate_hash"><span class="secno">4.2.2. </span><span class="content">Hash value calculation</span><a class="self-link" href="#calculate_hash"></a></h4>
    <p>Perform the following steps to verify that a hash value conforms to a message:</p>
    <ol>
     <li data-md>
@@ -2567,9 +2701,13 @@ Revocation reference in log record: zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS
 you can use the information here: <a href="https://github.com/multiformats/multibase">https://github.com/multiformats/multibase</a><br>
 example: if the string starts with "z" it is base58btc-encoding</p>
     <li data-md>
-     <p>identify hashing algorithm in multibase string (second &amp; third character)<br>
-you can use the information here: <a href="https://github.com/multiformats/multicodec#multicodec-table">https://github.com/multiformats/multicodec#multicodec-table</a><br>
-example: if the string starts with "zQm" it is the sha2-256 hash algorithm</p>
+     <p>decode the multibase string and identify the hashing algorithm from the first
+byte of the resulting Multihash, verifying it against the second byte holding
+the digest length<br>
+the codes are listed in <a href="#digests">§ 4.2.1 Digest Algorithms</a>; the BLAKE2b codes for 17 to 23 byte
+digests are specific to this method and are not part of the
+<a href="https://github.com/multiformats/multicodec#multicodec-table">Multicodec table</a><br>
+example: a value starting with "zQm" decodes to code <code>0x12</code>, the sha2-256 hash algorithm</p>
     <li data-md>
      <p>if the message is a JSON is must be transformed to its canonical form based on this standard:
 <a href="https://datatracker.ietf.org/doc/html/rfc8785">https://datatracker.ietf.org/doc/html/rfc8785</a></p>
@@ -2579,14 +2717,14 @@ example: if the string starts with "zQm" it is the sha2-256 hash algorithm</p>
      <p>encode hash value using encoding algorithm from step #1</p>
    </ol>
    <p>✅ This verification step passes iif presented hash value and message match.</p>
-   <h4 class="heading settled" data-level="4.2.2" id="verify_signature"><span class="secno">4.2.2. </span><span class="content">Signature verification</span><a class="self-link" href="#verify_signature"></a></h4>
+   <h4 class="heading settled" data-level="4.2.3" id="verify_signature"><span class="secno">4.2.3. </span><span class="content">Signature verification</span><a class="self-link" href="#verify_signature"></a></h4>
    <p>Perform the following steps to verify the signature in a log record:</p>
    <ol>
     <li data-md>
      <p>collect necesary artefacts for verification<br></p>
      <ul>
       <li data-md>
-       <p>payload to sign: this is the <code>doc</code> attribute in a log record; make sure to check that this is the correct hash value of the referenced document/record using <a href="#calculate_hash">§ 4.2.1 Hash value calculation</a></p>
+       <p>payload to sign: this is the <code>doc</code> attribute in a log record; make sure to check that this is the correct hash value of the referenced document/record using <a href="#calculate_hash">§ 4.2.2 Hash value calculation</a></p>
       <li data-md>
        <p>signature: this is the <code>sig</code> attribute in a log record</p>
       <li data-md>
@@ -2600,7 +2738,7 @@ example: if the string start with "z6M" it is an Ed25519 public key</p>
      <p>use the public key to verify the validity of the payload’s signature; adhere to the respective encodings for each attribute</p>
    </ol>
    <p>✅ This verification step passes iif payload’s signature is valid.</p>
-   <h4 class="heading settled" data-level="4.2.3" id="retrieve_log"><span class="secno">4.2.3. </span><span class="content">Log record retrieval</span><a class="self-link" href="#retrieve_log"></a></h4>
+   <h4 class="heading settled" data-level="4.2.4" id="retrieve_log"><span class="secno">4.2.4. </span><span class="content">Log record retrieval</span><a class="self-link" href="#retrieve_log"></a></h4>
    <p>Perform the following steps to retrieve a log record:</p>
    <ol>
     <li data-md>
@@ -2623,7 +2761,7 @@ example: if the string start with "z6M" it is an Ed25519 public key</p>
      </ul>
      <p>Log records are an array of JSON objects in the format described in <a href="#log">§ 4 DID Log</a></p>
     <li data-md>
-     <p>calculate the hash value for a record according to <a href="#calculate_hash">§ 4.2.1 Hash value calculation</a> and compare it to the reference</p>
+     <p>calculate the hash value for a record according to <a href="#calculate_hash">§ 4.2.2 Hash value calculation</a> and compare it to the reference</p>
    </ol>
    <p>✅ This verification step passes if a reference can be established.</p>
    <p class="note" role="note"><span class="marker">Note:</span> For TERMINATE log records the reference to a REVOKE record indicates if there are updates available. Being unable to find a REVOKE record with a given hash indicates that the DID resolve process successfully completes.</p>
