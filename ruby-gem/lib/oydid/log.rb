@@ -297,7 +297,10 @@ class Oydid
                 did_hash = did_hash.split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first
                 did10 = did_hash[0,10]
 
-                doc = retrieve_document_raw(doc_did, did10 + ".doc", doc_location, {})
+                # pass options through: without them options[:local_store] is lost
+                # and the lookup falls back to HTTP against DEFAULT_LOCATION, which
+                # breaks every in-process caller that keeps its DIDs locally
+                doc = retrieve_document_raw(doc_did, did10 + ".doc", doc_location, options)
                 if doc.first.nil?
                     currentDID["error"] = 2
                     msg = doc.last.to_s
@@ -309,13 +312,27 @@ class Oydid
                 end
                 doc = doc.first["doc"]
                 if el["op"] == 2 # CREATE
-                    # signature for CREATE is optional (due to CMSM)
-                    if !el["sig"].nil?
-                        if !match_log_did?(el, doc)
+                    # The CREATE signature used to be unobtainable in the
+                    # Client-Managed-Secret-Mode: its payload l1_doc is the hash
+                    # of a DID document that already contains the TERMINATE
+                    # signature, so it can only be collected in a phase of its
+                    # own. CMSM has that phase now and new DIDs always carry the
+                    # signature - but DIDs created before it do not, and
+                    # rejecting them would make them unresolvable.
+                    #
+                    # The check is therefore tolerant by default and strict on
+                    # request: a relying party that only accepts DIDs created
+                    # with a signed CREATE entry sets options[:strict_create_sig].
+                    if el["sig"].nil?
+                        if options[:strict_create_sig]
                             currentDID["error"] = 1
-                            currentDID["message"] = "Signatures in log don't match"
+                            currentDID["message"] = "missing signature in CREATE log entry"
                             return currentDID
                         end
+                    elsif !match_log_did?(el, doc)
+                        currentDID["error"] = 1
+                        currentDID["message"] = "Signatures in log don't match"
+                        return currentDID
                     end
                 end
                 currentDID["did"] = doc_did
@@ -353,7 +370,10 @@ class Oydid
                 did_hash = doc_did.delete_prefix("did:oyd:")
                 did_hash = did_hash.split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first
                 did10 = did_hash[0,10]
-                doc = retrieve_document_raw(doc_did, did10 + ".doc", doc_location, {})
+                # pass options through: without them options[:local_store] is lost
+                # and the lookup falls back to HTTP against DEFAULT_LOCATION, which
+                # breaks every in-process caller that keeps its DIDs locally
+                doc = retrieve_document_raw(doc_did, did10 + ".doc", doc_location, options)
                 doc = doc.first["doc"]
 
                 if !Oydid.match_log_did?(el, doc)
@@ -479,7 +499,7 @@ class Oydid
                                         next_did_hash = next_doc_did.delete_prefix("did:oyd:")
                                         next_did_hash = next_did_hash.split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first
                                         next_did10 = next_did_hash[0,10]
-                                        next_doc = retrieve_document_raw(next_doc_did, next_did10 + ".doc", next_doc_location, {})
+                                        next_doc = retrieve_document_raw(next_doc_did, next_did10 + ".doc", next_doc_location, options)
                                         if next_doc.first.nil?
                                             currentDID["error"] = 2
                                             currentDID["message"] = next_doc.last

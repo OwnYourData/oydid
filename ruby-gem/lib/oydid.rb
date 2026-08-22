@@ -222,54 +222,98 @@ class Oydid
             ts = options[:ts]
         end
 
-        options[:cmsm2] = false
-        if options[:cmsm]
-            if did_doc["key"].nil?
-                return [nil, nil, nil, "CMSM requires public key"]
-            end
-            cmsm_keys = did_doc["key"].split(':')
-            did_doc.delete("key")
-            if did_doc == {}
-                did_doc = nil
-            end
-            if cmsm_keys.count == 1
-                publicKey = cmsm_keys.first
-                revocationKey, msg = generate_private_key("", options[:key_type]+'-priv', options)
-                pubRevoKey = public_key(revocationKey, options).first
-            else
-                return [nil, nil, nil, "CMSM with multiple keys is not yet supported"]
-            end
+        # signatures collected from the client so far (CMSM only)
+        cmsm_sig_rev = nil
+        cmsm_sig_doc = nil
+        cmsm_sig_create = nil
+        cmsm_log_revoke_old = nil
+        cmsm_resume = options[:cmsm] && options[:cmsm_session].to_s != ""
 
-            # check if information for provided key already exists
-            payload, msg = check_cmsm(publicKey, options)
-            if !payload.nil? && !did_doc.nil? && !did_doc["opt"].nil?
+        if options[:cmsm]
+            # A CMSM flow is identified by a session handle, not by the public
+            # key: the same key may legitimately be reused across flows, and
+            # keying the intermediate data on it made a second flow overwrite
+            # the first one. Absence of a session means "start a new flow".
+            if !cmsm_resume
+                if did_doc["key"].nil?
+                    return [nil, nil, nil, "CMSM requires public key"]
+                end
+                cmsm_keys = did_doc["key"].split(':')
+                did_doc.delete("key")
+                if did_doc == {}
+                    did_doc = nil
+                end
+                case cmsm_keys.count
+                when 2
+                    # both keys are managed by the client - the revocation record
+                    # of the new document has to be signed by the client as well
+                    publicKey = cmsm_keys[0]
+                    pubRevoKey = cmsm_keys[1]
+                    revocationKey = nil
+                when 1
+                    # only the document key is client-managed; the revocation key
+                    # is generated here and stays with this process
+                    publicKey = cmsm_keys[0]
+                    revocationKey, msg = generate_private_key("", options[:key_type]+'-priv', options)
+                    if revocationKey.nil?
+                        return [nil, nil, nil, "cannot generate revocation key: " + msg.to_s]
+                    end
+                    pubRevoKey = public_key(revocationKey, options).first
+                else
+                    return [nil, nil, nil, "CMSM accepts at most two public keys"]
+                end
+            else
+                # continue a persisted flow: the request carries the session and
+                # exactly one new signature, which fills the next open slot
+                incoming_sig = options[:sig]
+                if incoming_sig.to_s == ""
+                    incoming_sig = did_doc["opt"]["sig"] rescue nil
+                end
+                if incoming_sig.to_s == ""
+                    return [nil, nil, nil, "missing signature in CMSM flow (sig)"]
+                end
+
+                payload, msg = check_cmsm(options[:cmsm_session], options)
+                if payload.nil?
+                    if msg.to_s == ""
+                        msg = "unknown or expired CMSM session"
+                    end
+                    return [nil, nil, nil, msg]
+                end
                 if payload.is_a?(String)
                     payload = JSON.parse(payload) rescue nil
                 end
                 if payload.nil?
                     return [nil, nil, nil, "invalid persisted data in CMSM flow"]
                 end
-                did_doc = JSON.parse(did_doc.to_json)
-                if did_doc["opt"].nil?
-                    if options[:sig].nil?
-                        return [nil, nil, nil, "1missing signature in CMSM flow (sig)"]
-                    end
-                    l2_sig = options[:sig]
-                else
-                    if did_doc["opt"]["sig"].nil?
-                        return [nil, nil, nil, "2missing signature in CMSM flow (sig)"]
-                    end
-                    l2_sig = did_doc["opt"]["sig"]
-                end
+                payload = payload.transform_keys(&:to_s)
 
-                options[:cmsm2] = true
-                privateKey = nil
-
+                privateKey    = nil
+                publicKey     = payload["publicKey"]
+                pubRevoKey    = payload["pubRevoKey"]
                 revocationKey = payload["revocationKey"]
-                did_doc = payload["did_doc"]
-                did_key = payload["did_key"]
-                l2_doc = payload["l2_doc"]
-                r1 = payload["r1"]
+                did_doc       = payload["did_doc"]
+                cmsm_sig_rev    = payload["sig_rev"]
+                cmsm_sig_doc    = payload["sig_doc"]
+                cmsm_sig_create = payload["sig_create"]
+                # the update context is only sent in phase 1
+                if !payload["log_revoke_old"].nil?
+                    options[:log_revoke_old] = payload["log_revoke_old"]
+                end
+                # the timestamp and the location are part of every hash in the
+                # flow and must not be recomputed per phase
+                ts            = payload["ts"].to_i
+                doc_location  = payload["doc_location"]
+
+                if revocationKey.to_s == "" && cmsm_sig_rev.to_s == ""
+                    cmsm_sig_rev = incoming_sig
+                elsif cmsm_sig_doc.to_s == ""
+                    cmsm_sig_doc = incoming_sig
+                elsif cmsm_sig_create.to_s == ""
+                    cmsm_sig_create = incoming_sig
+                else
+                    return [nil, nil, nil, "CMSM session is already complete"]
+                end
             end
         else
             # key management
@@ -322,6 +366,27 @@ class Oydid
             log_old = did_info["log"]
 
             # check if provided old keys are native DID keys or delegates ==================
+            if options[:cmsm]
+                # The old private keys are with the client, so nothing can be
+                # derived from them here. The old public keys come from the DID
+                # document just resolved, and the revocation record of the current
+                # document is supplied by the client - it received that record when
+                # the DID was created or last updated. Rebuilding it here is not
+                # possible: it needs a signature by the old revocation key.
+                old_privateKey = nil
+                old_revocationKey = nil
+                old_did_key = did_info["doc"]["key"].to_s
+                old_publicDocKey = old_did_key.split(":").first.to_s
+                old_publicRevKey = old_did_key.split(":").last.to_s
+
+                verified, vmsg = verify_revocation_log(did_info, options[:log_revoke_old],
+                                                       "log_revoke_old", options)
+                if verified.nil?
+                    return [nil, nil, nil, vmsg]
+                end
+                revocationLog = verified.to_json
+                cmsm_log_revoke_old = verified
+            else
             tmp_old_doc_did10 = did10_old + "_private_key.enc" rescue ""
             old_privateKey, msg = getPrivateKey(options[:old_doc_enc], options[:old_doc_pwd], options[:old_doc_key], tmp_old_doc_did10, options)
             tmp_old_rev_did10 = did10_old + "_revocation_key.enc" rescue ""
@@ -375,6 +440,7 @@ class Oydid
                     return [nil, nil, nil, "cannot decrypt revocation log entry: " + msg]
                 end
             end # compare old keys with existing DID Document
+            end # CMSM or self-managed
 
             revoc_log = JSON.parse(revocationLog)
             revoc_log["previous"] = [
@@ -383,13 +449,15 @@ class Oydid
             ]
             prev_hash = [multi_hash(canonical(revoc_log), LOG_HASH_OPTIONS).first]
         end
-        if !options[:cmsm2]
-            if !options[:cmsm]
-                publicKey = public_key(privateKey, options).first
-                pubRevoKey = public_key(revocationKey, options).first
-            end
-            did_key = publicKey + ":" + pubRevoKey
+        if !options[:cmsm]
+            publicKey = public_key(privateKey, options).first
+            pubRevoKey = public_key(revocationKey, options).first
+        end
+        did_key = publicKey + ":" + pubRevoKey
 
+        # the document is assembled once, in the first phase of a CMSM flow -
+        # afterwards it comes back from the session unchanged
+        if !cmsm_resume
             if options[:keyAgreement]
                 if did_doc.nil?
                     did_doc = {}
@@ -415,44 +483,52 @@ class Oydid
                 did_doc[:authentication] = ["#key-doc"]
                 did_doc = did_doc.transform_keys(&:to_s)
             end
+        end
 
-            # build new revocation document
-            subDid = {"doc": did_doc, "key": did_key}.to_json
-            retVal = multi_hash(canonical(subDid), LOG_HASH_OPTIONS)
-            if retVal.first.nil?
-                return [nil, nil, nil, retVal.last]
-            end
-            subDidHash = retVal.first
+        # build new revocation document
+        subDid = {"doc": did_doc, "key": did_key}.to_json
+        retVal = multi_hash(canonical(subDid), LOG_HASH_OPTIONS)
+        if retVal.first.nil?
+            return [nil, nil, nil, retVal.last]
+        end
+        subDidHash = retVal.first
+
+        if options[:cmsm] && revocationKey.to_s == "" && cmsm_sig_rev.to_s == ""
+            # the revocation key is managed by the client, so the revocation
+            # record of the new document has to be signed there. Its signature
+            # feeds into r1 and thus into every later hash, which is why this
+            # cannot be asked for together with the document-key signature.
+            return cmsm_challenge(subDidHash, "key-rev", cmsm_state(publicKey,
+                                  pubRevoKey, revocationKey, did_doc, ts, doc_location,
+                                  cmsm_sig_rev, cmsm_sig_doc, cmsm_sig_create,
+                                  did_old, cmsm_log_revoke_old), options)
+        end
+
+        if revocationKey.to_s == ""
+            signedSubDidHash = cmsm_sig_rev
+        else
             signedSubDidHash = sign(subDidHash, revocationKey, LOG_HASH_OPTIONS).first
-            r1 = { "ts": ts,
-                   "op": 1, # REVOKE
-                   "doc": subDidHash,
-                   "sig": signedSubDidHash }.transform_keys(&:to_s)
+        end
+        r1 = { "ts": ts,
+               "op": 1, # REVOKE
+               "doc": subDidHash,
+               "sig": signedSubDidHash }.transform_keys(&:to_s)
 
-            # build termination log entry
-            l2_doc = multi_hash(canonical(r1), LOG_HASH_OPTIONS).first
-            if !doc_location.nil?
-                l2_doc += LOCATION_PREFIX + doc_location.to_s
+        # build termination log entry
+        l2_doc = multi_hash(canonical(r1), LOG_HASH_OPTIONS).first
+        if !doc_location.nil?
+            l2_doc += LOCATION_PREFIX + doc_location.to_s
+        end
+
+        if options[:cmsm]
+            if cmsm_sig_doc.to_s == ""
+                return cmsm_challenge(l2_doc, "key-doc", cmsm_state(publicKey,
+                                      pubRevoKey, revocationKey, did_doc, ts, doc_location,
+                                      cmsm_sig_rev, cmsm_sig_doc, cmsm_sig_create,
+                                  did_old, cmsm_log_revoke_old), options)
             end
-
-            if options[:cmsm]
-                # persist data
-                payload = {
-                    revocationKey: revocationKey,
-                    did_doc: did_doc,
-                    did_key: did_key,
-                    l2_doc: l2_doc,
-                    r1: r1
-                }
-                success, msg = persist_cmsm(publicKey, payload, options)
-
-                cmsm_doc = {
-                    cmsm: true,
-                    pk: publicKey,
-                    sign: l2_doc
-                }
-                return [cmsm_doc, nil, r1, "cmsm"]
-            end
+            l2_sig = cmsm_sig_doc
+        else
             l2_sig = sign(l2_doc, privateKey, options).first
         end
 
@@ -503,7 +579,17 @@ class Oydid
         log_revoke_encrypted_array = nil
         l1_sig = nil
         if operation_mode == 3 # UPDATE
-            if !options[:cmsm]
+            if options[:cmsm]
+                if cmsm_sig_create.to_s == ""
+                    # the transition has to be authorised by the key of the
+                    # document being replaced, not by the new one
+                    return cmsm_challenge(l1_doc, "key-doc-old", cmsm_state(publicKey,
+                                          pubRevoKey, revocationKey, did_doc, ts, doc_location,
+                                          cmsm_sig_rev, cmsm_sig_doc, cmsm_sig_create,
+                                          did_old, cmsm_log_revoke_old), options)
+                end
+                l1_sig = cmsm_sig_create
+            else
                 l1_sig = sign(l1_doc, old_privateKey, options).first
             end
             l1 = { "ts": ts,
@@ -525,7 +611,18 @@ class Oydid
                 end
             end unless options[:confirm_logs].nil?
         else
-            if !options[:cmsm]
+            if options[:cmsm]
+                if cmsm_sig_create.to_s == ""
+                    # l1_doc is only known once the TERMINATE entry is signed, so
+                    # the CREATE signature cannot be collected any earlier. Without
+                    # this phase the CREATE log entry would stay unsigned.
+                    return cmsm_challenge(l1_doc, "key-doc", cmsm_state(publicKey,
+                                          pubRevoKey, revocationKey, did_doc, ts, doc_location,
+                                          cmsm_sig_rev, cmsm_sig_doc, cmsm_sig_create,
+                                  did_old, cmsm_log_revoke_old), options)
+                end
+                l1_sig = cmsm_sig_create
+            else
                 l1_sig = sign(l1_doc, privateKey, options).first
             end
             l1 = { "ts": ts,
@@ -612,12 +709,118 @@ class Oydid
 
     end
 
-    def self.persist_cmsm(pubkey, payload, options)
+    # Verify a revocation record supplied by a client against the DID it claims
+    # to revoke. Used wherever the private revocation key is not available here:
+    # a CMSM update (revoking the document being replaced) and a client-managed
+    # deactivation.
+    #
+    # Three things have to line up, and the third is the strict one: the hash of
+    # the record is committed in the TERMINATE entry of the current document, so
+    # a record from any other DID - or a re-signed one that happens to differ -
+    # cannot pass.
+    #
+    # Returns the normalised record (without "previous") or [nil, message].
+    def self.verify_revocation_log(did_info, log_revoke, field, options = {})
+        record = log_revoke
+        record = (JSON.parse(record) rescue nil) if record.is_a?(String)
+        record = record.transform_keys(&:to_s) if record.is_a?(Hash)
+        if !record.is_a?(Hash)
+            return [nil, "missing revocation record (" + field + ")"]
+        end
+
+        did_key = did_info["doc"]["key"].to_s
+        pubRevKey = did_key.split(":").last.to_s
+        subDid = {"doc": did_info["doc"]["doc"], "key": did_key}.to_json
+        subDidHash = multi_hash(canonical(subDid), LOG_HASH_OPTIONS).first
+
+        if record["doc"].to_s != subDidHash.to_s
+            return [nil, field + " does not match the current DID document"]
+        end
+        sig_ok, _msg = verify(subDidHash, record["sig"].to_s, pubRevKey)
+        if !sig_ok
+            return [nil, "invalid signature in " + field]
+        end
+
+        normalised = { "ts" => record["ts"],
+                       "op" => 1, # REVOKE
+                       "doc" => subDidHash,
+                       "sig" => record["sig"] }
+
+        termination_doc = did_info["log"][did_info["termination_log_id"].to_i]["doc"].to_s
+        termination_doc = termination_doc.split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first
+        if termination_doc != multi_hash(canonical(normalised.to_json), LOG_HASH_OPTIONS).first
+            return [nil, field + " does not match the TERMINATE entry of the current document"]
+        end
+
+        [normalised, ""]
+    end
+
+    # link a verified revocation record into the log of the DID it revokes
+    def self.link_revocation_log(record, did_info)
+        log_old = did_info["log"]
+        record = record.dup
+        record["previous"] = [
+            multi_hash(canonical(log_old[did_info["doc_log_id"].to_i]), LOG_HASH_OPTIONS).first,
+            multi_hash(canonical(log_old[did_info["termination_log_id"].to_i]), LOG_HASH_OPTIONS).first
+        ]
+        record
+    end
+
+    # state of a CMSM flow that has to survive between phases. Deliberately only
+    # inputs and collected signatures - no derived hashes: every phase recomputes
+    # r1 / l2_doc / the DID from these values, so there is nothing to keep in sync.
+    def self.cmsm_state(publicKey, pubRevoKey, revocationKey, did_doc, ts, doc_location, sig_rev, sig_doc, sig_create, did_old = nil, log_revoke_old = nil)
+        {
+            publicKey: publicKey,
+            pubRevoKey: pubRevoKey,
+            revocationKey: revocationKey,
+            did_doc: did_doc,
+            ts: ts,
+            doc_location: doc_location,
+            sig_rev: sig_rev,
+            sig_doc: sig_doc,
+            # signature over l1_doc: the CREATE entry on create, the UPDATE entry
+            # on update - the latter is signed with the OLD document key
+            sig_create: sig_create,
+            # update only: which DID is being replaced, and the revocation record
+            # of its current document (supplied by the client in phase 1)
+            did_old: did_old,
+            log_revoke_old: log_revoke_old
+        }
+    end
+
+    # persist the state of a CMSM flow and return the next challenge: the value
+    # the client has to sign, and which of its keys it has to sign it with
+    def self.cmsm_challenge(value, with, state, options)
+        session, msg = persist_cmsm(options[:cmsm_session], state, options)
+        if session.nil?
+            return [nil, nil, nil, msg]
+        end
+        collected = [state[:sig_rev], state[:sig_doc], state[:sig_create]].count { |sig| sig.to_s != "" }
+        cmsm_doc = {
+            cmsm: true,
+            session: session,
+            phase: collected + 1,
+            pk: state[:publicKey],
+            sign: value,
+            with: with
+        }
+        return [cmsm_doc, nil, nil, "cmsm"]
+    end
+
+    # persist the intermediate data of a CMSM flow and return the session handle
+    # it is stored under. A blank session starts a new flow; the handle is
+    # generated here so that the local and the remote store behave identically.
+    def self.persist_cmsm(session, payload, options)
+        if session.to_s == ""
+            session = "cmsm-" + SecureRandom.hex(8)
+        end
+
         # in-process callers can supply a store object (responding to
-        # #set(pubkey, payload)) to persist CMSM data in a local database
+        # #set(session, payload)) to persist CMSM data in a local database
         if options[:cmsm_store]
-            options[:cmsm_store].set(pubkey, payload)
-            return [true, ""]
+            options[:cmsm_store].set(session, payload)
+            return [session, ""]
         end
 
         doc_location = options[:doc_location]
@@ -627,7 +830,8 @@ class Oydid
         doc_location = doc_location.sub("%3A%2F%2F","://").sub("%3A", ":")
 
         my_body = {
-            pubkey: pubkey,
+            session: session,
+            pubkey: payload[:publicKey] || payload["publicKey"],
             payload: payload.to_json
         }
         case doc_location.to_s
@@ -638,22 +842,22 @@ class Oydid
                 body: my_body.to_json )
             if retVal.code != 200
                 err_msg = retVal.parsed_response("error").to_s rescue "invalid response from " + doc_location.to_s + "/cmsm"
-                return [false, err_msg]
+                return [nil, err_msg]
             end
         else
             return [nil, "location not supported for persisting data in cmsm-flow"]
         end
-        return [true, ""]
+        return [session, ""]
 
     end
 
-    def self.check_cmsm(pubkey, options)
+    def self.check_cmsm(session, options)
         # in-process callers can supply a store object (responding to
-        # #get(pubkey)) to read CMSM data from a local database
+        # #get(session)) to read CMSM data from a local database
         if options[:cmsm_store]
-            payload = options[:cmsm_store].get(pubkey)
+            payload = options[:cmsm_store].get(session)
             if payload.nil?
-                return [nil, "no persisted CMSM data for key"]
+                return [nil, "unknown or expired CMSM session"]
             end
             payload = payload.transform_keys(&:to_s) if payload.is_a?(Hash)
             return [payload, ""]
@@ -667,11 +871,11 @@ class Oydid
 
         case doc_location.to_s
         when /^http/
-            retVal = HTTParty.get(doc_location + "/cmsm/" + pubkey)
+            retVal = HTTParty.get(doc_location + "/cmsm/" + session.to_s)
             if retVal.code != 200
                 msg = retVal.parsed_response["error"].to_s rescue ""
                 if msg.to_s == ""
-                    msg = "invalid response from " + doc_location.to_s + "/cmsm/" + pubkey.to_s
+                    msg = "invalid response from " + doc_location.to_s + "/cmsm/" + session.to_s
                 end
                 return [nil, msg]
             end

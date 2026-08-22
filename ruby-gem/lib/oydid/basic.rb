@@ -1279,6 +1279,19 @@ class Oydid
         doc_hash = doc_hash.split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first rescue doc_hash
         doc_hash = doc_hash.delete_prefix("did:oyd:")
 
+        # in-process callers (e.g. a repository holding DIDs in its own database)
+        # can supply a store object responding to #get(doc_hash) that returns
+        # {"doc" => <did document>, "log" => [<log entries>]} or nil. Unlike
+        # options[:local_doc] this resolves *per hash*: dag_update walks several
+        # different documents along an update chain, so a single document must
+        # not be handed back for every hash it asks for.
+        if options[:local_store]
+            local_obj = options[:local_store].get(doc_hash)
+            if !local_obj.nil?
+                return [local_obj, ""]
+            end
+        end
+
         if doc_location == ""
             doc_location = DEFAULT_LOCATION
         end
