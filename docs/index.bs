@@ -55,7 +55,7 @@ The rest of this document outlines the syntax for the `did:oyd` method, the oper
 The `did:oyd` Format {#format}
 ====================
 
-The format for the `did:oyd` method conforms to the DID core specification [[DID-CORE]] as outlined by W3C. It consists of the `did:oyd` prefix, followed by a Multibase [[MULTIBASE]] (default: `base58-btc`) encoded value that is a Multihash [[MULTIHASH]] (default: `sha2-256`) value of composed of information from the payload, keys, and log.
+The format for the `did:oyd` method conforms to the DID core specification [[DID-CORE]] as outlined by W3C. It consists of the `did:oyd` prefix, followed by a Multibase [[MULTIBASE]] (default: `base58-btc`) encoded value that is a Multihash [[MULTIHASH]] (default: `sha2-256`) value of composed of information from the payload, keys, and log. The digest algorithms an implementation has to recognise, and the codes identifying them, are listed in [[#digests]].
 
 The detailed calculation of the DID identifier from the internal document and log information via ABNF is described here:
 
@@ -444,6 +444,64 @@ Revocation reference in log record: zQmdAyJZ3P1LEn8Ldc8fwGC3jv2fT9r2tRjmU2wZfmJS
 ```
 </div>
 
+### Digest Algorithms ### {#digests}
+
+Every hash value in OYDID is a Multihash [[MULTIHASH]]: a one byte code identifying
+the digest algorithm, a one byte digest length, and the digest itself. The
+following algorithms are supported, with `sha2-256` as the default.
+
+<table class="data">
+<thead>
+<tr><th>algorithm<th>digest size<th>code<th>identifier length
+<tbody>
+<tr><td>`sha2-256`<td>32 bytes<td>`0x12`<td>47
+<tr><td>`sha2-512`<td>64 bytes<td>`0x13`<td>91
+<tr><td>`sha3-224`<td>28 bytes<td>`0x17`<td>42
+<tr><td>`sha3-256`<td>32 bytes<td>`0x16`<td>47
+<tr><td>`sha3-384`<td>48 bytes<td>`0x15`<td>69
+<tr><td>`sha3-512`<td>64 bytes<td>`0x14`<td>91
+<tr><td>`blake2b-16`<td>16 bytes<td>`0x02`<td>25
+<tr><td>`blake2b-17`<td>17 bytes<td>`0x0B` †<td>27
+<tr><td>`blake2b-18`<td>18 bytes<td>`0x0C` †<td>28
+<tr><td>`blake2b-19`<td>19 bytes<td>`0x0D` †<td>29
+<tr><td>`blake2b-20`<td>20 bytes<td>`0x0E` †<td>31
+<tr><td>`blake2b-21`<td>21 bytes<td>`0x0F` †<td>32
+<tr><td>`blake2b-22`<td>22 bytes<td>`0x10` †<td>34
+<tr><td>`blake2b-23`<td>23 bytes<td>`0x11` †<td>35
+<tr><td>`blake2b-32`<td>32 bytes<td>`0x04`<td>47
+<tr><td>`blake2b-64`<td>64 bytes<td>`0x08`<td>91
+</table>
+
+The identifier length is the maximum length of the base58btc encoded Multihash. A
+complete DID is 8 characters longer because of the `did:oyd:` prefix.
+
+**Naming.** The BLAKE2b algorithms are named by digest size in *bytes*, not in
+bits. This deviates from the Multicodec registry, where `blake2b-256` denotes a
+256 bit digest, and follows the naming OYDID has used for `blake2b-16`,
+`blake2b-32` and `blake2b-64` since its first release.
+
+**Codes marked †** are specific to this DID method and MUST NOT be looked up in
+the Multicodec registry. OYDID writes the algorithm code as a single byte, while
+the registry assigns BLAKE2b two byte codes; truncated to their low byte these
+collide with SHA codes already in use — `0xb212` (BLAKE2b, 18 bytes) would become
+`0x12`, which is `sha2-256`. The intermediate sizes therefore use the otherwise
+unassigned range `0x0B` to `0x11`, where the code is the digest size in bytes
+minus six. Keeping these codes low and one byte wide also keeps the identifier
+short, because the leading byte enters the base58btc encoding.
+
+Note: `0x11` is `sha1` in the Multicodec registry. OYDID never produces `sha1`
+digests, and the two cannot be confused because the length byte distinguishes
+them — a `sha1` digest is always 20 bytes, a `blake2b-23` digest always 23. An
+implementation MUST verify the length byte before resolving a code from the
+range above.
+
+The intermediate sizes exist for deployments that have to carry a `did:oyd`
+inside a length-constrained URL. The EU Digital Product Passport registry, for
+instance, limits that URL to 50 characters, which a 55 character `sha2-256`
+identifier cannot meet, while `blake2b-16` offers only 128 bits of digest —
+too little for a document expected to remain verifiable for decades.
+
+
 ### Hash value calculation ### {#calculate_hash}
 
 Perform the following steps to verify that a hash value conforms to a message:
@@ -452,9 +510,13 @@ Perform the following steps to verify that a hash value conforms to a message:
     you can use the information here: [https://github.com/multiformats/multibase](https://github.com/multiformats/multibase)<br>
     example: if the string starts with "z" it is base58btc-encoding
 
-2. identify hashing algorithm in multibase string (second & third character)<br>
-    you can use the information here: [https://github.com/multiformats/multicodec#multicodec-table](https://github.com/multiformats/multicodec#multicodec-table)<br>
-    example: if the string starts with "zQm" it is the sha2-256 hash algorithm
+2. decode the multibase string and identify the hashing algorithm from the first
+    byte of the resulting Multihash, verifying it against the second byte holding
+    the digest length<br>
+    the codes are listed in [[#digests]]; the BLAKE2b codes for 17 to 23 byte
+    digests are specific to this method and are not part of the
+    [Multicodec table](https://github.com/multiformats/multicodec#multicodec-table)<br>
+    example: a value starting with "zQm" decodes to code `0x12`, the sha2-256 hash algorithm
 
 3. if the message is a JSON is must be transformed to its canonical form based on this standard: 
     [https://datatracker.ietf.org/doc/html/rfc8785](https://datatracker.ietf.org/doc/html/rfc8785) 
