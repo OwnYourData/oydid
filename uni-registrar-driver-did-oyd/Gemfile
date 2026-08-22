@@ -8,7 +8,7 @@ gem 'puma'
 gem 'rack-cors', ">= 1.0.4", require: 'rack/cors'
 gem 'responders'
 gem 'bootsnap'
-gem 'oydid', '~> 0.7.0'
+gem 'oydid', '~> 0.8.0'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
