@@ -280,39 +280,16 @@ class ProvidersController < ApplicationController
         options[:local_store] = LocalDidStore.new
         options[:key_type] = key_type_for(old_doc, options[:key_type])
 
-        if !options[:log_revoke].nil?
-            # Client-managed deactivation: the caller supplies the revocation
-            # record it kept from creating or updating the DID. It used to be
-            # stored unchecked - anything could be written into the log that way.
-            # Now it has to match the current document, verify against the
-            # revocation key in it, and hash to what the TERMINATE entry
-            # committed. A record that cannot be re-signed (a secure element
-            # rarely signs deterministically) is therefore the only one that
-            # works - which is why clients must keep it.
-            did_info, read_msg = Oydid.read(did, options)
-            if did_info.nil? || did_info["error"] != 0
-                render json: {"error": (did_info.nil? ? read_msg : did_info["message"]).to_s},
-                       status: 400
-                return
-            end
-            revoc_log, verify_msg = Oydid.verify_revocation_log(did_info, options[:log_revoke],
-                                                                "log_revoke", options)
-            if revoc_log.nil?
-                render json: {"error": verify_msg},
-                       status: 400
-                return
-            end
-            # without previous the entry is an orphan the DAG cannot link
-            revoc_log = Oydid.link_revocation_log(revoc_log, did_info)
-        else
-            # with skip_publish the gem returns the revocation log entry instead
-            # of publishing it, so we can persist it locally
-            revoc_log, msg = Oydid.revoke(did, options)
-            if revoc_log.nil?
-                render json: {"error": msg},
-                       status: 500
-                return
-            end
+        # With skip_publish the gem returns the revocation log entry instead of
+        # publishing it, so it can be persisted locally. Both modes go through
+        # here: with the controller keys from `secret`, or - when the client
+        # holds them and cannot sign here - with the record it kept, which the
+        # gem verifies against the current document before handing it back.
+        revoc_log, msg = Oydid.revoke(did, options)
+        if revoc_log.nil?
+            render json: {"error": msg},
+                   status: client_error?(msg) ? 400 : 500
+            return
         end
 
         ok, store_msg = local_store_did(local_identifier(did), old_doc, [revoc_log])
@@ -441,11 +418,12 @@ class ProvidersController < ApplicationController
     def client_error?(msg)
         msg = msg.to_s
         return true if CLIENT_ERRORS.include?(msg)
-        # anything the gem reports about a CMSM input or about the revocation
+        # anything the gem reports about a CMSM input or about a revocation
         # record supplied by the client is a bad request, not a server fault.
-        # Matching on the text rather than on a fixed list keeps this working
-        # when the gem gains further messages.
-        msg.start_with?("CMSM ") || msg.include?("log_revoke_old")
+        # "log_revoke" covers "log_revoke_old" as well. Matching on the text
+        # rather than on a fixed list keeps this working when the gem gains
+        # further messages.
+        msg.start_with?("CMSM ") || msg.include?("log_revoke")
     end
 
     # curve used for keys generated during an update/deactivate. The gem needs
