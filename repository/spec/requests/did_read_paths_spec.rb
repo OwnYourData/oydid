@@ -217,6 +217,27 @@ RSpec.describe "DID read paths and revocation", type: :request do
       # the result is written with textContent, never innerHTML
       expect(response.body).not_to include("innerHTML")
     end
+
+    it "renders the list of other DID resolvers server-side" do
+      get "/"
+      expect(response.body).to include("Other DID Resolvers")
+      ApplicationController::OTHER_RESOLVERS.each do |r|
+        expect(response.body).to include(r[:url])
+        expect(response.body).to include(r[:name])
+        expect(response.body).to include(CGI.escapeHTML(r[:description]))
+      end
+      # external links must not hand over the opener
+      expect(response.body.scan(/target="_blank"/).size)
+        .to eq(response.body.scan(/rel="noopener noreferrer"/).size)
+    end
+
+    it "keeps the resolver list usable without JavaScript" do
+      get "/"
+      # the block is part of the markup and only hidden by script after a
+      # successful resolution - it must not start out as display:none
+      expect(response.body).to match(/<div id="resolvers">/)
+      expect(response.body).not_to match(/#resolvers\s*\{[^}]*display:\s*none/)
+    end
   end
 
   describe "unknown identifier" do

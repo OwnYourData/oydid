@@ -44,6 +44,29 @@ class ApplicationController < ActionController::API
 
     RESOLVER_EXAMPLE_DID = "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"
 
+    # Resolvers covering DID methods this service does not handle. Replace this
+    # constant with a fetch once a maintained list is published externally - the
+    # markup below only needs :url, :name and :description.
+    OTHER_RESOLVERS = [
+        { url:         "https://uniresolver.io/",
+          name:        "uniresolver.io",
+          description: "Universal Resolver operated by Godiddy" },
+        { url:         "https://resolver.identity.foundation/",
+          name:        "resolver.identity.foundation",
+          description: "Universal Resolver hosted by the Decentralized Identity Foundation" },
+        { url:         "https://resolver.archon.technology/",
+          name:        "resolver.archon.technology",
+          description: "Universal Resolver instance" }
+    ]
+
+    def other_resolvers_html
+        OTHER_RESOLVERS.map do |r|
+            '<li><a href="' + CGI.escapeHTML(r[:url]) + '" target="_blank" rel="noopener noreferrer">' +
+            CGI.escapeHTML(r[:name]) + '</a> <span class="desc">&ndash; ' +
+            CGI.escapeHTML(r[:description]) + '</span></li>'
+        end.join("\n                ")
+    end
+
     # Start page with a did:oyd resolver. uniresolver.io no longer serves
     # did:oyd, so this offers the same resolution result (didDocument +
     # didResolutionMetadata + didDocumentMetadata) directly from this repository.
@@ -84,6 +107,14 @@ class ApplicationController < ActionController::API
             .box.err { display: block; background: #fdecea; border: 1px solid #f5c2bd; color: #8a1c11; }
             .box.ok  { display: block; background: #eef7ee; border: 1px solid #c3e2c4; color: #1f5124; }
             #result { display: none; }
+            #resolvers { margin: 1.75rem 0 0; padding: 1rem 1.1rem 1.05rem;
+                         border: 1px solid #e1e4e8; border-radius: 8px; background: #f7f8fa; }
+            #resolvers h2 { margin: 0 0 .3rem; font-size: 1rem; }
+            #resolvers .lead { margin: 0 0 .5rem; font-size: .88rem; color: #6b7076; }
+            #resolvers ul { margin: 0; padding-left: 1.25rem; }
+            #resolvers li { margin: .3rem 0; font-size: .9rem; }
+            #resolvers a { font-weight: 600; }
+            #resolvers .desc { color: #6b7076; }
             pre { margin: 0; padding: .85rem; overflow-x: auto; border: 1px solid #e1e4e8;
                   border-radius: 6px; background: #f7f8fa; font-size: .82rem; line-height: 1.45;
                   font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
@@ -94,6 +125,8 @@ class ApplicationController < ActionController::API
               body { background: #16181c; color: #e5e7eb; }
               input[type=text] { background: #1f2229; border-color: #3a3f47; }
               pre { background: #1b1e24; border-color: #3a3f47; }
+              #resolvers { background: #1b1e24; border-color: #3a3f47; }
+              #resolvers .lead, #resolvers .desc { color: #9aa1a9; }
               footer { border-color: #3a3f47; }
               .sub, .hint { color: #9aa1a9; }
               .box.err { background: #3a1d1a; border-color: #6b2f28; color: #f7b3ac; }
@@ -116,6 +149,14 @@ class ApplicationController < ActionController::API
                another repository (<code>&lt;did&gt;@&lt;location&gt;</code>) are resolved as well.</p>
 
             <div id="status" class="box"></div>
+
+            <div id="resolvers">
+              <h2>Other DID Resolvers</h2>
+              <p class="lead"><span id="rlead">This service resolves <code>did:oyd</code> only. </span>These resolvers support further DID methods:</p>
+              <ul>
+                #{other_resolvers_html}
+              </ul>
+            </div>
 
             <div id="result">
               <h2>DID Document</h2>
@@ -145,6 +186,8 @@ class ApplicationController < ActionController::API
                 go = document.getElementById('go'),
                 statusBox = document.getElementById('status'),
                 result = document.getElementById('result'),
+                resolvers = document.getElementById('resolvers'),
+                rlead = document.getElementById('rlead'),
                 out = { doc: document.getElementById('doc'),
                         resmeta: document.getElementById('resmeta'),
                         docmeta: document.getElementById('docmeta') };
@@ -159,10 +202,28 @@ class ApplicationController < ActionController::API
               statusBox.textContent = msg;
             }
 
+            // the resolver list stays up as long as nothing has been resolved
+            function listResolvers(showList, foreignMethod) {
+              resolvers.style.display = showList ? 'block' : 'none';
+              rlead.style.display = foreignMethod ? 'none' : 'inline';
+            }
+
             function resolve(did) {
               did = (did || '').trim();
               if (!did) { return; }
-              if (did.indexOf('did:oyd:') !== 0) { did = 'did:oyd:' + did.replace(/^did:[^:]+:/, ''); }
+
+              // a bare identifier is taken as did:oyd; an explicit foreign method
+              // is reported instead of being silently rewritten
+              var m = /^did:([a-zA-Z0-9]+):/.exec(did);
+              if (m && m[1].toLowerCase() !== 'oyd') {
+                input.value = did;
+                result.style.display = 'none';
+                show('err', 'The DID method did:' + m[1].toLowerCase() +
+                            ' is not supported by this resolver - it resolves did:oyd only.');
+                listResolvers(true, true);
+                return;
+              }
+              if (did.indexOf('did:oyd:') !== 0) { did = 'did:oyd:' + did.replace(/^did:/, ''); }
               input.value = did;
               if (decodeURIComponent(location.hash.slice(1)) !== did) {
                 history.replaceState(null, '', '#' + did);
@@ -181,6 +242,7 @@ class ApplicationController < ActionController::API
                     out.resmeta.textContent = JSON.stringify(res.b.didResolutionMetadata, null, 2);
                     out.docmeta.textContent = JSON.stringify(res.b.didDocumentMetadata, null, 2);
                     result.style.display = 'block';
+                    listResolvers(false, false);
                     show('ok', 'Resolved successfully.');
                   } else if (res.s === 410) {
                     show('err', 'This DID has been revoked (HTTP 410). No DID Document is served for it.');
@@ -189,8 +251,9 @@ class ApplicationController < ActionController::API
                   } else {
                     show('err', 'Resolution failed (HTTP ' + res.s + '): ' + ((res.b && res.b.error) || 'unknown error'));
                   }
+                  if (res.s !== 200) { listResolvers(true, false); }
                 })
-                .catch(function (e) { show('err', 'Request failed: ' + e.message); })
+                .catch(function (e) { show('err', 'Request failed: ' + e.message); listResolvers(true, false); })
                 .then(function () { go.disabled = false; });
             }
 
