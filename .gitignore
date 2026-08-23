@@ -93,3 +93,10 @@ uniresolver-plugin/log/*
 !uniresolver-plugin/log/.keep
 uni-registrar-driver-did-oyd/log/*
 !uni-registrar-driver-did-oyd/log/.keep
+
+# Rails databases of the repository service (production runs on Postgres)
+repository/db/*.sqlite3
+repository/db/*.sqlite3-journal
+
+# build.sh --local regenerates this from ruby-gem/pkg
+repository/docker/local-gem/*.gem
