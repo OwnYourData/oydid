@@ -206,6 +206,67 @@ RSpec.describe "DID read paths and revocation", type: :request do
     end
   end
 
+  # /1.0/identifiers/ answers in two shapes. The bare DID Document has to stay
+  # the default - that is what every consumer of this endpoint reads today - and
+  # the full resolution result is served only when the client asks for the
+  # did-resolution profile.
+  describe "content negotiation on GET /1.0/identifiers/:did" do
+    let(:profile) { 'application/ld+json;profile="https://w3id.org/did-resolution"' }
+
+    it "serves the full resolution result when the profile is requested" do
+      id = identifier(create_did)
+
+      get "/1.0/identifiers/did:oyd:#{id}", headers: { "Accept" => profile }
+      expect(response).to have_http_status(200)
+      body = JSON.parse(response.body)
+      expect(body.keys).to include("didDocument", "didResolutionMetadata", "didDocumentMetadata")
+      expect(body["didDocument"]["id"]).to eq("did:oyd:#{id}")
+    end
+
+    it "keeps the bare document for a plain Accept header" do
+      id = identifier(create_did)
+
+      get "/1.0/identifiers/did:oyd:#{id}", headers: { "Accept" => "*/*" }
+      expect(response).to have_http_status(200)
+      body = JSON.parse(response.body)
+      expect(body).to have_key("verificationMethod")
+      expect(body).not_to have_key("didDocument")
+    end
+
+    # quoting of the profile value is optional in the wild
+    it "accepts the profile without quotes" do
+      id = identifier(create_did)
+
+      get "/1.0/identifiers/did:oyd:#{id}",
+          headers: { "Accept" => "application/ld+json;profile=https://w3id.org/did-resolution" }
+      expect(response).to have_http_status(200)
+      expect(JSON.parse(response.body)).to have_key("didDocumentMetadata")
+    end
+
+    # without this a cache in front of the endpoint may hand one shape to a
+    # client that asked for the other
+    it "varies on Accept" do
+      id = identifier(create_did)
+
+      get "/1.0/identifiers/did:oyd:#{id}"
+      expect(response.headers["Vary"].to_s).to include("Accept")
+    end
+  end
+
+  # Every update mints a new identifier in did:oyd, so a resolver has to state
+  # which one is current. DID Core does that through didDocumentMetadata.
+  describe "version identifiers in didDocumentMetadata" do
+    it "names the DID itself for a document that was never updated" do
+      id = identifier(create_did)
+
+      get "/1.0/resolve/did:oyd:#{id}"
+      expect(response).to have_http_status(200)
+      meta = JSON.parse(response.body)["didDocumentMetadata"]
+      expect(meta["canonicalId"]).to eq("did:oyd:#{id}")
+      expect(meta).not_to have_key("equivalentId")
+    end
+  end
+
   describe "start page" do
     it "serves the resolver UI and keeps the repository information" do
       get "/"

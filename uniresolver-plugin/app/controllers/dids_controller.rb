@@ -89,7 +89,7 @@ class DidsController < ApplicationController
         when 'ed25519-pub'
             # document key
             keys << {
-                "kid": Oydid.percent_encode("did:oyd:" + result["did"].to_s) + '#key-doc',
+                "kid": Oydid.document_id(result) + '#key-doc',
                 "kms": "local",
                 "type": "Ed25519", 
                 "publicKeyHex": Oydid.multi_decode(result["doc"]["key"].split(":").first).first.unpack('H*').first
@@ -97,7 +97,7 @@ class DidsController < ApplicationController
 
             # revocation key
             keys << {
-                "kid": Oydid.percent_encode("did:oyd:" + result["did"].to_s) + '#key-rev',
+                "kid": Oydid.document_id(result) + '#key-rev',
                 "kms": "local",
                 "type": "Ed25519", 
                 "publicKeyHex": Oydid.multi_decode(result["doc"]["key"].split(":").last).first.unpack('H*').first
@@ -114,7 +114,7 @@ class DidsController < ApplicationController
 
             # document key
             keys << {
-                "kid": Oydid.percent_encode("did:oyd:" + result["did"].to_s) + '#key-doc',
+                "kid": Oydid.document_id(result) + '#key-doc',
                 "kms": "local",
                 "type": "JsonWebKey2020",
                 "publicKeyJwk": pubDocKey_jwk
@@ -122,7 +122,7 @@ class DidsController < ApplicationController
 
             # revocation key
             keys << {
-                "kid": Oydid.percent_encode("did:oyd:" + result["did"].to_s) + '#key-rev',
+                "kid": Oydid.document_id(result) + '#key-rev',
                 "kms": "local",
                 "type": "JsonWebKey2020",
                 "publicKeyJwk": pubRevKey_jwk
@@ -160,11 +160,10 @@ class DidsController < ApplicationController
         #     end
         # end
 
-        if result["did"].to_s.start_with?("did:oyd")
-            did_identifier = Oydid.percent_encode(result["did"].to_s)
-        else
-            did_identifier = Oydid.percent_encode("did:oyd:" + result["did"].to_s)
-        end
+        # the identifier the document carries as `id` - after an update that is
+        # the requested version, not the one the log resolves to; canonicalId
+        # below names the current one
+        did_identifier = Oydid.document_id(result)
         retVal = {
             "didResolutionMetadata": didResolutionMetadata,
             "didDocument": oydid_W3C,
@@ -178,16 +177,14 @@ class DidsController < ApplicationController
                 "termination_log_id": result["termination_log_id"].to_i
             }
         }
-        equivalentIds = []
-        result["log"].each do |log|
-            if log["op"] == 2 || log["op"] == 3
-                equivalentIds << Oydid.percent_encode("did:oyd:" + log["doc"])
-            end
-        end unless result["log"].nil?
-
-        if equivalentIds.length > 1
-            retVal[:didDocumentMetadata][:equivalentId] = equivalentIds
-        end
+        # The version identifiers used to be collected here with a rule of their
+        # own: the current DID ended up in its own equivalentId list, and a DID
+        # with exactly one earlier version reported none at all. Oydid.version_ids
+        # is the single source now, shared with the repository and with the
+        # alsoKnownAs that Oydid.w3c writes into the document itself.
+        canonical_id, equivalent_ids = Oydid.version_ids(result)
+        retVal[:didDocumentMetadata][:canonicalId] = canonical_id
+        retVal[:didDocumentMetadata][:equivalentId] = equivalent_ids if equivalent_ids.any?
 
         # if oydid_W3C["id"].split(":").take(2).join(":") == "did:oyd"
         #     # == temporary fix to handle wrong encoding ==

@@ -7,7 +7,7 @@ include ApplicationHelper
         id = id.split(LOCATION_PREFIX)[0] rescue id
         id = id.delete_prefix("did:oyd:")
 
-        @log = Log.find_by_oyd_hash(id) rescue nil
+        @log = Log.find_by_any_hash(id) rescue nil
         if @log.nil?
             didHash = id
         else
@@ -21,7 +21,7 @@ include ApplicationHelper
 
     def show_item
         id = params[:id]
-        @log = Log.find_by_oyd_hash(id) rescue nil
+        @log = Log.find_by_any_hash(id) rescue nil
         if @log.nil?
             render json: {"error": "not found"},
                    status: 404
@@ -36,10 +36,11 @@ include ApplicationHelper
         did = did.split(LOCATION_PREFIX)[0] rescue did
         did = did.delete_prefix("did:oyd:")
         log_record = params[:log]
-        my_hash = Oydid.multi_hash(Oydid.canonical(log_record.slice("ts","op","doc","sig","previous")), LOG_HASH_OPTIONS).first
-        @exit = Log.find_by_oyd_hash(my_hash) rescue nil
-        if @exit.nil?
-            @log = Log.new(did: did, item: params[:log].to_json, oyd_hash: my_hash, ts: Time.now.to_i)
+        entry_hash, sub_hash = Log.hashes_for(log_record, LOG_HASH_OPTIONS)
+        my_hash = entry_hash
+        if !Log.stored?(entry_hash, sub_hash)
+            @log = Log.new(did: did, item: params[:log].to_json, oyd_hash: entry_hash,
+                           sub_hash: sub_hash, ts: Time.now.to_i)
             if @log.save
                 render json: {"log": my_hash}, 
                        status: 200

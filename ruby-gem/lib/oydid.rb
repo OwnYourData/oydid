@@ -68,8 +68,15 @@ class Oydid
         end
 
         # setup
+        #
+        # did_requested is the identifier the caller asked for. dag_update
+        # overwrites "did" with every version it walks through, so by the time a
+        # DID document is rendered the requested identifier would be lost - and
+        # after an update that is exactly the one a relying party holds, e.g.
+        # printed on a product's data carrier.
         currentDID = {
             "did": did,
+            "did_requested": did,
             "doc": "",
             "log": [],
             "doc_log_id": nil,
@@ -1426,6 +1433,61 @@ class Oydid
         wd
     end
 
+    # Identifiers of every published version of a DID, oldest first.
+    #
+    # A did:oyd is the hash over its own DID document, so every update mints a
+    # new identifier while the earlier ones stay resolvable through the log.
+    # The version reached by traversing the log is the canonical identifier,
+    # every other version identifier is logically equivalent to it - which is
+    # what DID Core expresses as didDocumentMetadata canonicalId/equivalentId.
+    #
+    # This lives in the gem rather than in the resolving controllers because
+    # there are three of them (repository resolve and resolve_full, plus the
+    # uniresolver plugin) and they had drifted into computing this list with
+    # different rules.
+    #
+    # Returns [canonicalId, equivalentIds]; equivalentIds never contains the
+    # identifier the DID document itself carries as `id` (see document_id).
+    def self.version_ids(did_info)
+        canonical = percent_encode(did_info["did"].to_s)
+        if !canonical.start_with?("did:oyd:")
+            canonical = "did:oyd:" + canonical
+        end
+        own = document_id(did_info)
+        equivalentIds = []
+        did_info["log"].each do |log|
+            if log["op"] == 2 || log["op"] == 3
+                eid = percent_encode("did:oyd:" + log["doc"].to_s)
+                if eid != own
+                    equivalentIds << eid
+                end
+            end
+        end unless did_info["log"].nil?
+        [canonical, equivalentIds]
+    end
+
+    # The identifier a resolved DID document carries as `id`.
+    #
+    # A did:oyd is the hash over its own document, so an update mints a new one
+    # and the resolution walks the log to the newest version. Answering with that
+    # newest identifier means a relying party never sees the DID it asked for -
+    # the one on the data carrier, in the credential, in the database. So the
+    # requested identifier is what goes into the document; which version it is
+    # remains readable from didDocumentMetadata canonicalId.
+    #
+    # Callers that build a did_info by hand - the registrar endpoints do, for a
+    # DID that was just created or updated - carry no did_requested and keep
+    # getting the identifier they passed in.
+    def self.document_id(did_info)
+        did = did_info["did_requested"].to_s
+        did = did_info["did"].to_s if did == ""
+        did = percent_encode(did)
+        if !did.start_with?("did:oyd:")
+            did = "did:oyd:" + did
+        end
+        did
+    end
+
     def self.w3c(did_info, options)
         # check if doc is already W3C DID
         is_already_w3c_did = (did_info.transform_keys(&:to_s)["doc"]["doc"].has_key?("@context") &&
@@ -1434,10 +1496,7 @@ class Oydid
         if is_already_w3c_did
             return did_info.transform_keys(&:to_s)["doc"]["doc"]
         end
-        did = percent_encode(did_info["did"])
-        if !did.start_with?("did:oyd:")
-            did = "did:oyd:" + did
-        end
+        did = document_id(did_info)
 
         didDoc = did_info.dup.transform_keys(&:to_s)["doc"]
         pubDocKey = didDoc["key"].split(":")[0] rescue ""
@@ -1568,15 +1627,13 @@ class Oydid
             end
         end
 
-        equivalentIds = []
-        did_info["log"].each do |log|
-            if log["op"] == 2 || log["op"] == 3
-                eid = percent_encode("did:oyd:" + log["doc"])
-                if eid != did
-                    equivalentIds << eid
-                end
-            end
-        end unless did_info["log"].nil?
+        # alsoKnownAs is a statement about the DID *subject*, and DID Core calls
+        # it best practice not to read it as equivalence unless the relationship
+        # is reciprocated - which it cannot be here, because all versions resolve
+        # to the same document. It stays for backwards compatibility; the
+        # authoritative statement is didDocumentMetadata canonicalId/equivalentId,
+        # built from the same list.
+        equivalentIds = version_ids(did_info).last
         if equivalentIds.length > 0
             wd["alsoKnownAs"] = equivalentIds
         end

@@ -160,7 +160,7 @@ class DidsController < ApplicationController
                            status: 400
                     return
                 end
-                if Log.find_by_oyd_hash(item["log"]).nil?
+                if Log.find_by_any_hash(item["log"]).nil?
                     render json: {"error": "no log entry with hash '" + item["log"].to_s + "'"},
                            status: 400
                     return
@@ -224,31 +224,75 @@ class DidsController < ApplicationController
 
     # Uniresolver functions =====================
     def resolve
+        started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        did = params[:did].to_s
+        didHash = remove_location(did)
+
         options = {}
-        did = params[:did]
-        didLocation = did.split(LOCATION_PREFIX)[1] rescue ""
-        didHash = did.split(LOCATION_PREFIX)[0] rescue did
-        didHash = didHash.delete_prefix("did:oyd:")
-        options[:digest] = Oydid.get_digest(didHash).first
-        options[:encode] = Oydid.get_encoding(didHash).first
-        result = resolve_did(did, options)
+        # pub-key identifiers (z6M...) carry no digest/encoding information
+        unless didHash.start_with?("z6M") && didHash.length == 48
+            options[:digest] = Oydid.get_digest(didHash).first
+            options[:encode] = Oydid.get_encoding(didHash).first
+        end
+        options[:followAlsoKnownAs] = ENV['FOLLOW_ALSOKNOWNAS'].to_s.downcase != 'false'
+
+        # This endpoint used to call resolve_did, which only ever looks in local
+        # storage: a DID hosted elsewhere answered 404 here while /1.0/resolve/
+        # resolved it through the gem. Both endpoints now resolve identically -
+        # what still differs is the response shape, bare DID Document here and
+        # full resolution result there.
+        result, read_msg = resolve_did_any(did, options)
+        if result.nil?
+            if read_msg.to_s == "revoked"
+                render_resolution_error({"error" => REVOKED_ERROR, "message" => "revoked"})
+            else
+                render json: {"error": "not found"},
+                       status: 404
+            end
+            return
+        end
         if result["error"] != 0
             render_resolution_error(result)
-        else
-            w3c_did = Oydid.w3c(result, options)
-            render plain: w3c_did.to_json,
-                   mime_type: Mime::Type.lookup("application/ld+json"),
-                   content_type: 'application/ld+json',
-                   status: 200
+            return
         end
+
+        # Content negotiation: the bare DID Document stays the default, because
+        # that is what every consumer of this endpoint reads today. A client that
+        # names the did-resolution profile in Accept gets the full resolution
+        # result, and with it didDocumentMetadata.
+        #
+        # Vary is not cosmetic here - a cache in front of this endpoint would
+        # otherwise be free to hand one shape to a client that asked for the
+        # other.
+        response.headers["Vary"] = "Accept"
+        if wants_resolution_result?
+            duration = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
+            payload, payload_error = did_resolution_result(did, didHash, result, options, duration)
+            if payload.nil?
+                render json: {"error": payload_error.to_s},
+                       status: 500
+            else
+                render json: payload,
+                       content_type: 'application/ld+json',
+                       status: 200
+            end
+            return
+        end
+
+        w3c_did = Oydid.w3c(result, options)
+        render plain: w3c_did.to_json,
+               mime_type: Mime::Type.lookup("application/ld+json"),
+               content_type: 'application/ld+json',
+               status: 200
     end
 
     # GET /1.0/resolve/:did
     #
     # Full DID Resolution Result (didDocument + didResolutionMetadata +
     # didDocumentMetadata), i.e. the payload the Universal Resolver used to
-    # return for did:oyd. /1.0/identifiers/:did keeps returning the bare
-    # DID Document for backwards compatibility.
+    # return for did:oyd. /1.0/identifiers/:did defaults to the bare DID
+    # Document and serves this same payload when a client asks for the
+    # did-resolution profile in Accept.
     def resolve_full
         started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         did = params[:did].to_s
@@ -277,40 +321,15 @@ class DidsController < ApplicationController
             return
         end
 
-        keys, key_error = resolution_keys(result)
-        if keys.nil?
-            render json: {"error": key_error.to_s},
+        duration = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
+        payload, payload_error = did_resolution_result(did, didHash, result, options, duration)
+        if payload.nil?
+            render json: {"error": payload_error.to_s},
                    status: 500
             return
         end
 
-        did_identifier = result["did"].to_s
-        did_identifier = "did:oyd:" + did_identifier unless did_identifier.start_with?("did:oyd")
-        duration = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
-
-        render json: {
-            "didDocument": Oydid.w3c(Marshal.load(Marshal.dump(result)), options),
-            "didResolutionMetadata": {
-                "contentType": "application/did+ld+json",
-                "pattern": "^(did:oyd:.+)$",
-                "driverUrl": request.base_url.to_s + "/1.0/resolve/$1",
-                "duration": duration,
-                "did": {
-                    "didString": did_identifier,
-                    "methodSpecificId": didHash,
-                    "method": "oyd"
-                }
-            },
-            "didDocumentMetadata": {
-                "did": Oydid.percent_encode(did_identifier),
-                "keys": keys,
-                "registry": Oydid.get_location(result["did"].to_s),
-                "log_hash": result["doc"]["log"].to_s,
-                "log": result["log"],
-                "document_log_id": result["doc_log_id"].to_i,
-                "termination_log_id": result["termination_log_id"].to_i
-            }
-        }, status: 200
+        render json: payload, status: 200
     end
 
     def legacy_resolve

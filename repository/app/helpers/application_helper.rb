@@ -32,17 +32,14 @@ module ApplicationHelper
             next if item.nil? || !item.is_a?(Hash)
 
             if item.key?("op")
-                if item["op"] == 1 # REVOKE
-                    my_hash = Oydid.multi_hash(Oydid.canonical(item.except("previous")), LOG_HASH_OPTIONS).first
-                else
-                    my_hash = Oydid.multi_hash(Oydid.canonical(item.slice("ts", "op", "doc", "sig", "previous")), LOG_HASH_OPTIONS).first
-                end
-                if Log.find_by_oyd_hash(my_hash).nil?
-                    Log.new(did: didHash, item: item.to_json, oyd_hash: my_hash, ts: Time.now.utc.to_i).save
+                entry_hash, sub_hash = Log.hashes_for(item, LOG_HASH_OPTIONS)
+                if !Log.stored?(entry_hash, sub_hash)
+                    Log.new(did: didHash, item: item.to_json, oyd_hash: entry_hash,
+                            sub_hash: sub_hash, ts: Time.now.utc.to_i).save
                 end
             else
                 # encrypted-revocation-log update for an existing log record
-                @log = Log.find_by_oyd_hash(item["log"]) rescue nil
+                @log = Log.find_by_any_hash(item["log"]) rescue nil
                 if !@log.nil?
                     payload = JSON.parse(@log.item) rescue nil
                     if !payload.nil?
@@ -70,8 +67,14 @@ module ApplicationHelper
         end
         
         # setup
+        #
+        # did_requested keeps the identifier the caller asked for: dag_update
+        # below walks the log and replaces "did" with every version it passes,
+        # so without this the requested identifier is gone by the time the
+        # document is rendered. Same contract as Oydid.read.
         currentDID = {
             "did": did,
+            "did_requested": did,
             "doc": "",
             "log": [],
             "doc_log_id": nil,
@@ -430,6 +433,72 @@ module ApplicationHelper
         end
     end
 
+    # Profile a client names in its Accept header to ask for a full DID
+    # Resolution Result instead of the bare DID Document.
+    DID_RESOLUTION_PROFILE = "https://w3id.org/did-resolution"
+
+    # DID Resolution content negotiation. Without this profile in Accept the
+    # caller gets the bare DID Document, which is what every consumer of
+    # /1.0/identifiers/ reads today - the default has to stay that way.
+    # Quotes around the profile value are optional in the wild, so they are
+    # stripped before matching.
+    def wants_resolution_result?
+        accept = request.headers["Accept"].to_s.delete('"').delete("'")
+        accept.include?("profile=" + DID_RESOLUTION_PROFILE)
+    end
+
+    # Full DID Resolution Result: didDocument plus didResolutionMetadata and
+    # didDocumentMetadata. Built here rather than in the actions because two
+    # endpoints serve it now - /1.0/resolve/ always, /1.0/identifiers/ when the
+    # client negotiates for it.
+    # Returns [payload, error_message]; payload is nil when the keys of the
+    # resolved document cannot be represented.
+    def did_resolution_result(did, didHash, result, options, duration)
+        keys, key_error = resolution_keys(result)
+        return [nil, key_error] if keys.nil?
+
+        # The identifier the document carries as `id` - the requested one, which
+        # after an update is an earlier version than the document being served.
+        # didString describes the input of the resolution, so it is this one too;
+        # it used to be the resolved identifier while methodSpecificId right next
+        # to it came from the request, which made the two contradict each other.
+        did_identifier = Oydid.document_id(result)
+
+        # canonicalId names the version the log resolves to, equivalentId every
+        # other version. Together they say in the DID Core vocabulary what
+        # alsoKnownAs in the document can only hint at. equivalentId is omitted
+        # while there is only one version, rather than sent as an empty array.
+        canonical_id, equivalent_ids = Oydid.version_ids(result)
+        didDocumentMetadata = {
+            "did": Oydid.percent_encode(did_identifier),
+            "keys": keys,
+            "registry": Oydid.get_location(result["did"].to_s),
+            "log_hash": result["doc"]["log"].to_s,
+            "log": result["log"],
+            "document_log_id": result["doc_log_id"].to_i,
+            "termination_log_id": result["termination_log_id"].to_i,
+            "canonicalId": canonical_id
+        }
+        didDocumentMetadata[:equivalentId] = equivalent_ids if equivalent_ids.any?
+
+        payload = {
+            "didDocument": Oydid.w3c(Marshal.load(Marshal.dump(result)), options),
+            "didResolutionMetadata": {
+                "contentType": "application/did+ld+json",
+                "pattern": "^(did:oyd:.+)$",
+                "driverUrl": request.base_url.to_s + "/1.0/resolve/$1",
+                "duration": duration,
+                "did": {
+                    "didString": did_identifier,
+                    "methodSpecificId": didHash,
+                    "method": "oyd"
+                }
+            },
+            "didDocumentMetadata": didDocumentMetadata
+        }
+        [payload, ""]
+    end
+
     # Verification keys in the didDocumentMetadata format used by the universal
     # resolver. Returns [keys, error_message].
     def resolution_keys(result)
@@ -444,8 +513,10 @@ module ApplicationHelper
             code = pubkey.unpack('n').first
         end
 
-        did_id = result["did"].to_s
-        did_id = "did:oyd:" + did_id unless did_id.start_with?("did:oyd")
+        # The kid values have to name the same DID the document uses for its
+        # verificationMethod fragments, otherwise metadata and document point at
+        # two different identifiers for one key.
+        did_id = Oydid.document_id(result)
         doc_key = result["doc"]["key"].split(":").first
         rev_key = result["doc"]["key"].split(":").last
 
@@ -506,7 +577,7 @@ module ApplicationHelper
         new_entries = []
         logs.each do |log|
             if log["op"] == 0 # TERMINATE
-                @log = Log.find_by_oyd_hash(remove_location(log["doc"])) rescue nil
+                @log = Log.find_by_any_hash(remove_location(log["doc"])) rescue nil
                 if !@log.nil?
                     tmp = Log.where(did: @log.did).pluck(:item).map { |i| JSON.parse(i) } rescue []
                     tmp.delete(log)
@@ -524,7 +595,7 @@ module ApplicationHelper
         logs.each do |log|
             if !log["previous"].nil? && log["previous"] != []
                 log["previous"].each do |entry|
-                    @log = Log.find_by_oyd_hash(entry) rescue nil
+                    @log = Log.find_by_any_hash(entry) rescue nil
                     if !@log.nil?
                         if !done.include?(@log.did)
                             new_dids << @log.did

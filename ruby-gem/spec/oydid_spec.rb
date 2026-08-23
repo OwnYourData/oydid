@@ -584,4 +584,139 @@ describe "OYDID handling" do
     end
   end
 
+  # Identifiers of the published versions of a DID. Every update mints a new
+  # one, so a resolver has to be able to say which is current and which are
+  # earlier - didDocumentMetadata canonicalId and equivalentId.
+  describe "version_ids" do
+    let(:first_did)  { "zQmSE1hzumtZ7AoK1qhHf4t5kiKsujMsJSHqoXtWrdd7K7W" }
+    let(:second_did) { "zQmfEb3KgYZjZUPLTHPmFPdcV6peF5itB5NmJ9N6gaxxE8K" }
+
+    it "reports a freshly created DID as canonical without equivalents" do
+      canonical, equivalent = Oydid.version_ids(
+        "did" => "did:oyd:" + first_did,
+        "log" => [{ "op" => 2, "doc" => first_did },
+                  { "op" => 0, "doc" => "terminate" }])
+      expect(canonical).to eq "did:oyd:" + first_did
+      expect(equivalent).to eq []
+    end
+
+    it "names the current version canonical and the previous one equivalent" do
+      canonical, equivalent = Oydid.version_ids(
+        "did" => "did:oyd:" + second_did,
+        "log" => [{ "op" => 1, "doc" => "revoke" },
+                  { "op" => 2, "doc" => first_did },
+                  { "op" => 3, "doc" => second_did },
+                  { "op" => 0, "doc" => "terminate" }])
+      expect(canonical).to eq "did:oyd:" + second_did
+      expect(equivalent).to eq ["did:oyd:" + first_did]
+    end
+
+    it "keeps every earlier version, oldest first" do
+      canonical, equivalent = Oydid.version_ids(
+        "did" => "did:oyd:zC",
+        "log" => [{ "op" => 2, "doc" => "zA" },
+                  { "op" => 3, "doc" => "zB" },
+                  { "op" => 3, "doc" => "zC" }])
+      expect(canonical).to eq "did:oyd:zC"
+      expect(equivalent).to eq ["did:oyd:zA", "did:oyd:zB"]
+    end
+
+    it "adds the method prefix when the resolved DID carries none" do
+      canonical, = Oydid.version_ids("did" => second_did, "log" => [])
+      expect(canonical).to eq "did:oyd:" + second_did
+    end
+
+    it "percent-encodes a location suffix" do
+      canonical, equivalent = Oydid.version_ids(
+        "did" => "did:oyd:" + second_did + "@https://example.org",
+        "log" => [{ "op" => 2, "doc" => first_did + "@https://example.org" },
+                  { "op" => 3, "doc" => second_did + "@https://example.org" }])
+      expect(canonical).to eq "did:oyd:" + second_did + "%40example.org"
+      expect(equivalent).to eq ["did:oyd:" + first_did + "%40example.org"]
+    end
+
+    it "tolerates a missing log" do
+      canonical, equivalent = Oydid.version_ids("did" => "did:oyd:" + second_did)
+      expect(canonical).to eq "did:oyd:" + second_did
+      expect(equivalent).to eq []
+    end
+
+    # w3c builds alsoKnownAs from the same list. The two used to be computed
+    # separately in three places and drifted apart; this guards the merge.
+    #
+    # The canonical DID has to be one this suite stubs: w3c looks up delegation
+    # keys for it, and WebMock::NetConnectNotAllowedError descends from Exception
+    # rather than StandardError, so the inline `rescue []` around
+    # getDelegatedPubKeysFromDID does not catch it. Only the canonical DID is
+    # fetched - log entries are read, not resolved.
+    it "agrees with the alsoKnownAs the DID document carries" do
+      stubbed_did = "zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"
+      did_info = {
+        "did" => "did:oyd:" + stubbed_did,
+        "doc" => { "doc" => { "hello" => "world" },
+                   "key" => "z6MktULudTtAsAhRegYPiZ6631RV3viv12qd4GQF8z1xB22S:" \
+                            "z6MkqGC3nWZhYieEVTVDKW5v588CiGfsDSmRVG9ZwwWTvLSK" },
+        "log" => [{ "op" => 2, "doc" => first_did },
+                  { "op" => 3, "doc" => stubbed_did }]
+      }
+      wd = Oydid.w3c(Marshal.load(Marshal.dump(did_info)), {})
+      expect(wd["alsoKnownAs"]).to eq ["did:oyd:" + first_did]
+      expect(wd["alsoKnownAs"]).to eq Oydid.version_ids(did_info).last
+    end
+  end
+
+  # Which identifier a resolved DID document announces as its own. An update
+  # mints a new did:oyd, but the identifier a relying party holds is the one it
+  # asked for - that is the one the document has to carry.
+  describe "document_id" do
+    let(:first_did)  { "zQmSE1hzumtZ7AoK1qhHf4t5kiKsujMsJSHqoXtWrdd7K7W" }
+    let(:second_did) { "zQmfEb3KgYZjZUPLTHPmFPdcV6peF5itB5NmJ9N6gaxxE8K" }
+    # a DID this suite stubs - w3c looks up delegation keys for whatever it
+    # emits as id, see the note on the alsoKnownAs example above
+    let(:stubbed_did) { "zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh" }
+
+    it "answers with the requested DID when the resolver kept it" do
+      expect(Oydid.document_id("did" => "did:oyd:" + second_did,
+                               "did_requested" => "did:oyd:" + first_did))
+        .to eq "did:oyd:" + first_did
+    end
+
+    it "falls back to the resolved DID for a did_info built by hand" do
+      expect(Oydid.document_id("did" => "did:oyd:" + second_did))
+        .to eq "did:oyd:" + second_did
+    end
+
+    it "adds the method prefix and percent-encodes a location suffix" do
+      expect(Oydid.document_id("did" => "", "did_requested" => first_did + "@https://example.org"))
+        .to eq "did:oyd:" + first_did + "%40example.org"
+    end
+
+    # the point of the exercise: a DID printed on a data carrier keeps naming
+    # itself after an update, while the current version stays readable
+    it "keeps the requested DID as id and moves the current one to alsoKnownAs" do
+      did_info = {
+        "did" => "did:oyd:" + second_did,
+        "did_requested" => "did:oyd:" + stubbed_did,
+        "doc" => { "doc" => { "hello" => "world" },
+                   "key" => "z6MktULudTtAsAhRegYPiZ6631RV3viv12qd4GQF8z1xB22S:" \
+                            "z6MkqGC3nWZhYieEVTVDKW5v588CiGfsDSmRVG9ZwwWTvLSK" },
+        "log" => [{ "op" => 2, "doc" => stubbed_did },
+                  { "op" => 3, "doc" => second_did }]
+      }
+      wd = Oydid.w3c(Marshal.load(Marshal.dump(did_info)), {})
+      expect(wd["id"]).to eq "did:oyd:" + stubbed_did
+      expect(wd["alsoKnownAs"]).to eq ["did:oyd:" + second_did]
+      # the entries of verificationMethod are built as hash literals with
+      # "id": - Ruby makes that a symbol key, the surrounding keys are strings
+      expect(wd["verificationMethod"].first[:id]).to start_with("did:oyd:" + stubbed_did + "#")
+      expect(wd["verificationMethod"].first[:controller]).to eq "did:oyd:" + stubbed_did
+
+      # canonicalId still names the version the log resolves to, and the
+      # equivalent list is everything the document does not call itself
+      canonical, equivalent = Oydid.version_ids(did_info)
+      expect(canonical).to eq "did:oyd:" + second_did
+      expect(equivalent).to eq ["did:oyd:" + second_did]
+    end
+  end
+
 end

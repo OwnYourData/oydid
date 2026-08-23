@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_22_090000) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_23_200000) do
   create_table "cmsms", force: :cascade do |t|
     t.string "pubkey"
     t.text "payload"
@@ -57,8 +57,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_22_090000) do
     t.integer "ts"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.string "sub_hash"
     t.index ["did"], name: "index_logs_on_did"
     t.index ["oyd_hash"], name: "index_logs_on_oyd_hash", unique: true
+    t.index ["sub_hash"], name: "index_logs_on_sub_hash"
   end
 
   create_table "oauth_access_grants", force: :cascade do |t|
