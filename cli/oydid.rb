@@ -9,7 +9,7 @@ require 'oydid'
 
 LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
-VERSION = "0.8.1"
+VERSION = "0.8.2"
 LOG_HASH_OPTIONS = {:digest => "sha2-256", :encode => "base58btc"}
 
 # internal functions -------------------------------
@@ -474,6 +474,20 @@ end
 
 # user info -------------------------------
 
+# a log record given on the command line: either inline JSON or the path to a
+# file holding it. Records are handed back and forth verbatim in CMSM flows, so
+# a file is usually the practical form.
+def read_json_argument(value, option_name)
+    raw = value.to_s
+    raw = File.read(raw) if File.exist?(raw)
+    parsed = JSON.parse(raw) rescue nil
+    if parsed.nil?
+        puts "Error: " + option_name + " expects JSON or the path to a file containing it"
+        exit(-1)
+    end
+    parsed
+end
+
 def print_version()
     puts VERSION.to_s + " (oydid gem: v" + Gem.loaded_specs["oydid"].version.to_s + ")"
     puts 'supported curves: ed25519, p-256 (default: ed25519)'
@@ -590,6 +604,10 @@ def print_help()
 end
 
 # main -------------------------------
+
+# In the Client-Managed-Secret-Mode no private key exists in this process, so
+# nothing can be written to disk - and the revocation record, which the client
+# has to keep, would be lost. Ask the gem to hand the results back instead.
 
 # trace = TracePoint.new(:call) { |tp| 
 #         if tp.path.include?("oydid-0.5.0") 
@@ -735,6 +753,18 @@ opt_parser = OptionParser.new do |opt|
   opt.on("--cmsm") do |cmsm|
     options[:cmsm] = true
   end
+  opt.on("--cmsm-session SESSION") do |session|
+    options[:cmsm_session] = session
+  end
+  opt.on("--sig SIGNATURE") do |sig|
+    options[:sig] = sig
+  end
+  opt.on("--log-revoke RECORD") do |record|
+    options[:log_revoke] = read_json_argument(record, "--log-revoke")
+  end
+  opt.on("--log-revoke-old RECORD") do |record|
+    options[:log_revoke_old] = read_json_argument(record, "--log-revoke-old")
+  end
   opt.on("--vc-output FORMAT") do |f|
     options[:vc_format] = f
   end
@@ -776,6 +806,13 @@ opt_parser = OptionParser.new do |opt|
 
 end
 opt_parser.parse!
+
+# In the Client-Managed-Secret-Mode no private key exists in this process, so
+# there is nothing to write to disk - and the revocation record, which the
+# client has to keep because it cannot be rebuilt, would be lost with it.
+if options[:cmsm]
+    options[:return_secrets] = true
+end
 
 if (options[:hex_mode_flags] || []).length > 1
     hex_mode_error = options[:hex_mode_flags].sort.join(" and ") + " are mutually exclusive"
@@ -943,8 +980,17 @@ when "create"
                 if options[:silent].nil? || !options[:silent]
                     if options[:json].nil? || !options[:json]
                         puts "created " + Oydid.percent_encode(retVal["did"].to_s)
+                        if options[:cmsm]
+                            puts "log_revoke: " + retVal["revocation_log"].to_json
+                        end
                     else
-                        puts '{"did": "' + Oydid.percent_encode(retVal["did"].to_s) + '", "operation": "create"}'
+                        out = { "did" => Oydid.percent_encode(retVal["did"].to_s),
+                                "operation" => "create" }
+                        # the client cannot rebuild this record: it was signed
+                        # with a key this process never had, and a signer that
+                        # draws a random nonce produces a different one
+                        out["log_revoke"] = retVal["revocation_log"] if options[:cmsm]
+                        puts out.to_json
                     end
                 end
             end
@@ -990,6 +1036,12 @@ when "update"
         # options[:encode] = Oydid.get_encoding(didHash).first
 
         retVal, msg = Oydid.update(content, input_did, options)
+        if msg == "cmsm"
+            # intermediate phase: print the challenge, the flow continues with
+            # --cmsm-session and --sig
+            puts retVal.to_json
+            exit(0)
+        end
         if retVal.nil?
             if msg.to_s != ""
                 if options[:silent].nil? || !options[:silent]
@@ -1005,8 +1057,15 @@ when "update"
             if options[:silent].nil? || !options[:silent]
                 if options[:json].nil? || !options[:json]
                     puts "updated " + Oydid.percent_encode(retVal["did"].to_s)
+                    if options[:cmsm]
+                        puts "log_revoke: " + retVal["revocation_log"].to_json
+                    end
                 else
-                    puts '{"did": "' + Oydid.percent_encode(retVal["did"].to_s) + '", "operation": "update"}'
+                    out = { "did" => Oydid.percent_encode(retVal["did"].to_s),
+                            "operation" => "update" }
+                    # replaces the record the client kept for the previous document
+                    out["log_revoke"] = retVal["revocation_log"] if options[:cmsm]
+                    puts out.to_json
                 end
             end
         end
@@ -1464,13 +1523,16 @@ when "revoke"
             exit(-1)
         else
             if options[:silent].nil? || !options[:silent]
+                if !did.start_with?("did:oyd:")
+                    did = "did:oyd:" + Oydid.percent_encode(did.to_s)
+                end
                 if options[:json].nil? || !options[:json]
-                    if !did.start_with?("did:oyd:")
-                        did = "did:oyd:" + Oydid.percent_encode(did.to_s)
-                    end
                     puts "revoked " + did
                 else
-                    puts '{"did": "did:oyd:"' + did + '", "operation": "revoke"}'
+                    # was assembled by hand and produced invalid JSON: a stray
+                    # quote after the method prefix, and the identifier was left
+                    # unencoded while create and update percent-encode it
+                    puts({ "did" => did, "operation" => "revoke" }.to_json)
                 end
             end
         end

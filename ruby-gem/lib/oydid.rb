@@ -1058,6 +1058,18 @@ class Oydid
             return [nil, did_info["message"].to_s]
         end
 
+        # A client that holds no private revocation key - a secure element does
+        # not export one - submits the record it kept from creating or updating
+        # the DID. Rebuilding it here is impossible, and re-signing it would not
+        # help: the hash committed in the TERMINATE entry would no longer match.
+        if !options[:log_revoke].nil?
+            verified, vmsg = verify_revocation_log(did_info, options[:log_revoke], "log_revoke", options)
+            if verified.nil?
+                return [nil, vmsg]
+            end
+            return [link_revocation_log(verified, did_info), ""]
+        end
+
         did = did_info["did"]
         did_hash = did.delete_prefix("did:oyd:")
         did10 = did_hash[0,10]
@@ -1224,6 +1236,15 @@ class Oydid
         # the location extracted from the DID may be percent-encoded
         # (e.g. "http%3A%2F%2Flocalhost%3A3000"); decode before using as URL
         doc_location = doc_location.to_s.gsub("%3A", ":").gsub("%2F", "/")
+        # percent_encode strips the default scheme, so a DID published to an
+        # https location carries a bare host ("oydid.ownyourdata.eu"). Without
+        # putting the scheme back this is not recognised as a remote location
+        # and the revocation is written to a local file instead - which is how
+        # the branch below used to be reached at all.
+        if !(doc_location == "" || doc_location == "local") &&
+           !doc_location.start_with?("http")
+            doc_location = "https://" + doc_location
+        end
 
         # publish revocation log based on location
         case doc_location.to_s
@@ -1236,10 +1257,10 @@ class Oydid
                 return [nil, msg]
             end
         else
-            File.write(did10 + ".log", revoc_log.to_json)
-            if !did_old.nil?
-                File.write(did10_old + ".log", revoc_log.to_json)
-            end
+            # did_old / did10_old were never defined here - they are locals of
+            # generate_base. Writing the revocation next to the previous DID is
+            # the job of the caller that knows about it.
+            write_private_storage(revoc_log.to_json, did10 + ".log")
         end
 
         return [did, ""]
