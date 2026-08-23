@@ -1,1 +1,4 @@
 created did:oyd:zQmXPdCWMy3QaP9ebuSyB5brVob2Kg6dWm4v7wnCgdacFkW
+private_key: z1S5YZkcXuoREbwym1CxHN81oMKKztiGcGTUukeQRX1A8fkL
+revocation_key: z1S5SWCjkmkCP8xEp3TNsoaPRTYGEMGL9kS5d9tFM5LUAM4z
+log_revoke: {"ts":1,"op":1,"doc":"zQmTpZFbL6iqbZztgzdQf6afCwz2Pp9iMRv4UzorGHMBXVW","sig":"zuK82p5LUpV4N9SC5JQF75mbDV6giPZn8pKBr4Zi6Rudh2vwyk6qcdD8RjNZMmcaNinZTtU5sB9VLhjLRgNACRis"}

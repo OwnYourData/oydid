@@ -1,2 +1,5 @@
 created did:oyd:zQmRLDPeiaY5xwwYmXmRBDVd3tE6bn1Yb327GdHHtwKKeoQ
+private_key: z1S5YZkcXuoREbwym1CxHN81oMKKztiGcGTUukeQRX1A8fkL
+revocation_key: z1S5SWCjkmkCP8xEp3TNsoaPRTYGEMGL9kS5d9tFM5LUAM4z
+log_revoke: {"ts":1,"op":1,"doc":"zQmbrooaPYSrpGfDRxy7Akdr6xfxbNVoEbSRUgBWPbBMqCQ","sig":"zdHxJEbfbMyybMWfD5hHHGpUDZcfSGoEYx3W2z415ndgc4iCQSU4LiP2TemYLsy6wz97RWbsM6bPtU89U7QJnqbM"}
 delegate log record zQmbryjrvSrF1JSbAq4zBL4kUEyKfR3WPPkvsqP29Rsgpua

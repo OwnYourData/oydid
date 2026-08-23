@@ -9,7 +9,7 @@ require 'oydid'
 
 LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
-VERSION = "0.8.2"
+VERSION = "0.8.3"
 LOG_HASH_OPTIONS = {:digest => "sha2-256", :encode => "base58btc"}
 
 # internal functions -------------------------------
@@ -584,6 +584,10 @@ def print_help()
     puts "                                     private key for signing a revocation"
     puts "     --rev-pwd REVOCATION-PASSWORD - password for private key for signing"
     puts "                                     a revocation"
+    puts " -s, --return-secrets              - for create: return private keys and"
+    puts "                                     revocation record on stdout instead"
+    puts "                                     of writing them into files in the"
+    puts "                                     current working directory"
     puts "     --simulate                    - for create/update/revoke operations:"
     puts "                                     only show DID, DID document, logs"
     puts "     --show-hash                   - for log operation: additionally show"
@@ -814,6 +818,15 @@ if options[:cmsm]
     options[:return_secrets] = true
 end
 
+# --return-secrets suppresses the key files, so the only copy of the private
+# keys is the output - with --silent there would be no output and the DID
+# would be published with unrecoverable keys. STDERR so the message survives
+# --silent and a redirected stdout.
+if options[:return_secrets] && !options[:cmsm] && options[:silent]
+    STDERR.puts "Error: --return-secrets cannot be combined with --silent - the private keys would be lost"
+    exit(-1)
+end
+
 if (options[:hex_mode_flags] || []).length > 1
     hex_mode_error = options[:hex_mode_flags].sort.join(" and ") + " are mutually exclusive"
     if options[:json].nil? || !options[:json]
@@ -982,6 +995,10 @@ when "create"
                         puts "created " + Oydid.percent_encode(retVal["did"].to_s)
                         if options[:cmsm]
                             puts "log_revoke: " + retVal["revocation_log"].to_json
+                        elsif options[:return_secrets]
+                            puts "private_key: " + retVal["private_key"].to_s
+                            puts "revocation_key: " + retVal["revocation_key"].to_s
+                            puts "log_revoke: " + retVal["revocation_log"].to_json
                         end
                     else
                         out = { "did" => Oydid.percent_encode(retVal["did"].to_s),
@@ -990,6 +1007,14 @@ when "create"
                         # with a key this process never had, and a signer that
                         # draws a random nonce produces a different one
                         out["log_revoke"] = retVal["revocation_log"] if options[:cmsm]
+                        # without --cmsm the gem hands the secrets back instead of
+                        # writing them to disk - printing them here is the only way
+                        # the caller can keep them
+                        if options[:return_secrets] && !options[:cmsm]
+                            out["private_key"] = retVal["private_key"]
+                            out["revocation_key"] = retVal["revocation_key"]
+                            out["log_revoke"] = retVal["revocation_log"]
+                        end
                         puts out.to_json
                     end
                 end

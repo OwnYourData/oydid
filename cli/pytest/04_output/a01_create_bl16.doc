@@ -1,1 +1,4 @@
 created did:oyd:z5y4eztMzkm8vNFJbmioNXUAz%40did2.data-container.net
+private_key: z1S5YZkcXuoREbwym1CxHN81oMKKztiGcGTUukeQRX1A8fkL
+revocation_key: z1S5SWCjkmkCP8xEp3TNsoaPRTYGEMGL9kS5d9tFM5LUAM4z
+log_revoke: {"ts":1,"op":1,"doc":"zQmYWW2kpVuR15ui1c9uWcTSGdF3iLWCW12v82B6Wq7V5MM","sig":"z56MjgcQLjupqueHMUpHxW4sUvvcc3usaaHqnA9pnY3BqWoe7ejWKX5KefjxZFrofqmi1P99tjioKKCAh9tjTU3gM"}

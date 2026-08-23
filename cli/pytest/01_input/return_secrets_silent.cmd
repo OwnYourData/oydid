@@ -1,0 +1,1 @@
+$OYDIDCMD create --doc-pwd rsPwd1 --rev-pwd rsPwd2 -z 1 --return-secrets --silent 2>&1 >/dev/null; echo "exit:$?"
