@@ -181,7 +181,7 @@ class DidsController < ApplicationController
         ok, store_msg = local_store_did(didHash, didDocument, new_logs + update_logs)
         if !ok
             render json: {"error": store_msg},
-                   status: 500
+                   status: store_msg == KEY_IN_USE_ERROR ? 400 : 500
             return
         end
 

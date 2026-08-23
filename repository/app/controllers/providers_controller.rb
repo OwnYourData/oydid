@@ -113,7 +113,7 @@ class ProvidersController < ApplicationController
         ok, store_msg = local_store_did(did_hash, status["doc"], status["log"])
         if !ok
             render json: {"error": store_msg},
-                   status: 500
+                   status: store_msg == KEY_IN_USE_ERROR ? 400 : 500
             return
         end
 

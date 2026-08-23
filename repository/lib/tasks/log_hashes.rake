@@ -6,6 +6,7 @@ namespace :oydid do
     # Standardmaessig ein Bericht ohne Aenderung. Schreiben mit APPLY=1.
     desc "REVOKE-Log-Hashes inventarisieren und korrigieren (APPLY=1 zum Schreiben)"
     task backfill_log_hashes: :environment do
+        ActiveRecord::Base.logger = nil
         apply = ENV["APPLY"].to_s == "1"
         puts apply ? "== MODUS: schreiben" : "== MODUS: Bericht (APPLY=1 zum Schreiben)"
 

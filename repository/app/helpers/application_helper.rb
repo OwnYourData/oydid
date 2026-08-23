@@ -24,6 +24,13 @@ module ApplicationHelper
         end
 
         if Did.find_by_did(didHash).nil?
+            # Guardrail: at any time a public key controls at most one active
+            # DID. Only CREATE is refused - a non-rotating UPDATE legitimately
+            # carries the key of the version it replaces, and that is the most
+            # common form of update.
+            if document_operation(logs, didHash) == 2 && Did.key_in_active_use?(didPubKey)
+                return [false, KEY_IN_USE_ERROR]
+            end
             Did.new(did: didHash, doc: didDocumentJson, public_key: didPubKey).save
         end
 
@@ -545,12 +552,25 @@ module ApplicationHelper
         [keys, nil]
     end
 
+    # Which operation created this version? The document entry of a DID is the
+    # log entry whose "doc" names the DID itself; op 2 is CREATE, op 3 UPDATE.
+    # Returns nil when the entry is not among the submitted logs.
+    def document_operation(logs, didHash)
+        Array(logs).compact.each do |raw_item|
+            item = JSON.parse(raw_item.to_json) rescue nil
+            next if item.nil? || !item.is_a?(Hash)
+            next unless [2, 3].include?(item["op"].to_i)
+            return item["op"].to_i if Did.strip_location(item["doc"]) == didHash
+        end
+        nil
+    end
+
     def local_retrieve_document(doc_identifier)
         did = nil
         doc = nil
         @did = Did.find_by_did(doc_identifier)
         if @did.nil?
-            @did = Did.find_by_public_key(doc_identifier)
+            @did = Did.find_by_public_key_active(doc_identifier)
             if !@did.nil?
                 did = @did.did
                 doc = JSON.parse(@did.doc) rescue nil

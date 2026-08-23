@@ -60,4 +60,44 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(msg).to be_present
     end
   end
+
+  # Which operation created a version decides whether the one-active-DID-per-key
+  # guardrail applies: op 2 is CREATE and is refused when the key is already in
+  # use, op 3 is UPDATE and must always pass - a non-rotating update carries the
+  # key of the version it replaces.
+  describe "#document_operation" do
+    let(:did) { "zQmDocumentHash" }
+
+    def entry(op, doc)
+      { "ts" => 1, "op" => op, "doc" => doc, "sig" => "z0" }
+    end
+
+    it "reports CREATE for the entry naming this DID" do
+      logs = [entry(2, did), entry(0, "zQmSomethingElse")]
+      expect(helper.document_operation(logs, did)).to eq(2)
+    end
+
+    it "reports UPDATE for the entry naming this DID" do
+      expect(helper.document_operation([entry(3, did)], did)).to eq(3)
+    end
+
+    it "ignores the location suffix on the doc reference" do
+      logs = [entry(2, "#{did}@https://oydid.ownyourdata.eu")]
+      expect(helper.document_operation(logs, did)).to eq(2)
+    end
+
+    it "ignores entries that name a different DID" do
+      expect(helper.document_operation([entry(2, "zQmOther")], did)).to be_nil
+    end
+
+    it "ignores TERMINATE and REVOKE entries" do
+      expect(helper.document_operation([entry(0, did), entry(1, did)], did)).to be_nil
+    end
+
+    it "copes with an empty or malformed log" do
+      expect(helper.document_operation([], did)).to be_nil
+      expect(helper.document_operation(nil, did)).to be_nil
+      expect(helper.document_operation(["nonsense", nil], did)).to be_nil
+    end
+  end
 end
