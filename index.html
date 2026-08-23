@@ -1490,7 +1490,7 @@ Possible extra rowspan handling
 </style>
   <meta content="Bikeshed version ac92c2f0d, updated Fri Aug 21 16:01:29 2026 -0700" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="38fc43b4aee5d5e7c6cd24da7da711068a87e89c" name="revision">
+  <meta content="b26cfa48032db48b1dfcf0a826771e7904bff2f9" name="revision">
   <meta content="dark light" name="color-scheme">
 <style>/* Boilerplate: style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
@@ -2047,7 +2047,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <p data-fill-with="logo"></p>
    <h1 class="no-ref p-name" id="title">OYD DID Method</h1>
    <h2 class="heading no-num no-ref no-toc settled" id="profile-and-date"><span class="content">Living Document,
-    <time class="dt-updated" datetime="2026-08-22">22 August 2026</time></span></h2>
+    <time class="dt-updated" datetime="2026-08-23">23 August 2026</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -2063,7 +2063,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <p class="copyright" data-fill-with="copyright"><a href="http://creativecommons.org/publicdomain/zero/1.0/" rel="license"><img alt="CC0" height="15" src="https://licensebuttons.net/p/zero/1.0/80x15.png" width="80"></a>
 To the extent possible under law, the editors have waived all copyright
 and related or neighboring rights to this work.
-In addition, as of 22 August 2026,
+In addition, as of 23 August 2026,
 the editors have made this specification available under the
 <a href="https://www.openwebfoundation.org/the-agreements/the-owf-1-0-agreements-granted-claims/owfa-1-0" rel="license">Open Web Foundation Agreement Version 1.0</a>,
 which is available at https://www.openwebfoundation.org/the-agreements/the-owf-1-0-agreements-granted-claims/owfa-1-0.
@@ -2092,6 +2092,15 @@ Parts of this work may be from another specification document.  If so, those par
        </ol>
       <li><a href="#update"><span class="secno">3.3</span> <span class="content">Update</span></a>
       <li><a href="#deactivate"><span class="secno">3.4</span> <span class="content">Deactivate</span></a>
+      <li>
+       <a href="#cmsm"><span class="secno">3.5</span> <span class="content">Client-Managed Secret Mode</span></a>
+       <ol class="toc">
+        <li><a href="#cmsm_ordering"><span class="secno">3.5.1</span> <span class="content">Ordering of Signatures</span></a>
+        <li><a href="#cmsm_flow"><span class="secno">3.5.2</span> <span class="content">Flow</span></a>
+        <li><a href="#cmsm_revocation_entry"><span class="secno">3.5.3</span> <span class="content">Retaining the Revocation Entry</span></a>
+        <li><a href="#cmsm_verify_revocation"><span class="secno">3.5.4</span> <span class="content">Verifying a Supplied Revocation Entry</span></a>
+        <li><a href="#cmsm_create_signature"><span class="secno">3.5.5</span> <span class="content">Signatures on Creation Entries</span></a>
+       </ol>
      </ol>
     <li>
      <a href="#log"><span class="secno">4</span> <span class="content">DID Log</span></a>
@@ -2411,6 +2420,49 @@ Log information of an update DID.
   <img src="res/DIDdeactivated.png" width="400"><br>
   <em>Figure 3: Visualization of log graph for a deactivated DID</em>
 </p>
+   <h3 class="heading settled" data-level="3.5" id="cmsm"><span class="secno">3.5. </span><span class="content">Client-Managed Secret Mode</span><a class="self-link" href="#cmsm"></a></h3>
+   <p>In the operations described so far the party performing them holds the private keys. That is not always possible: a key generated inside a hardware secure element cannot be exported, and an element typically offers no more than three operations — create a key pair under a name, return its public key, and sign a payload with it.</p>
+   <p>The Client-Managed Secret Mode (CMSM) covers that case. The client contributes public keys and signatures; no private key ever reaches the repository, and none is generated there.</p>
+   <p>A client that can compute a canonical JSON serialisation and the digests of Section <a href="#calculate_hash">§ 4.2.2 Hash value calculation</a> does not need CMSM — it builds the log entries itself and publishes them, and its keys stay local anyway. CMSM addresses the other case: a client that can only sign and call an endpoint. Because such a client cannot compute the hashes, the repository computes them, which means the values to be signed can only be handed out one at a time.</p>
+   <h4 class="heading settled" data-level="3.5.1" id="cmsm_ordering"><span class="secno">3.5.1. </span><span class="content">Ordering of Signatures</span><a class="self-link" href="#cmsm_ordering"></a></h4>
+   <p>The order is not a matter of protocol design; it follows from the data. Each value that has to be signed is the hash of a structure that already contains the previous signature:</p>
+<pre>subDidHash = hash({doc, key})           signed with the revocation key  -> r1
+l2_doc     = hash(r1)                   signed with the document key    -> l2
+l1_doc     = hash({doc, key, log})      signed with the document key    -> l1
+</pre>
+   <p>The termination entry <code>l2</code> cannot be built before the revocation entry <code>r1</code> is signed, and the DID document is not complete — and therefore <code>l1_doc</code> not known — before <code>l2</code> is signed. On an update the last signature is made with the document key of the DID being replaced, since that is what authorises the transition.</p>
+   <p>This yields three signatures for a create and three for an update, each collected in its own exchange.</p>
+   <h4 class="heading settled" data-level="3.5.2" id="cmsm_flow"><span class="secno">3.5.2. </span><span class="content">Flow</span><a class="self-link" href="#cmsm_flow"></a></h4>
+   <p>A flow is identified by a session handle. Each incomplete step is answered with the value to be signed and the key to sign it with:</p>
+<pre class="highlight"><c- p>{</c->
+    <c- f>"cmsm"</c-><c- p>:</c-> <c- kc>true</c-><c- p>,</c->
+    <c- f>"session"</c-><c- p>:</c-> s<c- kc>tr</c->i<c- kc>n</c->g<c- p>,</c->
+    <c- f>"phase"</c-><c- p>:</c-> i<c- kc>nt</c-><c- p>,</c->
+    <c- f>"pk"</c-><c- p>:</c-> s<c- kc>tr</c->i<c- kc>n</c->g (mul<c- kc>t</c->ibase)<c- p>,</c->
+    <c- f>"sign"</c-><c- p>:</c-> s<c- kc>tr</c->i<c- kc>n</c->g (hash)<c- p>,</c->
+    <c- f>"with"</c-><c- p>:</c-> <c- u>"key-rev"</c-> | <c- u>"key-doc"</c-> | <c- u>"key-doc-old"</c->
+<c- p>}</c->
+</pre>
+   <p><code>with</code> names a key, not a slot in a particular product; a client maps it onto whatever names its secure element uses. Every following request carries the session and one signature, nothing else. Implementations should expire an unfinished session and MUST discard it once the flow completes — until then it holds material that authorises operations on the DID being built.</p>
+   <p>If the client contributes only a document key, the revocation key is generated by the repository. The DID is then created without the repository ever seeing the document key, but the revocation secret is not client-managed, and the party holding it can revoke the DID. A client that intends to keep sole control contributes both keys.</p>
+   <h4 class="heading settled" data-level="3.5.3" id="cmsm_revocation_entry"><span class="secno">3.5.3. </span><span class="content">Retaining the Revocation Entry</span><a class="self-link" href="#cmsm_revocation_entry"></a></h4>
+   <p>The revocation entry <code>r1</code> of a document is signed when the document is created, and its hash is fixed in the termination entry. Revoking the document later means publishing exactly that entry.</p>
+   <p>A signer that produces deterministic signatures — as specified in <a data-link-type="biblio" href="#biblio-rfc6979" title="Deterministic Usage of the Digital Signature Algorithm (DSA) and Elliptic Curve Digital Signature Algorithm (ECDSA)">[RFC6979]</a> for ECDSA, and inherent to Ed25519 — can reproduce it at any time from the revocation key. A signer that draws a random nonce cannot: a fresh signature yields a different entry, whose hash no longer matches what the termination entry committed, and the revocation is rejected. Secure elements commonly fall into the latter group.</p>
+   <p>A client in this mode therefore has to retain the revocation entry it received. It is not a secret — it is published on revocation — but without it the DID can be neither updated nor revoked. Implementations MUST return it to the client when a create or update completes.</p>
+   <h4 class="heading settled" data-level="3.5.4" id="cmsm_verify_revocation"><span class="secno">3.5.4. </span><span class="content">Verifying a Supplied Revocation Entry</span><a class="self-link" href="#cmsm_verify_revocation"></a></h4>
+   <p>Where the private revocation key is not available — revoking a document during an update, and a client-managed deactivation — the client supplies the entry instead of the repository rebuilding it. Three conditions have to hold, and an implementation MUST check all of them:</p>
+   <ul>
+    <li data-md>
+     <p>the <code>doc</code> value equals the hash of the current document of that DID,</p>
+    <li data-md>
+     <p>the signature verifies against the revocation key named in that document, and</p>
+    <li data-md>
+     <p>the hash of the entry equals the value committed in the corresponding termination entry.</p>
+   </ul>
+   <p>The third condition is the binding one. The first two are satisfied by any entry belonging to that document; only the third ties the entry to the document as it was actually published, so an entry taken from a different DID, or a re-signed one, does not pass.</p>
+   <h4 class="heading settled" data-level="3.5.5" id="cmsm_create_signature"><span class="secno">3.5.5. </span><span class="content">Signatures on Creation Entries</span><a class="self-link" href="#cmsm_create_signature"></a></h4>
+   <p>Before this mode gained a separate exchange for it, the creation entry of a CMSM DID carried no signature, and implementations accepted such entries. Resolvers SHOULD verify the signature of a creation entry and MAY reject entries without one; they should be aware that DIDs created by earlier implementations may not carry it, and that the signature cannot be added afterwards without the private document key.</p>
+   <p>The omission is less consequential than it appears — the DID is the hash of a document that contains the document key, so an unsigned creation entry cannot introduce a different document — but the guarantee an update entry gives, namely that the previous controller authorised the change, has no counterpart at creation time without it.</p>
    <h2 class="heading settled" data-level="4" id="log"><span class="secno">4. </span><span class="content">DID Log</span><a class="self-link" href="#log"></a></h2>
    <p>The log is a directed acyclic graph (DAG) and represents the life cycle of a DID. Each element in this graph holds the following attributes:</p>
 <pre class="highlight"><c- p>{</c->
@@ -3080,4 +3132,6 @@ Various DIDs and useful commands.
    <dd><a href="https://tools.ietf.org/html/draft-multiformats-multibase"><cite>IETF Multibase Data Format specification</cite></a>. URL: <a href="https://tools.ietf.org/html/draft-multiformats-multibase">https://tools.ietf.org/html/draft-multiformats-multibase</a>
    <dt id="biblio-multihash">[MULTIHASH]
    <dd><a href="https://github.com/multiformats/multihash"><cite>Multihash - protocol for differentiating outputs from various well-established cryptographic hash functions</cite></a>. URL: <a href="https://github.com/multiformats/multihash">https://github.com/multiformats/multihash</a>
+   <dt id="biblio-rfc6979">[RFC6979]
+   <dd>T. Pornin. <a href="https://www.rfc-editor.org/info/rfc6979/"><cite>Deterministic Usage of the Digital Signature Algorithm (DSA) and Elliptic Curve Digital Signature Algorithm (ECDSA)</cite></a>. August 2013. Informational. URL: <a href="https://www.rfc-editor.org/info/rfc6979/">https://www.rfc-editor.org/info/rfc6979/</a>
   </dl>
