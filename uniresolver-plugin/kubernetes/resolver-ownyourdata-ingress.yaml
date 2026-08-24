@@ -1,0 +1,47 @@
+# Zusaetzlicher Ingress fuer den methodeneigenen Hostnamen resolver.ownyourdata.eu.
+#
+# Bewusst NICHT in resolver-deployment.yaml eingebaut: dort steht ein veralteter
+# Image-Tag (250503), ein `pace apply -f resolver-deployment.yaml` wuerde das
+# laufende Deployment darauf zurueckrollen. Diese Datei ist rein additiv und
+# laesst sich mit `pace delete -f` wieder entfernen.
+#
+# Der bestehende Host oydid-resolver.data-container.net bleibt unveraendert
+# bestehen - die Universal-Resolver-Konfiguration zeigt darauf.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: resolver-ownyourdata
+  namespace: oydid
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - resolver.ownyourdata.eu
+    secretName: resolver-ownyourdata-tls
+  rules:
+  - host: resolver.ownyourdata.eu
+    http:
+      paths:
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: resolver
+            port:
+              number: 80
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: resolver-ownyourdata-tls
+  namespace: oydid
+spec:
+  secretName: resolver-ownyourdata-tls
+  issuerRef:
+    group: cert-manager.io
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+  - 'resolver.ownyourdata.eu'
+  privateKey:
+    rotationPolicy: Always

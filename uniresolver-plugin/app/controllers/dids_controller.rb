@@ -8,9 +8,144 @@ class DidsController < ApplicationController
     respond_to :html, only: []
     respond_to :xml, only: []
 
+    # Media types of the DID Resolution HTTP(S) binding
+    # (https://w3c.github.io/did-resolution/#bindings-https). The Universal
+    # Resolver sends the legacy profile form, newer clients the short form;
+    # both mean the same thing.
+    MEDIA_TYPE_RESOLUTION        = "application/did-resolution"
+    MEDIA_TYPE_RESOLUTION_LEGACY = 'application/ld+json;profile="https://w3id.org/did-resolution"'
+    MEDIA_TYPE_DEREFERENCING     = "application/did-url-dereferencing"
+    MEDIA_TYPE_DOCUMENT          = "application/did"
+    MEDIA_TYPE_DOCUMENT_LD       = "application/did+ld+json"
+
+    # GET /1.0/identifiers/<did>
+    # Binding used by the Universal Resolver driver: answers with the full
+    # DID Resolution Result as application/ld+json - unchanged behaviour, no
+    # content negotiation, because that is what the driver configuration in
+    # uni-resolver-web expects.
     def uniresolver_resolve
-        did = params[:did]
-        fragment = params[:fragment]
+        payload, status = resolution_result(params[:did], params[:fragment])
+        if status != 200
+            render json: payload, status: status
+            return
+        end
+        render plain: payload.to_json,
+               mime_type: Mime::Type.lookup("application/ld+json"),
+               content_type: 'application/ld+json',
+               status: 200
+    end
+
+    # GET /1.0/resolve/<did>
+    # `resolve` function of the DID Resolution spec. Content negotiated:
+    #   Accept: application/did-resolution            -> DID Resolution Result
+    #   Accept: application/ld+json;profile="...did-resolution"  (legacy) -> ditto
+    #   Accept: application/did (or application/did+ld+json)     -> DID Document only
+    #   no/other Accept                               -> DID Resolution Result
+    # The default stays the Resolution Result so that this path can be used
+    # interchangeably with /1.0/identifiers/.
+    def resolve
+        payload, status = resolution_result(params[:did], params[:fragment])
+        response.headers["Vary"] = "Accept"
+        if status != 200
+            render json: payload, status: status
+            return
+        end
+        shape, content_type = negotiated_media_type(:resolution)
+        payload[:didResolutionMetadata][:contentType] = MEDIA_TYPE_DOCUMENT if shape == :resolution
+        body = (shape == :document) ? payload[:didDocument] : payload
+        render plain: body.to_json,
+               mime_type: Mime::Type.lookup("application/ld+json"),
+               content_type: content_type,
+               status: 200
+    end
+
+    # GET /1.0/resolveRepresentation/<did>
+    # `resolveRepresentation` function: the DID Document in a concrete
+    # representation. Defaults to the document; a client that explicitly asks
+    # for application/did-resolution still gets the full result.
+    def resolve_representation
+        payload, status = resolution_result(params[:did], params[:fragment])
+        response.headers["Vary"] = "Accept"
+        if status != 200
+            render json: payload, status: status
+            return
+        end
+        shape, content_type = negotiated_media_type(:document)
+        payload[:didResolutionMetadata][:contentType] = MEDIA_TYPE_DOCUMENT if shape == :resolution
+        body = (shape == :document) ? payload[:didDocument] : payload
+        render plain: body.to_json,
+               mime_type: Mime::Type.lookup("application/ld+json"),
+               content_type: content_type,
+               status: 200
+    end
+
+    # GET /1.0/dereference/<did-url>
+    # `dereference` function. Supported DID URL syntax: a plain DID and a
+    # fragment (did:oyd:...#key-doc). Path, query and service parameters are
+    # not part of the OYDID method and are reported as notSupported instead of
+    # being silently ignored.
+    def dereference
+        did_url = params[:did].to_s
+        did_url, _, fragment = did_url.partition("#")
+        # a slash *after* the method-specific id would be a DID URL path
+        path_start = did_url.index("/", (did_url.index(":oyd:").to_i + 5))
+        if did_url.include?("?") || !path_start.nil?
+            render json: {"dereferencingMetadata": {"error": "notSupported",
+                                                    "errorMessage": "OYDID does not define path or query parameters in DID URLs"},
+                          "contentStream": nil,
+                          "contentMetadata": {}},
+                   status: 501
+            return
+        end
+        payload, status = resolution_result(did_url, fragment)
+        response.headers["Vary"] = "Accept"
+        if status != 200
+            render json: {"dereferencingMetadata": payload,
+                          "contentStream": nil,
+                          "contentMetadata": {}},
+                   status: status
+            return
+        end
+        retVal = {
+            "dereferencingMetadata": {"contentType": MEDIA_TYPE_DOCUMENT},
+            "contentStream": payload[:didDocument],
+            "contentMetadata": payload[:didDocumentMetadata]
+        }
+        render plain: retVal.to_json,
+               mime_type: Mime::Type.lookup("application/ld+json"),
+               content_type: MEDIA_TYPE_DEREFERENCING,
+               status: 200
+    end
+
+    private
+
+    # Reads the Accept header and decides what to send back.
+    # Returns [:resolution|:document, content_type]; `default_shape` is used
+    # when the client states no preference we recognise.
+    def negotiated_media_type(default_shape)
+        accept = request.headers["Accept"].to_s
+        accept.split(",").each do |entry|
+            entry = entry.strip.downcase.delete('"')
+            next if entry.empty? || entry.start_with?("*/*")
+            base_type = entry.split(";").first.to_s.strip
+            profile = entry.include?("profile=") ? entry.split("profile=").last.to_s.split(";").first.to_s.strip : nil
+            if base_type == MEDIA_TYPE_RESOLUTION
+                return [:resolution, MEDIA_TYPE_RESOLUTION]
+            elsif profile == "https://w3id.org/did-resolution"
+                return [:resolution, MEDIA_TYPE_RESOLUTION_LEGACY]
+            elsif base_type == MEDIA_TYPE_DOCUMENT
+                return [:document, MEDIA_TYPE_DOCUMENT]
+            elsif base_type == MEDIA_TYPE_DOCUMENT_LD || base_type == "application/did+json"
+                return [:document, base_type]
+            end
+        end
+        default_shape == :document ? [:document, MEDIA_TYPE_DOCUMENT_LD] : [:resolution, 'application/ld+json']
+    end
+
+    # Resolves `did` and builds the DID Resolution Result.
+    # Returns [payload, http_status]; on failure the payload is the error
+    # object the endpoints render as-is.
+    def resolution_result(did, fragment)
         options = {}
         didLocation = did.split(LOCATION_PREFIX)[1] rescue ""
         didHash = did.split(LOCATION_PREFIX)[0] rescue did
@@ -39,20 +174,16 @@ class DidsController < ApplicationController
         end
         if revoked
             response.headers["Cache-Control"] = "no-store"
-            render json: {"error": "revoked"},
-                   status: (ENV["REVOKED_HTTP_STATUS"].to_s == "404" ? 404 : 410)
-            return
+            return [{"error": "revoked"},
+                    (ENV["REVOKED_HTTP_STATUS"].to_s == "404" ? 404 : 410)]
         end
         if result.nil?
-            render json: {"error": "not found"},
-                   status: 404
-            return
+            return [{"error": "not found"}, 404]
         end
         if result["error"] != 0
             # internal error codes (1, 2, ...) are not HTTP status codes
-            render json: {"error": result["message"].to_s},
-                   status: (result["error"].to_i == 404 ? 404 : 500)
-            return
+            return [{"error": result["message"].to_s},
+                    (result["error"].to_i == 404 ? 404 : 500)]
         end
 
         didResolutionMetadata = {}
@@ -105,11 +236,11 @@ class DidsController < ApplicationController
         when 'p256-pub'
             pubDocKey_jwk, msg = Oydid.public_key_to_jwk(result["doc"]["key"].split(":").first)
             if pubDocKey_jwk.nil?
-                return {"error": "document key: " + msg.to_s}
+                return [{"error": "document key: " + msg.to_s}, 500]
             end
             pubRevKey_jwk, msg = Oydid.public_key_to_jwk(result["doc"]["key"].split(":").last)
             if pubRevKey_jwk.nil?
-                return {"error": "revocation key: " + msg.to_s}
+                return [{"error": "revocation key: " + msg.to_s}, 500]
             end
 
             # document key
@@ -128,7 +259,7 @@ class DidsController < ApplicationController
                 "publicKeyJwk": pubRevKey_jwk
             }
         else
-            return {"error": "unsupported key codec (" + Multicodecs[code].name.to_s + ")"}
+            return [{"error": "unsupported key codec (" + Multicodecs[code].name.to_s + ")"}, 500]
         end
 
         oydid_W3C = Oydid.w3c(Marshal.load(Marshal.dump(result)), {})
@@ -283,34 +414,7 @@ class DidsController < ApplicationController
         end
 
 
-        render plain: retVal.to_json,
-               mime_type: Mime::Type.lookup("application/ld+json"),
-               content_type: 'application/ld+json',
-               status: 200
-    end
-
-    def resolve
-        render plain: {"status": "in progress", "did": params[:did].to_s}.to_json,
-               mime_type: Mime::Type.lookup("application/ld+json"),
-               content_type: 'application/ld+json',
-               status: 200
-
-    end
-
-    def resolve_representation
-        render plain: {"status": "in progress", "did": params[:did].to_s}.to_json,
-               mime_type: Mime::Type.lookup("application/ld+json"),
-               content_type: 'application/ld+json',
-               status: 200
-
-    end
-
-    def dereference
-        render plain: {"status": "in progress", "did": params[:did].to_s}.to_json,
-               mime_type: Mime::Type.lookup("application/ld+json"),
-               content_type: 'application/ld+json',
-               status: 200
-
+        [retVal, 200]
     end
 
 end
