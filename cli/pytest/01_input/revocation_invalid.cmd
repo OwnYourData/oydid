@@ -1,1 +1,1 @@
-did=`echo '' | oydid create --doc-pwd pwd1 --rev-pwd pwd2 -s --json-output | jq -r '.did'` && oydid revoke --doc-pwd pwd3 --rev-pwd pwd4 -s $did | cat
+P="revpwd1-$$-$(date +%s%N)"; Q="revpwd2-$$-$(date +%s%N)"; did=`echo '' | oydid create --doc-pwd "$P" --rev-pwd "$Q" -s --json-output | jq -r '.did'` && oydid revoke --doc-pwd pwd3 --rev-pwd pwd4 -s $did | cat; RC=$?; oydid revoke --doc-pwd "$P" --rev-pwd "$Q" -s $did > /dev/null 2>&1; exit $RC
