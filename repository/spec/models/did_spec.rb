@@ -59,6 +59,16 @@ RSpec.describe Did, type: :model do
       expect(Did.find_by_public_key_active(key)).to eq(last)
     end
 
+    # One collector key carries thousands of rows; the lookup must not load
+    # them all to answer. Newest first, stop at the first active version.
+    it "loads one row at a time and stops at the newest active version" do
+      version("older", revoked: false)
+      newest = version("newest", revoked: false)
+      allow(Did).to receive(:find_by).and_call_original
+      expect(Did.find_by_public_key_active(key)).to eq(newest)
+      expect(Did).to have_received(:find_by).once
+    end
+
     it "does not mix up two different keys" do
       mine = version("mine", revoked: false)
       version("other", revoked: false, key: "z6MkSomeOtherKey")

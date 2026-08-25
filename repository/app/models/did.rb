@@ -43,11 +43,20 @@ class Did < ApplicationRecord
     # When every version is revoked, return the newest one anyway: the caller
     # verifies the log and reports the revocation, which is more useful than
     # "not found".
+    #
+    # Fetch the ids first and load one row at a time: a single collector key
+    # carries thousands of rows, and pulling every `doc` into memory to answer
+    # one lookup is a cost with no benefit. The common case - newest version
+    # active - ends after the first row.
     def self.find_by_public_key_active(public_key)
         return nil if public_key.to_s == ""
-        candidates = where(public_key: public_key).order(id: :desc).to_a
-        return nil if candidates.empty?
-        candidates.find { |candidate| !candidate.revoked? } || candidates.first
+        ids = where(public_key: public_key).order(id: :desc).pluck(:id)
+        return nil if ids.empty?
+        ids.each do |id|
+            candidate = find_by(id: id)
+            return candidate if candidate && !candidate.revoked?
+        end
+        find_by(id: ids.first)
     end
 
     # Guardrail: at any time a public key controls at most one active DID.
