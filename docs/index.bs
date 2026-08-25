@@ -29,6 +29,16 @@ Markup Shorthands: markdown yes
     "MULTIHASH": {
         "href": "https://github.com/multiformats/multihash",
         "title": "Multihash - protocol for differentiating outputs from various well-established cryptographic hash functions"
+    },
+    "DID-RESOLUTION": {
+        "href": "https://www.w3.org/TR/did-resolution/",
+        "title": "DID Resolution v1.0",
+        "publisher": "W3C"
+    },
+    "DID-WEB": {
+        "href": "https://w3c-ccg.github.io/did-method-web/",
+        "title": "did:web Method Specification",
+        "publisher": "W3C Credentials Community Group"
     }
 }
 </pre>
@@ -40,7 +50,8 @@ This specification is published by [OwnYourData](https://www.ownyourdata.eu) as 
 
 * Version 0.3: 19 October 2021 (initial public release, [link](https://github.com/OwnYourData/oydid/blob/main/docs/did-spec_v03.md))
 * Version 0.4: 19 January 2022 ([link](https://ownyourdata.github.io/oydid/did-method-oyd_v04.html))
-* Version 0.5: 30 May 2023 (current version)
+* Version 0.5: 30 May 2023
+* Version 0.6: 25 August 2026 (current version)
 
 Introduction {#intro}
 ============
@@ -220,6 +231,56 @@ Note: it is in the interest of the owner to publish revocation entries and make 
 
 Note: see section [[#verification]] for a detailed description of using the OYDID command line tool to output step-wise verification information for independent proof.
 
+### Resolution Result ### {#resolution_result}
+
+A resolver answers either with the DID document alone or with a DID Resolution Result — the
+document accompanied by `didResolutionMetadata` and `didDocumentMetadata` as defined in
+[[DID-RESOLUTION]]. Which of the two is returned is negotiated over the `Accept` header, see
+[[#http_binding]].
+
+The `id` of the returned document is the identifier that was **requested**, not necessarily
+the one the log resolves to. Every update mints a new identifier, so an identifier printed on
+a product, embedded in a credential or handed to a business partner is regularly an earlier
+version of the DID the document now belongs to. Answering with the requested identifier keeps
+that reference intact; how it relates to the other versions is stated in the metadata:
+
+  * `canonicalId` names the identifier of the current version.
+  * `equivalentId` lists every other identifier the same document resolves through, that is
+    all versions except the one carried in `id`. When an earlier version was requested, the
+    canonical identifier therefore appears in both fields.
+
+The document itself lists the other versions in `alsoKnownAs`. That property is informative:
+[[DID-CORE]] states that identifiers linked through `alsoKnownAs` are not to be considered
+equivalent without an inverse relationship, which a `did:oyd` version chain cannot express —
+all versions resolve to the same document. Implementations MUST rely on `canonicalId` and
+`equivalentId` when they need to decide equivalence.
+
+<div class=example id=example_resolution_result>
+Resolving an earlier version of a DID that has been updated once:
+
+```
+{
+  "didDocument": {
+    "id": "did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
+    "alsoKnownAs": ["did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W"],
+    ...
+  },
+  "didResolutionMetadata": { "contentType": "application/did" },
+  "didDocumentMetadata": {
+    "canonicalId": "did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W",
+    "equivalentId": ["did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W"],
+    ...
+  }
+}
+```
+</div>
+
+A revoked DID MUST NOT be served as if it were current. A resolver reports the revocation
+with HTTP status `410 Gone`; a deployment MAY report `404 Not Found` instead where an
+intermediary treats `410` in a way that loses the distinction. What is not permitted is
+answering `200` with the last document the DID carried before its revocation — the
+revocation record is published precisely so that consumers stop trusting that document.
+
 ### Public Key Identifier ### {#pubkey_identifier}
 
 Inspired by [EBSI DID v2](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/EBSI+DID+Method) it is now also possible for the `did:oyd` method to use the document public key as identifier.
@@ -231,6 +292,109 @@ Both DIDs resolve to the same DID Document:
   * with public key identifier: `did:oyd:z6MusWcRn7TWW3XAa96vrST5Fx8n3xndSEVEfMCQBDAMrQpP`
 
 </div>
+
+Because the public key does not change when a DID is updated without key rotation, one key
+can be carried by more than one stored version. A repository resolving this form MUST answer
+with the **newest version that has not been revoked**. For the intended case — one DID plus
+its update history — that is exactly the current document: key rotation on update is
+optional, so a non-rotating update leaves the earlier, now revoked version next to the new
+one. When every version carrying the key has been revoked, the newest one is returned
+nonetheless, so that the caller learns about the revocation instead of receiving "not found".
+
+To keep that answer meaningful, a repository MUST reject a **create** whose document key is
+already carried by an active DID, with HTTP status `400 Bad Request`. Reusing a key after the
+DID it controlled has been revoked stays permitted, and an update is not affected — a
+non-rotating update legitimately carries the key of the version it replaces.
+
+Note: the public key identifier is resolved by the repository holding the DID and is not a
+global lookup. A repository can only answer for keys it has recorded; the same key published
+in another repository is not found through it.
+
+### HTTP(S) Binding ### {#http_binding}
+
+[[DID-RESOLUTION]] addresses a resolver through a base URL to which the DID is appended; the
+path of that URL is not prescribed. Implementations of this method offer the following
+endpoints, each taking the DID as the last path segment:
+
+<table class="data">
+<thead>
+<tr><th>path<th>function<th>answer
+<tbody>
+<tr><td>`/1.0/identifiers/`<td>resolve<td>always a DID Resolution Result
+<tr><td>`/1.0/resolve/`<td>resolve<td>negotiated, Resolution Result by default
+<tr><td>`/1.0/resolveRepresentation/`<td>resolve<td>negotiated, DID document by default
+<tr><td>`/1.0/dereference/`<td>dereference a DID URL<td>dereferencing result
+</table>
+
+`/1.0/identifiers/` answers with a Resolution Result regardless of the `Accept` header,
+because that is the shape the Universal Resolver expects from a driver. On the other
+endpoints the header decides:
+
+  * `application/did-resolution`, or the earlier form
+    `application/ld+json;profile="https://w3id.org/did-resolution"`, requests a DID
+    Resolution Result.
+  * `application/did` requests the DID document on its own.
+  * `application/did-url-dereferencing` requests a dereferencing result.
+
+A response whose shape depends on the `Accept` header MUST carry `Vary: Accept`; without it a
+cache may hand one form to a client that asked for the other. Status codes follow
+[[DID-RESOLUTION]]: `200` on success, `404` when the DID is unknown, `410` when it has been
+revoked (see [[#resolution_result]]), and `501` for a DID URL this method does not define —
+`did:oyd` has neither path nor query parameters, and reporting them as unsupported is
+preferable to ignoring them silently.
+
+Resolvers are expected to be reachable from browser-based clients and SHOULD therefore permit
+cross-origin requests.
+
+<div class=example id=example_resolver_endpoint>
+A publicly available resolver for this method:
+
+```
+https://resolver.ownyourdata.eu/1.0/resolve/did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
+```
+</div>
+
+### did:web Bridge ### {#didweb_bridge}
+
+A repository publishes every DID it holds a second time as a `did:web` identifier
+[[DID-WEB]], so that clients which support `did:web` but not `did:oyd` can read the document
+at all. A DID stored as `did:oyd:<hash>` in a repository reachable under `<host>` is served
+at `https://<host>/<hash>/did.json`, which is where a `did:web` resolver looks for
+`did:web:<host>:<hash>`.
+
+The document returned there is the same document, with every occurrence of `did:oyd:`
+replaced by `did:web:<host>:` — the identifier, the controller, the identifiers of the
+verification methods and the entries in `alsoKnownAs`. Only the document is returned, not a
+Resolution Result.
+
+<div class=example id=example_didweb_bridge>
+`https://oydid.ownyourdata.eu/zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh/did.json`
+answers with:
+
+```
+{
+  "id": "did:web:oydid.ownyourdata.eu:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
+  "verificationMethod": [{
+    "id": "did:web:oydid.ownyourdata.eu:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh#key-doc",
+    "controller": "did:web:oydid.ownyourdata.eu:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
+    ...
+  }],
+  ...
+}
+```
+</div>
+
+What the bridge cannot carry over is the property this method exists for: under `did:web` the
+identifier is a host name and a path, and it no longer commits to the content of the
+document. Whoever controls the host can serve a different document, and no log, hash chain or
+signature contradicts them. Trust rests on the host, not on the identifier. Consumers able to
+resolve `did:oyd` SHOULD do so, and SHOULD treat the `did:web` form as a fallback for
+interoperability.
+
+The rules of [[#resolution_result]] apply on this path as well. In particular a revoked DID
+MUST NOT be served through the bridge as if it were current — a resolution path that skips
+the revocation check would otherwise reinstate exactly the document the revocation withdrew.
+
 
 ## Update ## {#update}
 
