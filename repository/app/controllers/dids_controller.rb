@@ -242,6 +242,20 @@ class DidsController < ApplicationController
         # what still differs is the response shape, bare DID Document here and
         # full resolution result there.
         result, read_msg = resolve_did_any(did, options)
+
+        # Vary has to be set before the first response that depends on Accept can
+        # be sent - and for a revoked DID that is already the case: a client
+        # asking for the resolution result gets the deactivated statement with
+        # 200, everyone else the 410 that a request for a document deserves.
+        response.headers["Vary"] = "Accept"
+        revoked = (read_msg.to_s == "revoked") ||
+                  (!result.nil? && result["error"].to_i == REVOKED_ERROR)
+        if revoked && wants_resolution_result?
+            duration = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
+            render_deactivated(did, didHash, duration)
+            return
+        end
+        result, read_msg = resolve_did_any(did, options)
         if result.nil?
             if read_msg.to_s == "revoked"
                 render_resolution_error({"error" => REVOKED_ERROR, "message" => "revoked"})
@@ -263,8 +277,7 @@ class DidsController < ApplicationController
         #
         # Vary is not cosmetic here - a cache in front of this endpoint would
         # otherwise be free to hand one shape to a client that asked for the
-        # other.
-        response.headers["Vary"] = "Accept"
+        # other. It is set further up, with the revoked case.
         if wants_resolution_result?
             duration = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
             payload, payload_error = did_resolution_result(did, didHash, result, options, duration)
@@ -306,6 +319,17 @@ class DidsController < ApplicationController
         end
         options[:followAlsoKnownAs] = ENV['FOLLOW_ALSOKNOWNAS'].to_s.downcase != 'false'
 
+        result, read_msg = resolve_did_any(did, options)
+
+        # this endpoint always answers with a resolution result, so a revoked DID
+        # is always reported as deactivated rather than as an error
+        revoked = (read_msg.to_s == "revoked") ||
+                  (!result.nil? && result["error"].to_i == REVOKED_ERROR)
+        if revoked
+            duration = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
+            render_deactivated(did, didHash, duration)
+            return
+        end
         result, read_msg = resolve_did_any(did, options)
         if result.nil?
             if read_msg.to_s == "revoked"

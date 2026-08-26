@@ -51,6 +51,10 @@ class DidsController < ApplicationController
             return
         end
         shape, content_type = negotiated_media_type(:resolution)
+        if deactivated?(payload) && shape == :document
+            render_revoked_document
+            return
+        end
         payload[:didResolutionMetadata][:contentType] = MEDIA_TYPE_DOCUMENT if shape == :resolution
         body = (shape == :document) ? payload[:didDocument] : payload
         render plain: body.to_json,
@@ -71,6 +75,10 @@ class DidsController < ApplicationController
             return
         end
         shape, content_type = negotiated_media_type(:document)
+        if deactivated?(payload) && shape == :document
+            render_revoked_document
+            return
+        end
         payload[:didResolutionMetadata][:contentType] = MEDIA_TYPE_DOCUMENT if shape == :resolution
         body = (shape == :document) ? payload[:didDocument] : payload
         render plain: body.to_json,
@@ -106,6 +114,16 @@ class DidsController < ApplicationController
                    status: status
             return
         end
+        # dereferencing asks for a resource, not for a resolution result - a
+        # revoked DID has none, so this path keeps its 410
+        if deactivated?(payload)
+            response.headers["Cache-Control"] = "no-store"
+            render json: {"dereferencingMetadata": {"error": "revoked"},
+                          "contentStream": nil,
+                          "contentMetadata": {}},
+                   status: (ENV["REVOKED_HTTP_STATUS"].to_s == "404" ? 404 : 410)
+            return
+        end
         retVal = {
             "dereferencingMetadata": {"contentType": MEDIA_TYPE_DOCUMENT},
             "contentStream": payload[:didDocument],
@@ -118,6 +136,20 @@ class DidsController < ApplicationController
     end
 
     private
+
+    def deactivated?(payload)
+        payload.is_a?(Hash) && payload[:didDocumentMetadata].is_a?(Hash) &&
+            payload[:didDocumentMetadata][:deactivated] == true
+    end
+
+    # 410 Gone is the right answer to a request that wants a document, and the
+    # one existing clients already handle. ENV["REVOKED_HTTP_STATUS"]=404 for
+    # caches that treat 410 poorly.
+    def render_revoked_document
+        response.headers["Cache-Control"] = "no-store"
+        render json: {"error": "revoked"},
+               status: (ENV["REVOKED_HTTP_STATUS"].to_s == "404" ? 404 : 410)
+    end
 
     # Reads the Accept header and decides what to send back.
     # Returns [:resolution|:document, content_type]; `default_shape` is used
@@ -173,9 +205,23 @@ class DidsController < ApplicationController
             result = resolve_did_legacy(did, options)
         end
         if revoked
+            # A revoked DID resolves successfully - the answer is "deactivated",
+            # not "not found". DID Core 7.1.3: "If a DID has been deactivated,
+            # DID document metadata MUST include this property with the boolean
+            # value true." A consumer behind the Universal Resolver never sees
+            # the HTTP status, so this is the only place the difference between
+            # "never existed" and "revoked" can be stated at all. No
+            # didResolutionMetadata error: that stays reserved for identifiers
+            # that were never there.
+            #
+            # The callers turn this back into 410 wherever the client asked for a
+            # bare document - there is none to send.
             response.headers["Cache-Control"] = "no-store"
-            return [{"error": "revoked"},
-                    (ENV["REVOKED_HTTP_STATUS"].to_s == "404" ? 404 : 410)]
+            return [{
+                "didDocument": nil,
+                "didResolutionMetadata": {},
+                "didDocumentMetadata": { "deactivated": true }
+            }, 200]
         end
         if result.nil?
             return [{"error": "not found"}, 404]
@@ -291,15 +337,13 @@ class DidsController < ApplicationController
         #     end
         # end
 
-        # the identifier the document carries as `id` - after an update that is
-        # the requested version, not the one the log resolves to; canonicalId
-        # below names the current one
-        did_identifier = Oydid.document_id(result)
         retVal = {
             "didResolutionMetadata": didResolutionMetadata,
             "didDocument": oydid_W3C,
+            # no "did" key - it duplicated didDocument.id and was the one
+            # method-specific name here that could collide with a future
+            # standard one
             "didDocumentMetadata": {
-                "did": did_identifier,
                 "keys": keys,
                 "registry": Oydid.get_location(result["did"].to_s),
                 "log_hash": result["doc"]["log"].to_s,
@@ -316,6 +360,11 @@ class DidsController < ApplicationController
         canonical_id, equivalent_ids = Oydid.version_ids(result)
         retVal[:didDocumentMetadata][:canonicalId] = canonical_id
         retVal[:didDocumentMetadata][:equivalentId] = equivalent_ids if equivalent_ids.any?
+
+        # created / updated / versionId (DID Core 7.1.3), same source as above
+        Oydid.version_metadata(result).each do |key, value|
+            retVal[:didDocumentMetadata][key.to_sym] = value
+        end
 
         # if oydid_W3C["id"].split(":").take(2).join(":") == "did:oyd"
         #     # == temporary fix to handle wrong encoding ==

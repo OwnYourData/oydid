@@ -45,6 +45,48 @@ RSpec.describe "DID read paths and revocation", type: :request do
     expect(JSON.parse(response.body)["success"]).to eq(true)
   end
 
+  # Update a DID without any network access, through the registrar endpoint -
+  # which loads the current state from the local database and hands the gem a
+  # LocalDidStore, so dag_update never reaches for HTTP.
+  #
+  # Returns the same shape create_did does, so updates can be chained.
+  #
+  # The endpoint hands the new keys back as the hex of the *wrapped* key bytes
+  # (update_keys does multi_decode(...).unpack("H*"), so the multicodec header is
+  # still in there - the same convention as publicKeyHex "ed01..."), while
+  # private_key_from_hex wants the bare key material. Unwrapping uses the layout
+  # Oydid.key_to_hex documents for private keys: [uint16 codec][uint8 length][key].
+  def update_did(status, payload = {})
+    post "/1.0/updateIdentifier", params: {
+      args:        { did: status["did"] },
+      didDocument: payload,
+      secret:      { old_doc_enc: status["private_key"],
+                     old_rev_enc: status["revocation_key"] }
+    }, as: :json
+    expect(response).to have_http_status(200), response.body
+
+    body    = JSON.parse(response.body)
+    key_for = ->(fragment) do
+      entry = body["keys"].to_a.find { |k| k["kid"].to_s.end_with?(fragment) }
+      expect(entry).not_to be_nil, "no #{fragment} in #{body["keys"].inspect}"
+      hex = entry["privateKeyHex"]
+      expect(hex).to be_present, "#{fragment} came back without a private part"
+      _code, _length, raw = [hex].pack("H*").unpack("SCa*")
+      key, msg = Oydid.private_key_from_hex(raw.unpack1("H*"), key_type: "ed25519")
+      expect(key).not_to be_nil, msg.to_s
+      key
+    end
+    { "did"            => body["did"],
+      "private_key"    => key_for.call("#key-doc"),
+      "revocation_key" => key_for.call("#key-rev") }
+  end
+
+  def resolution_metadata(did)
+    get "/1.0/resolve/#{did}"
+    expect(response).to have_http_status(200), response.body
+    JSON.parse(response.body)["didDocumentMetadata"]
+  end
+
   def identifier(status)
     status["did"].delete_prefix("did:oyd:").split("@").first
   end
@@ -109,6 +151,30 @@ RSpec.describe "DID read paths and revocation", type: :request do
       expect(revoked_status).to include(response.status)
     end
 
+    # DID Core 7.1.3: "If a DID has been deactivated, DID document metadata MUST
+    # include this property with the boolean value true." Only the resolution
+    # result can carry that statement - and a consumer behind a
+    # universal-resolver driver never sees the HTTP status, so for it this is the
+    # only way "revoked" and "never existed" stay distinguishable.
+    it "reports deactivated when the resolution result was asked for" do
+      status = create_did
+      revoke_did(status)
+
+      get "/1.0/identifiers/did:oyd:#{identifier(status)}",
+          headers: { "Accept" => 'application/ld+json;profile="https://w3id.org/did-resolution"' }
+      expect(response).to have_http_status(200), response.body
+      body = JSON.parse(response.body)
+      expect(body["didDocument"]).to be_nil
+      expect(body["didDocumentMetadata"]["deactivated"]).to eq(true)
+      # error stays reserved for identifiers that were never there
+      expect(body["didResolutionMetadata"]).not_to have_key("error")
+      expect(body["didResolutionMetadata"]["did"]["methodSpecificId"]).to eq(identifier(status))
+      expect(response.body).not_to include("publicKeyMultibase")
+      expect(response.headers["Cache-Control"]).to eq("no-store")
+      # the answer depends on Accept, so a cache must not mix the two shapes
+      expect(response.headers["Vary"].to_s).to include("Accept")
+    end
+
     it "does not leak the document through /doc_raw either" do
       status = create_did
       revoke_did(status)
@@ -170,6 +236,10 @@ RSpec.describe "DID read paths and revocation", type: :request do
       expect(meta["log"]).to be_an(Array).and be_present
       expect(meta["log_hash"]).to be_present
       expect(meta["termination_log_id"]).to be_a(Integer)
+      # "did" used to duplicate didDocument.id here - removed, because it was the
+      # one method-specific name in this structure that could collide with a
+      # future standard one
+      expect(meta).not_to have_key("did")
     end
 
     it "works without the did:oyd prefix" do
@@ -180,19 +250,31 @@ RSpec.describe "DID read paths and revocation", type: :request do
       expect(JSON.parse(response.body)["didDocument"]["id"]).to eq("did:oyd:#{id}")
     end
 
-    it "refuses a revoked DID" do
+    # This endpoint always answers with a resolution result, so a revoked DID is
+    # reported as deactivated rather than refused: DID Core 7.1.3 requires the
+    # statement, and it used to be unreachable here. The bare document paths
+    # (/doc, /{id}/did.json, and /1.0/identifiers/ without the profile) keep
+    # their 410 - see the "revoked DID" group above.
+    it "reports a revoked DID as deactivated, without a document" do
       status = create_did
       revoke_did(status)
 
       get "/1.0/resolve/did:oyd:#{identifier(status)}"
-      expect(revoked_status).to include(response.status)
-      expect(JSON.parse(response.body)["error"]).to eq("revoked")
+      expect(response).to have_http_status(200), response.body
+      body = JSON.parse(response.body)
+      expect(body["didDocument"]).to be_nil
+      expect(body["didDocumentMetadata"]).to eq({ "deactivated" => true })
+      expect(body["didResolutionMetadata"]).not_to have_key("error")
       expect(response.body).not_to include("publicKeyHex")
+      expect(response.headers["Cache-Control"]).to eq("no-store")
     end
 
+    # the counterpart to the example above: "never existed" must stay
+    # distinguishable from "deactivated", and error is what says so
     it "answers 404 for an unknown identifier" do
       get "/1.0/resolve/did:oyd:zQmBogusIdentifierThatDoesNotExistAtAll12345"
       expect(response).to have_http_status(404)
+      expect(JSON.parse(response.body)["error"]).to eq("not found")
     end
 
     it "leaves /1.0/identifiers/ returning the bare DID Document" do
@@ -264,6 +346,60 @@ RSpec.describe "DID read paths and revocation", type: :request do
       meta = JSON.parse(response.body)["didDocumentMetadata"]
       expect(meta["canonicalId"]).to eq("did:oyd:#{id}")
       expect(meta).not_to have_key("equivalentId")
+    end
+
+    # DID Core 7.1.3 - without `updated` a consumer cannot tell how old the
+    # version it holds is; it is omitted while there has never been an update.
+    it "reports created and versionId, and omits updated until there is one" do
+      id   = identifier(create_did)
+      meta = resolution_metadata("did:oyd:#{id}")
+      expect(meta["versionId"]).to eq(id)
+      expect(meta["created"]).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\z/)
+      expect(meta).not_to have_key("updated")
+    end
+
+    it "reports updated and the current versionId after an update" do
+      v1 = create_did
+      v2 = update_did(v1, "hello" => "second")
+      meta = resolution_metadata("did:oyd:" + identifier(v1))
+
+      expect(meta["created"]).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\z/)
+      expect(meta["updated"]).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\z/)
+      # versionId names the resolved version, so "did:oyd:" + versionId is the
+      # canonical DID - that is the point of handing out the bare hash
+      expect(meta["versionId"]).to eq(identifier(v2))
+      expect("did:oyd:" + meta["versionId"]).to eq(meta["canonicalId"])
+    end
+
+    # Resolving through an earlier version has to report every OTHER version as
+    # equivalent, not just the current one. With two versions the two readings
+    # cannot be told apart - which is why this uses three.
+    it "reports every other version, whichever version was requested" do
+      v1 = create_did
+      v2 = update_did(v1, "hello" => "second")
+      v3 = update_did(v2, "hello" => "third")
+      ids = [v1, v2, v3].map { |s| "did:oyd:" + identifier(s) }
+      expect(ids.uniq.length).to eq(3)
+
+      ids.each_with_index do |requested, i|
+        meta = resolution_metadata(requested)
+        expect(meta["canonicalId"]).to eq(ids.last), "canonicalId for version #{i + 1}"
+        expect(meta["equivalentId"])
+          .to match_array(ids - [requested]), "equivalentId for version #{i + 1}"
+      end
+    end
+
+    # the point of the exercise: the identifier a relying party holds - printed
+    # on a data carrier, stored in a database - keeps naming itself
+    it "keeps the requested version as the id of the document" do
+      v1 = create_did
+      update_did(update_did(v1, "hello" => "second"), "hello" => "third")
+
+      get "/1.0/resolve/did:oyd:#{identifier(v1)}"
+      expect(response).to have_http_status(200)
+      body = JSON.parse(response.body)
+      expect(body["didDocument"]["id"]).to eq("did:oyd:" + identifier(v1))
+      expect(body["didDocumentMetadata"]["canonicalId"]).not_to eq(body["didDocument"]["id"])
     end
   end
 

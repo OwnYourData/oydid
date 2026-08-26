@@ -76,7 +76,6 @@ A minimal DID document using the above sample DID looks like this:
     ]
   },
   "didDocumentMetadata": {
-    "did": "zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh",
     "registry": "https://oydid.ownyourdata.eu",
     "log_hash": "zQmVwMvovLy5KNYHHVHQ1wv8J7y9L6UPE8eyU4tzypFWtYe",
     "log": [

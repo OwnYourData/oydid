@@ -415,6 +415,44 @@ module ApplicationHelper
 
     # Render a failed DID resolution. A revoked DID answers 410 Gone with
     # {"error":"revoked"} and is explicitly not cacheable.
+    # A revoked DID resolves *successfully* - the answer is "deactivated", not
+    # "not found". DID Core 7.1.3: "If a DID has been deactivated, DID document
+    # metadata MUST include this property with the boolean value true."
+    #
+    # Only the resolution result can carry that statement, so this shape answers
+    # 200 with didDocument null and deliberately *no* didResolutionMetadata
+    # error: error stays reserved for identifiers that never existed. A consumer
+    # behind a universal-resolver driver never sees the HTTP status, and for a
+    # product passport "never existed" and "revoked" have to stay
+    # distinguishable. The bare document paths keep answering 410 - that is the
+    # right HTTP statement for a request that asks for a document.
+    #
+    # didDocumentMetadata carries nothing but the verdict: for a DID resolved at
+    # another repository there is no document and no log to describe, and this
+    # way both branches answer alike.
+    def render_deactivated(did, didHash, duration)
+        did_string = did.to_s
+        did_string = "did:oyd:" + didHash.to_s if !did_string.start_with?("did:oyd:")
+        response.headers["Cache-Control"] = "no-store"
+        render json: {
+                   "didDocument": nil,
+                   "didResolutionMetadata": {
+                       "contentType": "application/did+ld+json",
+                       "pattern": "^(did:oyd:.+)$",
+                       "driverUrl": request.base_url.to_s + "/1.0/resolve/$1",
+                       "duration": duration,
+                       "did": {
+                           "didString": Oydid.percent_encode(did_string),
+                           "methodSpecificId": didHash,
+                           "method": "oyd"
+                       }
+                   },
+                   "didDocumentMetadata": { "deactivated": true }
+               },
+               content_type: 'application/ld+json',
+               status: 200
+    end
+
     def render_resolution_error(result)
         status = http_status_for(result["error"])
         if result["error"].to_i == REVOKED_ERROR
@@ -476,8 +514,11 @@ module ApplicationHelper
         # alsoKnownAs in the document can only hint at. equivalentId is omitted
         # while there is only one version, rather than sent as an empty array.
         canonical_id, equivalent_ids = Oydid.version_ids(result)
+        # No "did" key here: it duplicated didDocument.id, and of all the
+        # method-specific keys in this structure it is the one most likely to
+        # collide with a future standard name. Consumers read didDocument.id -
+        # DID Core requires it to be the DID that was resolved.
         didDocumentMetadata = {
-            "did": Oydid.percent_encode(did_identifier),
             "keys": keys,
             "registry": Oydid.get_location(result["did"].to_s),
             "log_hash": result["doc"]["log"].to_s,
@@ -487,6 +528,15 @@ module ApplicationHelper
             "canonicalId": canonical_id
         }
         didDocumentMetadata[:equivalentId] = equivalent_ids if equivalent_ids.any?
+
+        # created / updated / versionId (DID Core 7.1.3). The log carries the
+        # timestamps already; without `updated` a consumer cannot tell how old the
+        # version in its hands is. Built in the gem so that this endpoint, the
+        # uniresolver plugin and any later caller agree - the same reason
+        # version_ids lives there.
+        Oydid.version_metadata(result).each do |key, value|
+            didDocumentMetadata[key.to_sym] = value
+        end
 
         payload = {
             "didDocument": Oydid.w3c(Marshal.load(Marshal.dump(result)), options),
