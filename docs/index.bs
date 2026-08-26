@@ -242,18 +242,33 @@ The `id` of the returned document is the identifier that was **requested**, not 
 the one the log resolves to. Every update mints a new identifier, so an identifier printed on
 a product, embedded in a credential or handed to a business partner is regularly an earlier
 version of the DID the document now belongs to. Answering with the requested identifier keeps
-that reference intact; how it relates to the other versions is stated in the metadata:
+that reference intact — and it is what [[DID-CORE]] requires: the value of `id` in the
+retrieved document always matches the DID that was resolved. How that identifier relates to
+the other versions is stated in `didDocumentMetadata`:
 
   * `canonicalId` names the identifier of the current version.
   * `equivalentId` lists every other identifier the same document resolves through, that is
     all versions except the one carried in `id`. When an earlier version was requested, the
-    canonical identifier therefore appears in both fields.
+    canonical identifier therefore appears in both fields. The property is omitted while a
+    DID has only one version; it is never sent as an empty set.
+  * `created` is the timestamp of the CREATE entry, `updated` that of the UPDATE entry which
+    produced the version that was resolved. `updated` is omitted while a DID has never been
+    updated.
+  * `versionId` is the document hash of the resolved version, without the `did:oyd:` prefix
+    and without a location, so that `did:oyd:` + `versionId` is that version's DID.
+  * `deactivated` is `true` when the DID has been revoked, see [[#deactivation]].
 
-The document itself lists the other versions in `alsoKnownAs`. That property is informative:
-[[DID-CORE]] states that identifiers linked through `alsoKnownAs` are not to be considered
-equivalent without an inverse relationship, which a `did:oyd` version chain cannot express —
-all versions resolve to the same document. Implementations MUST rely on `canonicalId` and
-`equivalentId` when they need to decide equivalence.
+Beyond these, `didDocumentMetadata` carries method-specific properties — `log`, `log_hash`,
+`registry`, `document_log_id` and `termination_log_id` — that expose the record a resolver
+based its answer on. Consumers MUST NOT treat an unknown property in this structure as an
+error.
+
+Note: `versionId` names a version but cannot be used to retrieve that version's document.
+Resolving `did:oyd:` + `versionId` returns the *current* document with `id` set to the
+identifier that was asked for, because resolution always follows the log to its end. The
+historical document remains retrievable through the log, whose entries name each version by
+hash. This method defines no DID URL query parameters (see [[#http_binding]]), so `?versionId=`
+is not accepted; a future version of this specification may define it.
 
 <div class=example id=example_resolution_result>
 Resolving an earlier version of a DID that has been updated once:
@@ -269,17 +284,96 @@ Resolving an earlier version of a DID that has been updated once:
   "didDocumentMetadata": {
     "canonicalId": "did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W",
     "equivalentId": ["did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W"],
+    "versionId": "zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W",
+    "created": "2022-01-03T15:49:00Z",
+    "updated": "2022-01-03T15:50:32Z",
     ...
   }
 }
 ```
 </div>
 
-A revoked DID MUST NOT be served as if it were current. A resolver reports the revocation
-with HTTP status `410 Gone`; a deployment MAY report `404 Not Found` instead where an
-intermediary treats `410` in a way that loses the distinction. What is not permitted is
-answering `200` with the last document the DID carried before its revocation — the
-revocation record is published precisely so that consumers stop trusting that document.
+### Equivalence ### {#equivalence}
+
+[[DID-CORE]] requires the DID method — not the resolver — to guarantee that every
+`equivalentId` value and the `canonicalId` value are logically equivalent to the `id` of the
+document they accompany. For `did:oyd` that guarantee follows from the log, and this section
+states the argument rather than leaving it implicit in an implementation.
+
+A `did:oyd` identifier is the hash over its own DID document. An update publishes a new
+document, mints the identifier of that document, and records an UPDATE entry that references
+the TERMINATE entry of the document being replaced; the entry is signed with the document key
+of that earlier version. Resolution starts at the requested identifier and follows this chain
+of references to its end. Two identifiers therefore appear in one resolution result exactly
+when a chain of signed entries connects them, and every such chain ends in the same current
+document. Equivalence is not asserted by whoever wrote the document — it is recomputed by
+every resolver from records that cannot be altered without invalidating a hash or a signature.
+
+Because the guarantee rests on the chain, both properties are also **complete** in the
+direction they claim: `equivalentId` lists all other versions reachable through the log, not
+merely the neighbouring one.
+
+<p class="warning">`canonicalId` is not a durable key. In `did:oyd` the identifier is the hash
+over the document, so the canonical identifier changes with every update. [[DID-CORE]] permits
+this — the property is defined "in the scope of the containing DID document" — but a consumer
+that stores `canonicalId` as its primary reference will find that reference stale after the
+next update, and will not be notified. The identifier that stays valid is the one the consumer
+already holds and asked with: it keeps resolving, keeps being returned as `id`, and its
+relation to the current version is restated on every resolution. Store that one, and read
+`canonicalId` as the answer to "which version is current right now".</p>
+
+Note: a `canonicalId` equal to `id` is not an omission. It states that the identifier which
+was asked for is itself the current version. [[DID-CORE]] permits the two to be equal, and
+leaving the property out in that case would be indistinguishable from a method that does not
+support it at all.
+
+#### Location is not Identity #### {#location_identity}
+
+A `did:oyd` MAY carry a location suffix (see [[#read]]) naming the repository that holds the
+document. The suffix is a resolution hint, not part of the identity: the same document can be
+mirrored at any number of repositories, and the set of location-bound forms of one DID is
+therefore open and cannot be enumerated. `canonicalId` and `equivalentId` consequently name
+identifiers **without** a location, and `equivalentId` never attempts to list mirrors.
+
+`id` is the exception, because it echoes what was requested: a client that resolved a
+location-bound form receives it back unchanged, and the location-free form of that same
+version then appears in `equivalentId`.
+
+Where a location appears inside an identifier it MUST be percent-encoded: [[DID-CORE]] admits
+only `ALPHA`, `DIGIT`, `.`, `-`, `_` and percent-encoded octets in a method-specific
+identifier, so `did:oyd:<hash>@<location>` is not a conforming DID and only
+`did:oyd:<hash>%40<location>` is.
+
+#### alsoKnownAs #### {#alsoknownas}
+
+The document itself lists other identifiers in `alsoKnownAs`. That property is informative:
+[[DID-CORE]] states that identifiers linked through `alsoKnownAs` are not to be considered
+equivalent without an inverse relationship, which a `did:oyd` version chain cannot express —
+all versions resolve to the same document. Implementations MUST rely on `canonicalId` and
+`equivalentId` when they need to decide equivalence.
+
+`alsoKnownAs` carries **two** kinds of statement, and an entry does not say which of the two
+it is: the other versions of the DID, and the location-bound form of a version. It MUST NOT be
+read as a list of repositories.
+
+### Deactivation ### {#deactivation}
+
+A revoked DID MUST NOT be served as if it were current: answering with the last document the
+DID carried before its revocation is not permitted — the revocation record is published
+precisely so that consumers stop trusting that document.
+
+A revoked DID is not, however, an unknown one, and the two MUST stay distinguishable. Where a
+resolver answers with a DID Resolution Result it therefore reports the revocation as
+[[DID-CORE]] defines it: HTTP status `200`, `didDocument` `null`, and `didDocumentMetadata`
+containing `deactivated` with the value `true`. `didResolutionMetadata` carries no `error` in
+this case — an error states that the identifier could not be resolved, which is reserved for
+identifiers that were never registered.
+
+Where a resolver answers with the bare DID document it reports the revocation with HTTP status
+`410 Gone`; a deployment MAY report `404 Not Found` instead where an intermediary treats `410`
+in a way that loses the distinction. Both bindings are needed: `410` is the correct statement
+towards a client that asked for a document, while a consumer behind a resolver driver never
+sees the HTTP status at all and can learn of the revocation only from `deactivated`.
 
 ### Public Key Identifier ### {#pubkey_identifier}
 
@@ -443,6 +537,9 @@ Log information of an update DID.
 ## Deactivate ## {#deactivate}
 
 Deactivating an OYDID is simply done by publishing the private revocation entry without providing any update record. The figure below depicts the log representing a deactivated DID.
+
+How a resolver reports a deactivated DID — `deactivated` in the metadata, `410 Gone` on the
+bare document — is described in [[#deactivation]].
 
 <p align="center">
   <img src="res/DIDdeactivated.png" width="400"><br>
