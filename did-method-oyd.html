@@ -1490,7 +1490,7 @@ Possible extra rowspan handling
 </style>
   <meta content="Bikeshed version ac92c2f0d, updated Fri Aug 21 16:01:29 2026 -0700" name="generator">
   <link href="https://ownyourdata.github.io/oydid/" rel="canonical">
-  <meta content="4a4eb226c350645fe3c1280af3ac3fe25419cb67" name="revision">
+  <meta content="bc4f98c8ef7a341a4f0c8df86da03ce75e707ab0" name="revision">
   <meta content="dark light" name="color-scheme">
 <style>/* Boilerplate: style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
@@ -2047,7 +2047,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <p data-fill-with="logo"></p>
    <h1 class="no-ref p-name" id="title">OYD DID Method</h1>
    <h2 class="heading no-num no-ref no-toc settled" id="profile-and-date"><span class="content">Living Document,
-    <time class="dt-updated" datetime="2026-08-25">25 August 2026</time></span></h2>
+    <time class="dt-updated" datetime="2026-08-26">26 August 2026</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -2063,7 +2063,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <p class="copyright" data-fill-with="copyright"><a href="http://creativecommons.org/publicdomain/zero/1.0/" rel="license"><img alt="CC0" height="15" src="https://licensebuttons.net/p/zero/1.0/80x15.png" width="80"></a>
 To the extent possible under law, the editors have waived all copyright
 and related or neighboring rights to this work.
-In addition, as of 25 August 2026,
+In addition, as of 26 August 2026,
 the editors have made this specification available under the
 <a href="https://www.openwebfoundation.org/the-agreements/the-owf-1-0-agreements-granted-claims/owfa-1-0" rel="license">Open Web Foundation Agreement Version 1.0</a>,
 which is available at https://www.openwebfoundation.org/the-agreements/the-owf-1-0-agreements-granted-claims/owfa-1-0.
@@ -2089,9 +2089,16 @@ Parts of this work may be from another specification document.  If so, those par
        <a href="#read"><span class="secno">3.2</span> <span class="content">Read (Resolve)</span></a>
        <ol class="toc">
         <li><a href="#resolution_result"><span class="secno">3.2.1</span> <span class="content">Resolution Result</span></a>
-        <li><a href="#pubkey_identifier"><span class="secno">3.2.2</span> <span class="content">Public Key Identifier</span></a>
-        <li><a href="#http_binding"><span class="secno">3.2.3</span> <span class="content">HTTP(S) Binding</span></a>
-        <li><a href="#didweb_bridge"><span class="secno">3.2.4</span> <span class="content">did:web Bridge</span></a>
+        <li>
+         <a href="#equivalence"><span class="secno">3.2.2</span> <span class="content">Equivalence</span></a>
+         <ol class="toc">
+          <li><a href="#location_identity"><span class="secno">3.2.2.1</span> <span class="content">Location is not Identity</span></a>
+          <li><a href="#alsoknownas"><span class="secno">3.2.2.2</span> <span class="content">alsoKnownAs</span></a>
+         </ol>
+        <li><a href="#deactivation"><span class="secno">3.2.3</span> <span class="content">Deactivation</span></a>
+        <li><a href="#pubkey_identifier"><span class="secno">3.2.4</span> <span class="content">Public Key Identifier</span></a>
+        <li><a href="#http_binding"><span class="secno">3.2.5</span> <span class="content">HTTP(S) Binding</span></a>
+        <li><a href="#didweb_bridge"><span class="secno">3.2.6</span> <span class="content">did:web Bridge</span></a>
        </ol>
       <li><a href="#update"><span class="secno">3.3</span> <span class="content">Update</span></a>
       <li><a href="#deactivate"><span class="secno">3.4</span> <span class="content">Deactivate</span></a>
@@ -2368,24 +2375,42 @@ Visualization and process of linked log entries to resolve a DID identifier
    <p>A resolver answers either with the DID document alone or with a DID Resolution Result — the
 document accompanied by <code>didResolutionMetadata</code> and <code>didDocumentMetadata</code> as defined in
 <a data-link-type="biblio" href="#biblio-did-resolution" title="DID Resolution v1.0">[DID-RESOLUTION]</a>. Which of the two is returned is negotiated over the <code>Accept</code> header, see
-<a href="#http_binding">§ 3.2.3 HTTP(S) Binding</a>.</p>
+<a href="#http_binding">§ 3.2.5 HTTP(S) Binding</a>.</p>
    <p>The <code>id</code> of the returned document is the identifier that was <strong>requested</strong>, not necessarily
 the one the log resolves to. Every update mints a new identifier, so an identifier printed on
 a product, embedded in a credential or handed to a business partner is regularly an earlier
 version of the DID the document now belongs to. Answering with the requested identifier keeps
-that reference intact; how it relates to the other versions is stated in the metadata:</p>
+that reference intact — and it is what <a data-link-type="biblio" href="#biblio-did-core" title="Decentralized Identifiers (DIDs) v1.0">[DID-CORE]</a> requires: the value of <code>id</code> in the
+retrieved document always matches the DID that was resolved. How that identifier relates to
+the other versions is stated in <code>didDocumentMetadata</code>:</p>
    <ul>
     <li data-md>
      <p><code>canonicalId</code> names the identifier of the current version.</p>
     <li data-md>
      <p><code>equivalentId</code> lists every other identifier the same document resolves through, that is
 all versions except the one carried in <code>id</code>. When an earlier version was requested, the
-canonical identifier therefore appears in both fields.</p>
+canonical identifier therefore appears in both fields. The property is omitted while a
+DID has only one version; it is never sent as an empty set.</p>
+    <li data-md>
+     <p><code>created</code> is the timestamp of the CREATE entry, <code>updated</code> that of the UPDATE entry which
+produced the version that was resolved. <code>updated</code> is omitted while a DID has never been
+updated.</p>
+    <li data-md>
+     <p><code>versionId</code> is the document hash of the resolved version, without the <code>did:oyd:</code> prefix
+and without a location, so that <code>did:oyd:</code> + <code>versionId</code> is that version’s DID.</p>
+    <li data-md>
+     <p><code>deactivated</code> is <code>true</code> when the DID has been revoked, see <a href="#deactivation">§ 3.2.3 Deactivation</a>.</p>
    </ul>
-   <p>The document itself lists the other versions in <code>alsoKnownAs</code>. That property is informative:
-<a data-link-type="biblio" href="#biblio-did-core" title="Decentralized Identifiers (DIDs) v1.0">[DID-CORE]</a> states that identifiers linked through <code>alsoKnownAs</code> are not to be considered
-equivalent without an inverse relationship, which a <code>did:oyd</code> version chain cannot express —​all versions resolve to the same document. Implementations MUST rely on <code>canonicalId</code> and
-<code>equivalentId</code> when they need to decide equivalence.</p>
+   <p>Beyond these, <code>didDocumentMetadata</code> carries method-specific properties — <code>log</code>, <code>log_hash</code>,
+<code>registry</code>, <code>document_log_id</code> and <code>termination_log_id</code> — that expose the record a resolver
+based its answer on. Consumers MUST NOT treat an unknown property in this structure as an
+error.</p>
+   <p class="note" role="note"><span class="marker">Note:</span> <code>versionId</code> names a version but cannot be used to retrieve that version’s document.
+Resolving <code>did:oyd:</code> + <code>versionId</code> returns the <em>current</em> document with <code>id</code> set to the
+identifier that was asked for, because resolution always follows the log to its end. The
+historical document remains retrievable through the log, whose entries name each version by
+hash. This method defines no DID URL query parameters (see <a href="#http_binding">§ 3.2.5 HTTP(S) Binding</a>), so <code>?versionId=</code>
+is not accepted; a future version of this specification may define it.</p>
    <div class="example" id="example_resolution_result">
     <a class="self-link" href="#example_resolution_result"></a>
 Resolving an earlier version of a DID that has been updated once:
@@ -2401,17 +2426,79 @@ Resolving an earlier version of a DID that has been updated once:
   "didDocumentMetadata": {
     "canonicalId": "did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W",
     "equivalentId": ["did:oyd:zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W"],
+    "versionId": "zQmNauTUUdkpi5TcrTZ2524SKM8dJAzuuw4xfW13iHrtY1W",
+    "created": "2022-01-03T15:49:00Z",
+    "updated": "2022-01-03T15:50:32Z",
     ...
   }
 }
 </pre>
    </div>
-   <p>A revoked DID MUST NOT be served as if it were current. A resolver reports the revocation
-with HTTP status <code>410 Gone</code>; a deployment MAY report <code>404 Not Found</code> instead where an
-intermediary treats <code>410</code> in a way that loses the distinction. What is not permitted is
-answering <code>200</code> with the last document the DID carried before its revocation — the
-revocation record is published precisely so that consumers stop trusting that document.</p>
-   <h4 class="heading settled" data-level="3.2.2" id="pubkey_identifier"><span class="secno">3.2.2. </span><span class="content">Public Key Identifier</span><a class="self-link" href="#pubkey_identifier"></a></h4>
+   <h4 class="heading settled" data-level="3.2.2" id="equivalence"><span class="secno">3.2.2. </span><span class="content">Equivalence</span><a class="self-link" href="#equivalence"></a></h4>
+   <p><a data-link-type="biblio" href="#biblio-did-core" title="Decentralized Identifiers (DIDs) v1.0">[DID-CORE]</a> requires the DID method — not the resolver — to guarantee that every
+<code>equivalentId</code> value and the <code>canonicalId</code> value are logically equivalent to the <code>id</code> of the
+document they accompany. For <code>did:oyd</code> that guarantee follows from the log, and this section
+states the argument rather than leaving it implicit in an implementation.</p>
+   <p>A <code>did:oyd</code> identifier is the hash over its own DID document. An update publishes a new
+document, mints the identifier of that document, and records an UPDATE entry that references
+the TERMINATE entry of the document being replaced; the entry is signed with the document key
+of that earlier version. Resolution starts at the requested identifier and follows this chain
+of references to its end. Two identifiers therefore appear in one resolution result exactly
+when a chain of signed entries connects them, and every such chain ends in the same current
+document. Equivalence is not asserted by whoever wrote the document — it is recomputed by
+every resolver from records that cannot be altered without invalidating a hash or a signature.</p>
+   <p>Because the guarantee rests on the chain, both properties are also <strong>complete</strong> in the
+direction they claim: <code>equivalentId</code> lists all other versions reachable through the log, not
+merely the neighbouring one.</p>
+   <p class="warning"><code>canonicalId</code> is not a durable key. In <code>did:oyd</code> the identifier is the hash
+over the document, so the canonical identifier changes with every update. <a data-link-type="biblio" href="#biblio-did-core" title="Decentralized Identifiers (DIDs) v1.0">[DID-CORE]</a> permits
+this — the property is defined "in the scope of the containing DID document" — but a consumer
+that stores <code>canonicalId</code> as its primary reference will find that reference stale after the
+next update, and will not be notified. The identifier that stays valid is the one the consumer
+already holds and asked with: it keeps resolving, keeps being returned as <code>id</code>, and its
+relation to the current version is restated on every resolution. Store that one, and read
+<code>canonicalId</code> as the answer to "which version is current right now".</p>
+   <p class="note" role="note"><span class="marker">Note:</span> a <code>canonicalId</code> equal to <code>id</code> is not an omission. It states that the identifier which
+was asked for is itself the current version. <a data-link-type="biblio" href="#biblio-did-core" title="Decentralized Identifiers (DIDs) v1.0">[DID-CORE]</a> permits the two to be equal, and
+leaving the property out in that case would be indistinguishable from a method that does not
+support it at all.</p>
+   <h5 class="heading settled" data-level="3.2.2.1" id="location_identity"><span class="secno">3.2.2.1. </span><span class="content">Location is not Identity</span><a class="self-link" href="#location_identity"></a></h5>
+   <p>A <code>did:oyd</code> MAY carry a location suffix (see <a href="#read">§ 3.2 Read (Resolve)</a>) naming the repository that holds the
+document. The suffix is a resolution hint, not part of the identity: the same document can be
+mirrored at any number of repositories, and the set of location-bound forms of one DID is
+therefore open and cannot be enumerated. <code>canonicalId</code> and <code>equivalentId</code> consequently name
+identifiers <strong>without</strong> a location, and <code>equivalentId</code> never attempts to list mirrors.</p>
+   <p><code>id</code> is the exception, because it echoes what was requested: a client that resolved a
+location-bound form receives it back unchanged, and the location-free form of that same
+version then appears in <code>equivalentId</code>.</p>
+   <p>Where a location appears inside an identifier it MUST be percent-encoded: <a data-link-type="biblio" href="#biblio-did-core" title="Decentralized Identifiers (DIDs) v1.0">[DID-CORE]</a> admits
+only <code>ALPHA</code>, <code>DIGIT</code>, <code>.</code>, <code>-</code>, <code>_</code> and percent-encoded octets in a method-specific
+identifier, so <code>did:oyd:&lt;hash>@&lt;location></code> is not a conforming DID and only
+<code>did:oyd:&lt;hash>%40&lt;location></code> is.</p>
+   <h5 class="heading settled" data-level="3.2.2.2" id="alsoknownas"><span class="secno">3.2.2.2. </span><span class="content">alsoKnownAs</span><a class="self-link" href="#alsoknownas"></a></h5>
+   <p>The document itself lists other identifiers in <code>alsoKnownAs</code>. That property is informative:
+<a data-link-type="biblio" href="#biblio-did-core" title="Decentralized Identifiers (DIDs) v1.0">[DID-CORE]</a> states that identifiers linked through <code>alsoKnownAs</code> are not to be considered
+equivalent without an inverse relationship, which a <code>did:oyd</code> version chain cannot express —​all versions resolve to the same document. Implementations MUST rely on <code>canonicalId</code> and
+<code>equivalentId</code> when they need to decide equivalence.</p>
+   <p><code>alsoKnownAs</code> carries <strong>two</strong> kinds of statement, and an entry does not say which of the two
+it is: the other versions of the DID, and the location-bound form of a version. It MUST NOT be
+read as a list of repositories.</p>
+   <h4 class="heading settled" data-level="3.2.3" id="deactivation"><span class="secno">3.2.3. </span><span class="content">Deactivation</span><a class="self-link" href="#deactivation"></a></h4>
+   <p>A revoked DID MUST NOT be served as if it were current: answering with the last document the
+DID carried before its revocation is not permitted — the revocation record is published
+precisely so that consumers stop trusting that document.</p>
+   <p>A revoked DID is not, however, an unknown one, and the two MUST stay distinguishable. Where a
+resolver answers with a DID Resolution Result it therefore reports the revocation as
+<a data-link-type="biblio" href="#biblio-did-core" title="Decentralized Identifiers (DIDs) v1.0">[DID-CORE]</a> defines it: HTTP status <code>200</code>, <code>didDocument</code> <code>null</code>, and <code>didDocumentMetadata</code>
+containing <code>deactivated</code> with the value <code>true</code>. <code>didResolutionMetadata</code> carries no <code>error</code> in
+this case — an error states that the identifier could not be resolved, which is reserved for
+identifiers that were never registered.</p>
+   <p>Where a resolver answers with the bare DID document it reports the revocation with HTTP status
+<code>410 Gone</code>; a deployment MAY report <code>404 Not Found</code> instead where an intermediary treats <code>410</code>
+in a way that loses the distinction. Both bindings are needed: <code>410</code> is the correct statement
+towards a client that asked for a document, while a consumer behind a resolver driver never
+sees the HTTP status at all and can learn of the revocation only from <code>deactivated</code>.</p>
+   <h4 class="heading settled" data-level="3.2.4" id="pubkey_identifier"><span class="secno">3.2.4. </span><span class="content">Public Key Identifier</span><a class="self-link" href="#pubkey_identifier"></a></h4>
    <p>Inspired by <a href="https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/EBSI+DID+Method">EBSI DID v2</a> it is now also possible for the <code>did:oyd</code> method to use the document public key as identifier.</p>
    <div class="example" id="example_did_pubkey_identifier">
     <a class="self-link" href="#example_did_pubkey_identifier"></a>
@@ -2439,7 +2526,7 @@ non-rotating update legitimately carries the key of the version it replaces.</p>
    <p class="note" role="note"><span class="marker">Note:</span> the public key identifier is resolved by the repository holding the DID and is not a
 global lookup. A repository can only answer for keys it has recorded; the same key published
 in another repository is not found through it.</p>
-   <h4 class="heading settled" data-level="3.2.3" id="http_binding"><span class="secno">3.2.3. </span><span class="content">HTTP(S) Binding</span><a class="self-link" href="#http_binding"></a></h4>
+   <h4 class="heading settled" data-level="3.2.5" id="http_binding"><span class="secno">3.2.5. </span><span class="content">HTTP(S) Binding</span><a class="self-link" href="#http_binding"></a></h4>
    <p><a data-link-type="biblio" href="#biblio-did-resolution" title="DID Resolution v1.0">[DID-RESOLUTION]</a> addresses a resolver through a base URL to which the DID is appended; the
 path of that URL is not prescribed. Implementations of this method offer the following
 endpoints, each taking the DID as the last path segment:</p>
@@ -2500,7 +2587,7 @@ A publicly available resolver for this method:
 <pre>https://resolver.ownyourdata.eu/1.0/resolve/did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
 </pre>
    </div>
-   <h4 class="heading settled" data-level="3.2.4" id="didweb_bridge"><span class="secno">3.2.4. </span><span class="content">did:web Bridge</span><a class="self-link" href="#didweb_bridge"></a></h4>
+   <h4 class="heading settled" data-level="3.2.6" id="didweb_bridge"><span class="secno">3.2.6. </span><span class="content">did:web Bridge</span><a class="self-link" href="#didweb_bridge"></a></h4>
    <p>A repository publishes every DID it holds a second time as a <code>did:web</code> identifier
 <a data-link-type="biblio" href="#biblio-did-web" title="did:web Method Specification">[DID-WEB]</a>, so that clients which support <code>did:web</code> but not <code>did:oyd</code> can read the document
 at all. A DID stored as <code>did:oyd:&lt;hash></code> in a repository reachable under <code>&lt;host></code> is served
@@ -2579,6 +2666,8 @@ Log information of an update DID.
    </div>
    <h3 class="heading settled" data-level="3.4" id="deactivate"><span class="secno">3.4. </span><span class="content">Deactivate</span><a class="self-link" href="#deactivate"></a></h3>
    <p>Deactivating an OYDID is simply done by publishing the private revocation entry without providing any update record. The figure below depicts the log representing a deactivated DID.</p>
+   <p>How a resolver reports a deactivated DID — <code>deactivated</code> in the metadata, <code>410 Gone</code> on the
+bare document — is described in <a href="#deactivation">§ 3.2.3 Deactivation</a>.</p>
    <p align="center">
   <img src="res/DIDdeactivated.png" width="400"><br>
   <em>Figure 3: Visualization of log graph for a deactivated DID</em>
