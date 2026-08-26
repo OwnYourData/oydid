@@ -1216,6 +1216,24 @@ class Oydid
         end
     end
 
+    # The identifier without its location suffix.
+    #
+    # A did:oyd can carry "@<location>" (raw or percent-encoded) to say where the
+    # document is hosted. That is a resolution hint, not part of the identity:
+    # the same document can be mirrored at any number of locations, so the set of
+    # location-bound variants is open and cannot be enumerated. Everything that
+    # states identity - canonicalId and equivalentId in the didDocumentMetadata -
+    # therefore uses this location-free form. The location-bound variant stays in
+    # alsoKnownAs.
+    #
+    # Note this must NOT be applied to the id of the DID document itself: DID Core
+    # requires that "the value of the id property in the retrieved DID document
+    # must always match the DID being resolved", so a location-bound DID that was
+    # requested is echoed as requested (see Oydid.document_id).
+    def self.strip_location(id)
+        id.to_s.split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first rescue id.to_s
+    end
+
     def self.get_location(id)
         if id.include?(LOCATION_PREFIX)
             id_split = id.split(LOCATION_PREFIX)

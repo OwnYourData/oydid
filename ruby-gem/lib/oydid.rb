@@ -1446,24 +1446,93 @@ class Oydid
     # uniresolver plugin) and they had drifted into computing this list with
     # different rules.
     #
+    # Both values are location-free: the "@<location>" suffix says where a
+    # document is hosted, not who it is, and the same document can be mirrored at
+    # any number of locations - so the set of location-bound variants is open and
+    # equivalentId could not state it correctly anyway. The raw values these are
+    # built from do carry a location (dag_update sets did_info["did"] from the log
+    # entry, and log[]["doc"] is written with one), which is why strip_location is
+    # applied here rather than assumed. The location-bound variant stays in
+    # alsoKnownAs; document_id is deliberately left alone (see strip_location).
+    #
     # Returns [canonicalId, equivalentIds]; equivalentIds never contains the
-    # identifier the DID document itself carries as `id` (see document_id).
-    def self.version_ids(did_info)
-        canonical = percent_encode(did_info["did"].to_s)
-        if !canonical.start_with?("did:oyd:")
-            canonical = "did:oyd:" + canonical
+    # identifier the DID document itself carries as `id` (see document_id) and is
+    # empty - not a set with the DID itself in it - while there is only one
+    # version.
+    # keep_location = true reproduces the pre-0.9.1 values, location suffix and
+    # all. Only w3c uses it, to keep alsoKnownAs listing the location-bound
+    # variant of a DID - dropping that would take the location out of the
+    # document altogether, and alsoKnownAs is where it belongs.
+    #
+    # Deliberately a positional argument: callers pass did_info as a braceless
+    # hash literal (version_ids("did" => ..., "log" => ...)), and a method with
+    # a keyword parameter swallows that hash as keywords instead - every such
+    # call site would raise ArgumentError.
+    def self.version_ids(did_info, keep_location = false)
+        normalize = lambda do |id|
+            id = keep_location ? id.to_s : strip_location(id.to_s)
+            id = percent_encode(id)
+            id = "did:oyd:" + id if !id.start_with?("did:oyd:")
+            id
         end
+        canonical = normalize.call(did_info["did"])
         own = document_id(did_info)
         equivalentIds = []
         did_info["log"].each do |log|
             if log["op"] == 2 || log["op"] == 3
-                eid = percent_encode("did:oyd:" + log["doc"].to_s)
-                if eid != own
+                eid = normalize.call(log["doc"])
+                if eid != own && !equivalentIds.include?(eid)
                     equivalentIds << eid
                 end
             end
         end unless did_info["log"].nil?
         [canonical, equivalentIds]
+    end
+
+    # created / updated / versionId of the resolved document version, as DID Core
+    # 7.1.3 defines them. Returned as a hash with string keys, ready to be merged
+    # into didDocumentMetadata; a property the log cannot answer is absent rather
+    # than null - in particular `updated`, which the spec requires to be "omitted
+    # if an Update operation has never been performed on the DID document".
+    #
+    # The resolved version is did_info["did"] - dag_update walks the log to the
+    # newest document and leaves its identifier there. Deriving both versionId and
+    # the `updated` entry from it avoids guessing which log entry is the newest,
+    # which timestamps alone cannot decide (they are client-supplied and two
+    # entries can share a second).
+    #
+    # versionId is the bare document hash, without the "did:oyd:" prefix and
+    # without a location: it is the method-specific identifier of that version, so
+    # "did:oyd:" + versionId is the versioned DID.
+    def self.version_metadata(did_info)
+        as_datetime = lambda do |ts|
+            # XML Datetime normalised to UTC, no sub-second precision (7.1.3)
+            Time.at(ts.to_i).utc.strftime("%Y-%m-%dT%H:%M:%SZ") rescue nil
+        end
+        version_of = lambda do |id|
+            strip_location(id.to_s).delete_prefix("did:oyd:")
+        end
+
+        meta = {}
+        resolved = version_of.call(did_info["did"])
+        meta["versionId"] = resolved if resolved != ""
+        return meta if did_info["log"].nil?
+
+        created_entry = did_info["log"].find { |el| el["op"].to_i == 2 }
+        if !created_entry.nil? && !created_entry["ts"].nil?
+            created = as_datetime.call(created_entry["ts"])
+            meta["created"] = created if !created.nil?
+        end
+
+        updated_entry = did_info["log"].find do |el|
+            el["op"].to_i == 3 && version_of.call(el["doc"]) == resolved
+        end
+        if !updated_entry.nil? && !updated_entry["ts"].nil?
+            updated = as_datetime.call(updated_entry["ts"])
+            meta["updated"] = updated if !updated.nil?
+        end
+
+        meta
     end
 
     # The identifier a resolved DID document carries as `id`.
@@ -1632,8 +1701,12 @@ class Oydid
         # is reciprocated - which it cannot be here, because all versions resolve
         # to the same document. It stays for backwards compatibility; the
         # authoritative statement is didDocumentMetadata canonicalId/equivalentId,
-        # built from the same list.
-        equivalentIds = version_ids(did_info).last
+        # built from the same list - except that this one keeps the location
+        # suffix. alsoKnownAs therefore carries two kinds of statement: other
+        # versions of the DID, and the location-bound variant of one. It must not
+        # be read as a list of locations; the method specification says so
+        # explicitly.
+        equivalentIds = version_ids(did_info, true).last
         if equivalentIds.length > 0
             wd["alsoKnownAs"] = equivalentIds
         end

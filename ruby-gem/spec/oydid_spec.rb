@@ -626,12 +626,80 @@ describe "OYDID handling" do
       expect(canonical).to eq "did:oyd:" + second_did
     end
 
-    it "percent-encodes a location suffix" do
+    # The identifier a relying party was handed is the one it asked for, which
+    # after an update is an earlier version than the document being served. Every
+    # other version is then equivalent to it - not just the current one. This is
+    # the case the HTTP request specs could not reach before update_did existed.
+    it "lists every other version when an earlier one was requested" do
+      canonical, equivalent = Oydid.version_ids(
+        "did" => "did:oyd:zC",
+        "did_requested" => "did:oyd:zA",
+        "log" => [{ "op" => 2, "doc" => "zA" },
+                  { "op" => 3, "doc" => "zB" },
+                  { "op" => 3, "doc" => "zC" }])
+      expect(canonical).to eq "did:oyd:zC"
+      expect(equivalent).to eq ["did:oyd:zB", "did:oyd:zC"]
+    end
+
+    it "lists the versions on both sides when a middle one was requested" do
+      canonical, equivalent = Oydid.version_ids(
+        "did" => "did:oyd:zC",
+        "did_requested" => "did:oyd:zB",
+        "log" => [{ "op" => 2, "doc" => "zA" },
+                  { "op" => 3, "doc" => "zB" },
+                  { "op" => 3, "doc" => "zC" }])
+      expect(canonical).to eq "did:oyd:zC"
+      expect(equivalent).to eq ["did:oyd:zA", "did:oyd:zC"]
+    end
+
+    # canonicalId and equivalentId state identity, and "@<location>" states where
+    # a document is hosted. The same document can be mirrored at any number of
+    # locations, so the set of location-bound variants is open and equivalentId
+    # could not state it correctly - both are therefore location-free.
+    it "strips the location suffix from canonicalId and equivalentId" do
       canonical, equivalent = Oydid.version_ids(
         "did" => "did:oyd:" + second_did + "@https://example.org",
+        "did_requested" => "did:oyd:" + second_did,
         "log" => [{ "op" => 2, "doc" => first_did + "@https://example.org" },
                   { "op" => 3, "doc" => second_did + "@https://example.org" }])
-      expect(canonical).to eq "did:oyd:" + second_did + "%40example.org"
+      expect(canonical).to eq "did:oyd:" + second_did
+      expect(equivalent).to eq ["did:oyd:" + first_did]
+    end
+
+    # A location-bound DID that was asked for stays the id of the document - DID
+    # Core: "the value of the id property in the retrieved DID document must
+    # always match the DID being resolved". Its location-free form is then a
+    # genuinely different string for the same subject, so it belongs in
+    # equivalentId alongside the earlier version.
+    it "lists the location-free form of the current version when a location-bound DID was requested" do
+      canonical, equivalent = Oydid.version_ids(
+        "did" => "did:oyd:" + second_did + "@https://example.org",
+        "did_requested" => "did:oyd:" + second_did + "@https://example.org",
+        "log" => [{ "op" => 2, "doc" => first_did + "@https://example.org" },
+                  { "op" => 3, "doc" => second_did + "@https://example.org" }])
+      expect(canonical).to eq "did:oyd:" + second_did
+      expect(equivalent).to eq ["did:oyd:" + first_did, "did:oyd:" + second_did]
+    end
+
+    # this used to list the DID as its own equivalent, in location-bound form,
+    # and hand out that same string as canonicalId
+    it "reports no equivalents for a never updated DID served from a location" do
+      canonical, equivalent = Oydid.version_ids(
+        "did" => "did:oyd:" + first_did + "@https://example.org",
+        "did_requested" => "did:oyd:" + first_did,
+        "log" => [{ "op" => 2, "doc" => first_did + "@https://example.org" },
+                  { "op" => 0, "doc" => "terminate" }])
+      expect(canonical).to eq "did:oyd:" + first_did
+      expect(equivalent).to eq []
+    end
+
+    it "keeps the location suffix for the alsoKnownAs list" do
+      canonical, equivalent = Oydid.version_ids(
+        { "did" => "did:oyd:" + first_did + "@https://example.org",
+          "did_requested" => "did:oyd:" + first_did,
+          "log" => [{ "op" => 2, "doc" => first_did + "@https://example.org" }] },
+        true)
+      expect(canonical).to eq "did:oyd:" + first_did + "%40example.org"
       expect(equivalent).to eq ["did:oyd:" + first_did + "%40example.org"]
     end
 
@@ -661,7 +729,78 @@ describe "OYDID handling" do
       }
       wd = Oydid.w3c(Marshal.load(Marshal.dump(did_info)), {})
       expect(wd["alsoKnownAs"]).to eq ["did:oyd:" + first_did]
-      expect(wd["alsoKnownAs"]).to eq Oydid.version_ids(did_info).last
+      expect(wd["alsoKnownAs"]).to eq Oydid.version_ids(did_info, true).last
+    end
+
+    # The two lists deliberately part ways on the location: identity statements
+    # drop it, alsoKnownAs keeps it - otherwise the location would disappear from
+    # the DID document altogether. Guards the live output for a never updated DID.
+    it "keeps the location-bound variant in alsoKnownAs while canonicalId drops it" do
+      stubbed_did = "zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"
+      did_info = {
+        "did" => "did:oyd:" + stubbed_did + "@https://example.org",
+        "did_requested" => "did:oyd:" + stubbed_did,
+        "doc" => { "doc" => { "hello" => "world" },
+                   "key" => "z6MktULudTtAsAhRegYPiZ6631RV3viv12qd4GQF8z1xB22S:" \
+                            "z6MkqGC3nWZhYieEVTVDKW5v588CiGfsDSmRVG9ZwwWTvLSK" },
+        "log" => [{ "op" => 2, "doc" => stubbed_did + "@https://example.org" }]
+      }
+      wd = Oydid.w3c(Marshal.load(Marshal.dump(did_info)), {})
+      expect(wd["id"]).to eq "did:oyd:" + stubbed_did
+      expect(wd["alsoKnownAs"]).to eq ["did:oyd:" + stubbed_did + "%40example.org"]
+      canonical, equivalent = Oydid.version_ids(did_info)
+      expect(canonical).to eq "did:oyd:" + stubbed_did
+      expect(equivalent).to eq []
+    end
+  end
+
+  # created / updated / versionId of the resolved version (DID Core 7.1.3).
+  # Without `updated` a consumer cannot tell how old the document in its hands is.
+  describe "version_metadata" do
+    let(:first_did)  { "zQmSE1hzumtZ7AoK1qhHf4t5kiKsujMsJSHqoXtWrdd7K7W" }
+    let(:second_did) { "zQmfEb3KgYZjZUPLTHPmFPdcV6peF5itB5NmJ9N6gaxxE8K" }
+
+    # "The updated property is omitted if an Update operation has never been
+    # performed on the DID document." - 7.1.3
+    it "reports created and versionId, and omits updated, for a new DID" do
+      meta = Oydid.version_metadata(
+        "did" => "did:oyd:" + first_did + "@https://example.org",
+        "log" => [{ "op" => 2, "ts" => 1641224940, "doc" => first_did + "@https://example.org" },
+                  { "op" => 0, "ts" => 1641224940, "doc" => "terminate" }])
+      expect(meta["created"]).to eq "2022-01-03T15:49:00Z"
+      expect(meta["versionId"]).to eq first_did
+      expect(meta).not_to have_key("updated")
+    end
+
+    it "reports the timestamp of the update that produced the resolved version" do
+      meta = Oydid.version_metadata(
+        "did" => "did:oyd:" + second_did,
+        "log" => [{ "op" => 2, "ts" => 1641224940, "doc" => first_did },
+                  { "op" => 3, "ts" => 1641225032, "doc" => second_did },
+                  { "op" => 0, "ts" => 1641225032, "doc" => "terminate" }])
+      expect(meta["created"]).to eq "2022-01-03T15:49:00Z"
+      expect(meta["updated"]).to eq "2022-01-03T15:50:32Z"
+      expect(meta["versionId"]).to eq second_did
+    end
+
+    # the entry is picked by the version it produced, not by its timestamp:
+    # timestamps come from the client and two entries can share a second
+    it "ignores updates that did not produce the resolved version" do
+      meta = Oydid.version_metadata(
+        "did" => "did:oyd:zB",
+        "log" => [{ "op" => 2, "ts" => 1, "doc" => "zA" },
+                  { "op" => 3, "ts" => 2, "doc" => "zB" },
+                  { "op" => 3, "ts" => 3, "doc" => "zC" }])
+      expect(meta["versionId"]).to eq "zB"
+      expect(meta["updated"]).to eq "1970-01-01T00:00:02Z"
+    end
+
+    it "leaves out what the log cannot answer" do
+      expect(Oydid.version_metadata("did" => "did:oyd:" + first_did))
+        .to eq({ "versionId" => first_did })
+      expect(Oydid.version_metadata("did" => "did:oyd:" + first_did,
+                                    "log" => [{ "op" => 2, "doc" => first_did }]))
+        .to eq({ "versionId" => first_did })
     end
   end
 
