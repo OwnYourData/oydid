@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="440" viewBox="0 0 1180 440" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="blue2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#3C6FD0"/>
+    </marker>
+    <marker id="red2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#C0392B"/>
+    </marker>
+    <marker id="orange2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#E8873A"/>
+    </marker>
+  </defs>
+
+  <rect width="1180" height="440" fill="#FFFFFF"/>
+
+  <text x="24" y="36" font-size="20" font-weight="bold" fill="#222">Updating a did:oyd — UPDATE</text>
+  <text x="24" y="59" font-size="14" fill="#666">Same shape as CREATE — one extra ingredient, one crucial difference.</text>
+
+  <!-- ingredient kept from CREATE -->
+  <rect x="24" y="90" width="168" height="66" rx="9" fill="#EAF6EE" stroke="#2E8B57" stroke-width="2"/>
+  <text x="108" y="112" font-size="12" fill="#2E8B57" text-anchor="middle">kept from CREATE:</text>
+  <text x="108" y="131" font-size="13" font-weight="bold" fill="#2E8B57" text-anchor="middle">log_revoke</text>
+  <text x="108" y="148" font-size="11.5" fill="#2E8B57" text-anchor="middle">revokes the old version</text>
+  <line x1="194" y1="140" x2="238" y2="178" stroke="#2E8B57" stroke-width="2.5"/>
+
+  <!-- what the repository asks for -->
+  <text x="330" y="112" font-size="14.5" font-weight="bold" fill="#222" text-anchor="middle">POST updateIdentifier</text>
+  <text x="330" y="130" font-size="12.5" fill="#666" text-anchor="middle">did, new document,</text>
+  <text x="330" y="146" font-size="12.5" fill="#666" text-anchor="middle">key_hex, rev_key_hex,</text>
+  <text x="330" y="163" font-size="12.5" font-weight="bold" fill="#2E8B57" text-anchor="middle">log_revoke_old</text>
+
+  <text x="540" y="112" font-size="15" font-weight="bold" fill="#222" text-anchor="middle">subDidHash</text>
+  <text x="540" y="130" font-size="12.5" fill="#666" text-anchor="middle">revocation entry</text>
+
+  <text x="720" y="112" font-size="15" font-weight="bold" fill="#222" text-anchor="middle">l2_doc</text>
+  <text x="720" y="130" font-size="12.5" fill="#666" text-anchor="middle">TERMINATE entry</text>
+
+  <text x="900" y="112" font-size="15" font-weight="bold" fill="#222" text-anchor="middle">l1_doc</text>
+  <text x="900" y="130" font-size="12.5" fill="#666" text-anchor="middle">UPDATE entry</text>
+
+  <!-- the line -->
+  <text x="24" y="196" font-size="16" font-weight="bold" fill="#222">Exchange:</text>
+  <line x1="230" y1="190" x2="1020" y2="190" stroke="#555" stroke-width="3"/>
+  <circle cx="330" cy="190" r="9" fill="#DDD" stroke="#555" stroke-width="3"/>
+  <circle cx="540" cy="190" r="9" fill="#FFF" stroke="#555" stroke-width="3"/>
+  <circle cx="720" cy="190" r="9" fill="#FFF" stroke="#555" stroke-width="3"/>
+  <circle cx="900" cy="190" r="9" fill="#FFF" stroke="#555" stroke-width="3"/>
+  <circle cx="995" cy="190" r="9" fill="#E8873A" stroke="#E8873A" stroke-width="3"/>
+
+  <!-- result -->
+  <line x1="1009" y1="190" x2="1048" y2="190" stroke="#E8873A" stroke-width="3"
+        stroke-dasharray="7,5" marker-end="url(#orange2)"/>
+  <text x="1066" y="185" font-size="15" font-weight="bold" fill="#E8873A">new DID</text>
+  <text x="1066" y="206" font-size="12.5" fill="#E8873A">+ new log_revoke</text>
+
+  <!-- secure element -->
+  <line x1="330" y1="253" x2="330" y2="205" stroke="#3C6FD0" stroke-width="2.5" marker-end="url(#blue2)"/>
+  <line x1="540" y1="253" x2="540" y2="205" stroke="#3C6FD0" stroke-width="2.5" marker-end="url(#blue2)"/>
+  <line x1="720" y1="253" x2="720" y2="205" stroke="#3C6FD0" stroke-width="2.5" marker-end="url(#blue2)"/>
+  <line x1="900" y1="253" x2="900" y2="205" stroke="#C0392B" stroke-width="3.5" marker-end="url(#red2)"/>
+
+  <rect x="60" y="253" width="960" height="66" rx="9" fill="#EAF0FB" stroke="#3C6FD0" stroke-width="2"/>
+  <text x="78" y="281" font-size="13.5" font-weight="bold" fill="#3C6FD0">Secure element</text>
+  <text x="78" y="303" font-size="11.5" fill="#3C6FD0">operations</text>
+
+  <text x="330" y="281" font-size="13.5" font-weight="bold" fill="#3C6FD0" text-anchor="middle">create() · pubkey()</text>
+  <text x="330" y="303" font-size="12" fill="#3C6FD0" text-anchor="middle">"Doc-Key-2", "Rev-Key-2"  (rotation optional)</text>
+
+  <text x="540" y="281" font-size="13.5" font-weight="bold" fill="#3C6FD0" text-anchor="middle">sign(digest)</text>
+  <text x="540" y="303" font-size="12.5" fill="#3C6FD0" text-anchor="middle">"Rev-Key-2"</text>
+
+  <text x="720" y="281" font-size="13.5" font-weight="bold" fill="#3C6FD0" text-anchor="middle">sign(digest)</text>
+  <text x="720" y="303" font-size="12.5" fill="#3C6FD0" text-anchor="middle">"Doc-Key-2"</text>
+
+  <text x="900" y="281" font-size="13.5" font-weight="bold" fill="#C0392B" text-anchor="middle">sign(digest)</text>
+  <text x="900" y="303" font-size="12.5" font-weight="bold" fill="#C0392B" text-anchor="middle">"Doc-Key" — the OLD one</text>
+
+  <!-- the difference -->
+  <line x1="900" y1="325" x2="900" y2="348" stroke="#C0392B" stroke-width="2.5"/>
+  <rect x="660" y="348" width="480" height="46" rx="9" fill="#FDECEA" stroke="#C0392B" stroke-width="2"/>
+  <text x="900" y="368" font-size="13" font-weight="bold" fill="#C0392B" text-anchor="middle">The handover is signed by the OLD document key.</text>
+  <text x="900" y="385" font-size="13" fill="#C0392B" text-anchor="middle">It must stay in the secure element until this step.</text>
+
+  <text x="60" y="368" font-size="13" fill="#666">Four calls, three signatures.</text>
+  <text x="60" y="388" font-size="13" fill="#666">Revoking the old version needs no signature —</text>
+  <text x="60" y="406" font-size="13" fill="#666">log_revoke was signed back at CREATE time.</text>
+  <text x="60" y="428" font-size="13" font-weight="bold" fill="#C0392B">The new log_revoke replaces the old one.</text>
+</svg>
