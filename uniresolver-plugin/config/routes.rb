@@ -1,4 +1,9 @@
 Rails.application.routes.draw do
+    # --- documentation ----------------------------------------------------
+    # mounted before the catch-all route below, which would swallow /api-docs
+    mount Rswag::Ui::Engine  => '/api-docs'
+    mount Rswag::Api::Engine => '/api-docs'
+
     # --- Universal Resolver driver binding -------------------------------
     # always answers with a full DID Resolution Result
     match '1.0/identifiers/:did',            to: 'dids#uniresolver_resolve',    via: 'get', constraints: {did: /.*/}
@@ -16,6 +21,7 @@ Rails.application.routes.draw do
     match 'dereference/:did',                to: 'dids#dereference',            via: 'get', constraints: {did: /.*/}
 
     # administrative
+    root 'application#home'
     match '/version',   to: 'application#version', via: 'get'
     match ':not_found', to: 'application#missing', via: [:get, :post], :constraints => { :not_found => /.*/ }
 end

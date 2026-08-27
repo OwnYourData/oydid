@@ -1,0 +1,409 @@
+openapi: 3.0.0
+info:
+  title: OYDID DID Resolver API
+  version: v1
+  description: >-
+    HTTP(S) binding of the DID Resolution functions for the `did:oyd` method.
+    OYDID (Own Your Digital IDentifier) links the identifier cryptographically
+    to the DID Document and, through a cryptographically linked public log,
+    resolves to the latest valid version of that document.
+
+    This service is read-only: it resolves and dereferences identifiers, it
+    does not create or update them.
+
+    Further information:
+    - [OYDID Method Specification](https://ownyourdata.github.io/oydid/)
+    - [DID Resolution](https://w3c.github.io/did-resolution/) (the binding implemented here)
+    - [interactive resolver](https://oydid.ownyourdata.eu/)
+    - [other OwnYourData Service APIs](https://api-docs.ownyourdata.eu)
+  contact:
+    email: office@ownyourdata.eu
+  license:
+    name: Apache 2.0 License
+    url: http://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: https://resolver.ownyourdata.eu/
+    description: Official production system hosted by OwnYourData
+  - url: https://oydid-resolver.data-container.net/
+    description: Universal Resolver driver endpoint (same service)
+tags:
+  - name: Resolution
+    description: DID Resolution abstract functions
+  - name: Service
+    description: service information
+paths:
+  /1.0/identifiers/{did}:
+    get:
+      summary: resolve a DID (Universal Resolver binding)
+      description: >-
+        Always answers with a full DID Resolution Result as
+        `application/ld+json`, regardless of the `Accept` header. This is the
+        endpoint the Universal Resolver driver configuration points to; use
+        `/1.0/resolve/{did}` if you want content negotiation.
+
+
+        A revoked identifier resolves with HTTP 200 and
+        `didDocumentMetadata.deactivated = true`; `didDocument` is `null`.
+      tags:
+        - Resolution
+      parameters:
+        - name: did
+          in: path
+          required: true
+          description: >-
+            DID to resolve, optionally with a location suffix
+            (`<did>@<repository>`).
+          schema:
+            type: string
+          example: did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
+      responses:
+        "200":
+          description: DID Resolution Result
+          content:
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/DidResolutionResult"
+        "404":
+          description: identifier not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: resolution failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /1.0/resolve/{did}:
+    get:
+      summary: resolve a DID (content negotiated)
+      description: >-
+        The `resolve` function of the DID Resolution specification. The shape of
+        the answer follows the `Accept` header; responses carry `Vary: Accept`.
+
+
+        | Accept | response |
+        |---|---|
+        | *(none)* or `*/*` | DID Resolution Result as `application/ld+json` |
+        | `application/did-resolution` | DID Resolution Result |
+        | `application/ld+json;profile="https://w3id.org/did-resolution"` | DID Resolution Result (legacy form, sent by the Universal Resolver) |
+        | `application/did` | bare DID Document |
+        | `application/did+ld+json`, `application/did+json` | bare DID Document |
+
+
+        A revoked identifier answers 200 with `deactivated = true` when a
+        Resolution Result was asked for, and 410 Gone when a bare document was
+        asked for - there is no document to send. Deployments that need caches
+        to behave can set `REVOKED_HTTP_STATUS=404` to answer 404 instead.
+      tags:
+        - Resolution
+      parameters:
+        - name: did
+          in: path
+          required: true
+          schema:
+            type: string
+          example: did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
+        - name: Accept
+          in: header
+          required: false
+          description: requested media type, see the table above
+          schema:
+            type: string
+            enum:
+              - application/did-resolution
+              - application/ld+json;profile="https://w3id.org/did-resolution"
+              - application/did
+              - application/did+ld+json
+      responses:
+        "200":
+          description: DID Resolution Result or DID Document, depending on `Accept`
+          content:
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/DidResolutionResult"
+            application/did-resolution:
+              schema:
+                $ref: "#/components/schemas/DidResolutionResult"
+            application/did:
+              schema:
+                $ref: "#/components/schemas/DidDocument"
+        "404":
+          description: identifier not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "410":
+          description: identifier revoked and a bare DID Document was requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: resolution failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /1.0/resolveRepresentation/{did}:
+    get:
+      summary: resolve a DID into a concrete representation
+      description: >-
+        The `resolveRepresentation` function. Same negotiation as
+        `/1.0/resolve/{did}`, but the default is the DID Document itself
+        (`application/did+ld+json`); a client explicitly asking for
+        `application/did-resolution` still receives the full Resolution Result.
+      tags:
+        - Resolution
+      parameters:
+        - name: did
+          in: path
+          required: true
+          schema:
+            type: string
+          example: did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
+        - name: Accept
+          in: header
+          required: false
+          schema:
+            type: string
+            enum:
+              - application/did+ld+json
+              - application/did
+              - application/did-resolution
+      responses:
+        "200":
+          description: DID Document (or Resolution Result, if requested)
+          content:
+            application/did+ld+json:
+              schema:
+                $ref: "#/components/schemas/DidDocument"
+            application/did-resolution:
+              schema:
+                $ref: "#/components/schemas/DidResolutionResult"
+        "404":
+          description: identifier not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "410":
+          description: identifier revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: resolution failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /1.0/dereference/{didUrl}:
+    get:
+      summary: dereference a DID URL
+      description: >-
+        The `dereference` function. Supported DID URL syntax is a plain DID and
+        a fragment, e.g. `did:oyd:zQm...#key-doc` (percent-encode the `#` as
+        `%23`). Path and query components are not defined by the OYDID method
+        and are reported as `notSupported` rather than silently ignored.
+      tags:
+        - Resolution
+      parameters:
+        - name: didUrl
+          in: path
+          required: true
+          description: DID, optionally with a fragment identifying a verification method
+          schema:
+            type: string
+          example: did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh#key-doc
+      responses:
+        "200":
+          description: dereferencing result
+          content:
+            application/did-url-dereferencing:
+              schema:
+                $ref: "#/components/schemas/DereferencingResult"
+        "404":
+          description: identifier not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DereferencingResult"
+        "410":
+          description: identifier revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DereferencingResult"
+        "500":
+          description: dereferencing failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DereferencingResult"
+        "501":
+          description: DID URL uses a path or query component
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DereferencingResult"
+
+  /version:
+    get:
+      summary: service and gem version
+      tags:
+        - Service
+      responses:
+        "200":
+          description: version information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  service:
+                    type: string
+                    example: oydid uniresolver plugin
+                  version:
+                    type: string
+                    example: "0.5.2"
+                  oydid-gem:
+                    type: string
+                    example: "0.9.1"
+
+components:
+  schemas:
+    DidResolutionResult:
+      type: object
+      description: >-
+        DID Resolution Result as defined by the DID Resolution specification.
+      properties:
+        didResolutionMetadata:
+          type: object
+          description: >-
+            Metadata about the resolution process. Empty unless the service runs
+            with `UNIRESOLVER_DEBUG` set; `contentType` is added when the client
+            negotiated a media type.
+        didDocument:
+          allOf:
+            - $ref: "#/components/schemas/DidDocument"
+          nullable: true
+          description: the resolved DID Document, `null` for a revoked identifier
+        didDocumentMetadata:
+          $ref: "#/components/schemas/DidDocumentMetadata"
+    DidDocument:
+      type: object
+      description: W3C DID Document
+      properties:
+        "@context":
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        id:
+          type: string
+          description: the identifier as requested
+          example: did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh
+        verificationMethod:
+          type: array
+          items:
+            type: object
+        authentication:
+          type: array
+          items: {}
+        assertionMethod:
+          type: array
+          items: {}
+        alsoKnownAs:
+          type: array
+          description: informative - earlier and later identifiers of this DID
+          items:
+            type: string
+        service:
+          type: array
+          items:
+            type: object
+    DidDocumentMetadata:
+      type: object
+      properties:
+        deactivated:
+          type: boolean
+          description: present and `true` once the identifier has been revoked
+        canonicalId:
+          type: string
+          description: identifier of the current version of the DID
+        equivalentId:
+          type: array
+          description: further identifiers resolving to the same DID
+          items:
+            type: string
+        created:
+          type: string
+        updated:
+          type: string
+        versionId:
+          type: string
+        keys:
+          type: array
+          description: document and revocation key of this version
+          items:
+            type: object
+            properties:
+              kid:
+                type: string
+              kms:
+                type: string
+              type:
+                type: string
+              publicKeyHex:
+                type: string
+              publicKeyJwk:
+                type: object
+        registry:
+          type: string
+          description: repository hosting the DID's log
+          example: https://oydid.ownyourdata.eu
+        log_hash:
+          type: string
+        log:
+          type: array
+          description: the provenance log entries this resolution is based on
+          items:
+            type: object
+        document_log_id:
+          type: integer
+        termination_log_id:
+          type: integer
+    DereferencingResult:
+      type: object
+      properties:
+        dereferencingMetadata:
+          type: object
+          properties:
+            contentType:
+              type: string
+              example: application/did
+            error:
+              type: string
+              description: "`notFound`, `notSupported` or `revoked`"
+            errorMessage:
+              type: string
+        contentStream:
+          description: the dereferenced resource, `null` in an error case
+          nullable: true
+          type: object
+        contentMetadata:
+          type: object
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: not found

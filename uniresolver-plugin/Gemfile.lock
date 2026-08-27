@@ -293,6 +293,12 @@ GEM
       rspec-mocks (~> 3.13)
       rspec-support (~> 3.13)
     rspec-support (3.13.2)
+    rswag-api (2.17.0)
+      activesupport (>= 5.2, < 8.2)
+      railties (>= 5.2, < 8.2)
+    rswag-ui (2.17.0)
+      actionpack (>= 5.2, < 8.2)
+      railties (>= 5.2, < 8.2)
     securerandom (0.4.1)
     simple_dag (0.0.1)
     sprockets (4.2.2)
@@ -341,6 +347,8 @@ DEPENDENCIES
   rbnacl
   responders
   rspec-rails
+  rswag-api
+  rswag-ui
   sprockets
 
 RUBY VERSION
