@@ -522,6 +522,10 @@ class Oydid
         end
 
         if revocationKey.to_s == ""
+            if options[:cmsm]
+                err = cmsm_verify_signature(subDidHash, cmsm_sig_rev, pubRevoKey, "key-rev")
+                return [nil, nil, nil, err] if !err.nil?
+            end
             signedSubDidHash = cmsm_sig_rev
         else
             signedSubDidHash = sign(subDidHash, revocationKey, LOG_HASH_OPTIONS).first
@@ -544,6 +548,8 @@ class Oydid
                                       cmsm_sig_rev, cmsm_sig_doc, cmsm_sig_create,
                                   did_old, cmsm_log_revoke_old), options)
             end
+            err = cmsm_verify_signature(l2_doc, cmsm_sig_doc, publicKey, "key-doc")
+            return [nil, nil, nil, err] if !err.nil?
             l2_sig = cmsm_sig_doc
         else
             l2_sig = sign(l2_doc, privateKey, options).first
@@ -605,6 +611,8 @@ class Oydid
                                           cmsm_sig_rev, cmsm_sig_doc, cmsm_sig_create,
                                           did_old, cmsm_log_revoke_old), options)
                 end
+                err = cmsm_verify_signature(l1_doc, cmsm_sig_create, old_publicDocKey, "key-doc-old")
+                return [nil, nil, nil, err] if !err.nil?
                 l1_sig = cmsm_sig_create
             else
                 l1_sig = sign(l1_doc, old_privateKey, options).first
@@ -638,6 +646,8 @@ class Oydid
                                           cmsm_sig_rev, cmsm_sig_doc, cmsm_sig_create,
                                   did_old, cmsm_log_revoke_old), options)
                 end
+                err = cmsm_verify_signature(l1_doc, cmsm_sig_create, publicKey, "key-doc")
+                return [nil, nil, nil, err] if !err.nil?
                 l1_sig = cmsm_sig_create
             else
                 l1_sig = sign(l1_doc, privateKey, options).first
@@ -786,6 +796,23 @@ class Oydid
     # state of a CMSM flow that has to survive between phases. Deliberately only
     # inputs and collected signatures - no derived hashes: every phase recomputes
     # r1 / l2_doc / the DID from these values, so there is nothing to keep in sync.
+    # A signature collected in a CMSM phase is only worth something if it was
+    # really made with the key the challenge named. Without this check the flow
+    # takes anything: the log entries are built from whatever the client sent and
+    # only fail on resolution - by which point the DID exists and has claimed the
+    # public key, which lets anyone permanently burn a key they do not hold.
+    #
+    # The message starts with "CMSM " so that the REST layers report it as a
+    # client error (400), not as a server fault.
+    def self.cmsm_verify_signature(value, signature, public_key, with)
+        if public_key.to_s == ""
+            return "CMSM cannot verify the " + with.to_s + " signature: no public key in session"
+        end
+        success, _msg = (verify(value, signature, public_key) rescue [false, ""])
+        return nil if success == true
+        "CMSM signature for " + with.to_s + " is invalid"
+    end
+
     def self.cmsm_state(publicKey, pubRevoKey, revocationKey, did_doc, ts, doc_location, sig_rev, sig_doc, sig_create, did_old = nil, log_revoke_old = nil)
         {
             publicKey: publicKey,

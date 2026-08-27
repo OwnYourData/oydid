@@ -903,4 +903,103 @@ describe "OYDID handling" do
     end
   end
 
+
+  describe "CMSM signature verification" do
+    # An in-memory stand-in for the session store the repository provides, so
+    # these examples run without a database and without the network.
+    class MemoryCmsmStore
+      def initialize; @data = {}; end
+      def set(session, payload); @data[session] = payload; end
+      def get(session); @data[session]; end
+      def delete(session); @data.delete(session); end
+    end
+
+    let(:store) { MemoryCmsmStore.new }
+    let(:priv)  { Oydid.generate_private_key("", "ed25519-priv", {}).first }
+    let(:pub)   { Oydid.public_key(priv, {}).first }
+
+    def cmsm_options(extra = {})
+      { cmsm: true, key_type: "ed25519", cmsm_store: store,
+        return_secrets: true, skip_publish: true }.merge(extra)
+    end
+
+    # phase 1: hand over the public key, receive session and value to sign
+    def start_flow
+      status, msg = Oydid.create({ "key" => pub }, cmsm_options)
+      expect(msg).to eq("cmsm")
+      status.transform_keys(&:to_s)
+    end
+
+    describe "cmsm_verify_signature" do
+      it "accepts a signature made with the named key" do
+        signature = Oydid.sign("hello", priv, {}).first
+        expect(Oydid.cmsm_verify_signature("hello", signature, pub, "key-doc")).to be_nil
+      end
+
+      it "rejects a signature over a different value" do
+        signature = Oydid.sign("hello", priv, {}).first
+        msg = Oydid.cmsm_verify_signature("goodbye", signature, pub, "key-doc")
+        expect(msg).to eq("CMSM signature for key-doc is invalid")
+      end
+
+      it "rejects a signature made with a different key" do
+        other = Oydid.generate_private_key("", "ed25519-priv", {}).first
+        signature = Oydid.sign("hello", other, {}).first
+        expect(Oydid.cmsm_verify_signature("hello", signature, pub, "key-doc")).not_to be_nil
+      end
+
+      it "rejects nonsense instead of raising" do
+        expect(Oydid.cmsm_verify_signature("hello", "not-a-signature", pub, "key-doc")).not_to be_nil
+      end
+
+      it "refuses to verify without a public key" do
+        signature = Oydid.sign("hello", priv, {}).first
+        msg = Oydid.cmsm_verify_signature("hello", signature, "", "key-doc")
+        expect(msg).to include("no public key in session")
+      end
+
+      # the message is what the REST layers match on to answer 400 instead of 500
+      it "phrases failures as client errors" do
+        msg = Oydid.cmsm_verify_signature("hello", "zBogus", pub, "key-rev")
+        expect(msg).to start_with("CMSM ")
+      end
+    end
+
+    describe "a running flow" do
+      it "advances when the signature is correct" do
+        phase1 = start_flow
+        signature = Oydid.sign(phase1["sign"], priv, {}).first
+
+        status, msg = Oydid.create({}, cmsm_options(cmsm_session: phase1["session"], sig: signature))
+
+        expect(msg).to eq("cmsm")
+        expect(status.transform_keys(&:to_s)["session"]).to eq(phase1["session"])
+      end
+
+      # Before this check the flow took any signature, built the log entries from
+      # it and answered 200. The DID did not resolve, but it had claimed the
+      # public key - so anyone could burn a key they did not hold.
+      it "refuses a signature the client cannot have made" do
+        phase1 = start_flow
+        forged = Oydid.sign(phase1["sign"],
+                            Oydid.generate_private_key("", "ed25519-priv", {}).first, {}).first
+
+        status, msg = Oydid.create({}, cmsm_options(cmsm_session: phase1["session"], sig: forged))
+
+        expect(status).to be_nil
+        expect(msg).to eq("CMSM signature for key-doc is invalid")
+      end
+
+      it "refuses a signature over a value from another flow" do
+        phase1 = start_flow
+        other  = start_flow
+        signature = Oydid.sign(other["sign"], priv, {}).first
+
+        status, msg = Oydid.create({}, cmsm_options(cmsm_session: phase1["session"], sig: signature))
+
+        expect(status).to be_nil
+        expect(msg).to start_with("CMSM ")
+      end
+    end
+  end
 end
