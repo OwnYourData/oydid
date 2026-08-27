@@ -1629,7 +1629,7 @@ when "encrypt-message"
 when "decrypt-jwt"
     from_did = options[:didcomm_from_did].to_s
     result, msg = Oydid.read(from_did, options)
-    public_key_encoded = result["doc"]["key"].split(':').first
+    public_key_encoded = result["doc"]["key"].split(':')[0]
     msg_decrypted, msg = Oydid.msg_decrypt(content, public_key_encoded, options)
     puts JSON.pretty_generate(msg_decrypted.first)
 when "sign-message"
@@ -1951,7 +1951,7 @@ when "encrypt"
     key_type = options[:key_type]
     if input_did.to_s != ''
         result, msg = Oydid.read(input_did, options)
-        publicKey = result['doc']['key'].split(':').first
+        publicKey = result['doc']['key'].split(':')[0]
         key_type = Oydid.get_keytype(publicKey) rescue nil
         if key_type.to_s != ''
             options[:key_type] = key_type

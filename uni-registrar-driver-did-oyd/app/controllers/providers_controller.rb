@@ -132,7 +132,7 @@ class ProvidersController < ApplicationController
                 end
             else
                 # document key
-                code, length, pubKey = Oydid.multi_decode(status["doc"]["key"].split(":").first).first.unpack('CCa*')
+                code, length, pubKey = Oydid.multi_decode(status["doc"]["key"].split(":")[0]).first.unpack('CCa*')
                 pubKeyHex = pubKey.bytes.pack('C*').unpack1('H*')
                 code, length, privKey = Oydid.multi_decode(status["private_key"]).first.unpack('SCa*')
                 privKeyHex = privKey.bytes.pack('C*').unpack1('H*')
@@ -145,7 +145,7 @@ class ProvidersController < ApplicationController
                 }
 
                 # revocation key
-                code, length, pubKey = Oydid.multi_decode(status["doc"]["key"].split(":").last).first.unpack('CCa*')
+                code, length, pubKey = Oydid.multi_decode(status["doc"]["key"].split(":")[1]).first.unpack('CCa*')
                 pubKeyHex = pubKey.bytes.pack('C*').unpack1('H*')
                 code, length, privKey = Oydid.multi_decode(status["revocation_key"]).first.unpack('SCa*')
                 privKeyHex = privKey.bytes.pack('C*').unpack1('H*')
@@ -219,10 +219,10 @@ class ProvidersController < ApplicationController
                 # perform sanity checks on input data =========
 
                 # check valid signature in update create record
-                doc_pubkey = did_obj["key"].split(":").first.to_s
+                doc_pubkey = did_obj["key"].split(":")[0].to_s
                 old_doc_location = Oydid.get_location(old_did)
                 old_didDocument = Oydid.retrieve_document_raw(old_did, "", old_doc_location, {})
-                old_doc_pubkey = old_didDocument.first["doc"]["key"].split(":").first.to_s
+                old_doc_pubkey = old_didDocument.first["doc"]["key"].split(":")[0].to_s
                 success, msg = Oydid.verify(options[:log_update]["doc"], options[:log_update]["sig"], old_doc_pubkey)
                 if !success
                     render json: {"error": "invalid input data (update log has invalid signature)"},
@@ -268,7 +268,7 @@ class ProvidersController < ApplicationController
                 "kid": Oydid.percent_encode(status["did"]) +  '#key-doc',
                 "kms": "local",
                 "type": "Ed25519", 
-                "publicKeyHex": Oydid.multi_decode(status["doc"]["key"].split(":").first).first.unpack('H*').first,
+                "publicKeyHex": Oydid.multi_decode(status["doc"]["key"].split(":")[0]).first.unpack('H*').first,
                 "privateKeyHex": Oydid.multi_decode(status["private_key"]).first.unpack('H*').first
             }
 
@@ -277,7 +277,7 @@ class ProvidersController < ApplicationController
                 "kid": Oydid.percent_encode(status["did"]) +  '#key-rev',
                 "kms": "local",
                 "type": "Ed25519", 
-                "publicKeyHex": Oydid.multi_decode(status["doc"]["key"].split(":").last).first.unpack('H*').first,
+                "publicKeyHex": Oydid.multi_decode(status["doc"]["key"].split(":")[1]).first.unpack('H*').first,
                 "privateKeyHex": Oydid.multi_decode(status["revocation_key"]).first.unpack('H*').first
             }
 

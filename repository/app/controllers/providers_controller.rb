@@ -204,7 +204,7 @@ class ProvidersController < ApplicationController
         if did_obj.is_a?(Hash) && !did_obj["key"].nil? &&
            !options[:log_revoke].nil? && !options[:log_update].nil? && !options[:log_terminate].nil?
             # client-managed update: caller supplies pre-signed log records
-            old_doc_pubkey = old_doc["key"].split(":").first.to_s
+            old_doc_pubkey = old_doc["key"].split(":")[0].to_s
             success, vmsg = Oydid.verify(options[:log_update]["doc"], options[:log_update]["sig"], old_doc_pubkey)
             if !success
                 render json: {"error": "invalid input data (update log has invalid signature)"},
@@ -435,7 +435,7 @@ class ProvidersController < ApplicationController
         requested = 'p256' if requested.to_s == 'Secp256r1'
         return requested if requested.to_s != ''
 
-        old_key_type = Oydid.get_keytype(old_doc["key"].split(":").first) rescue nil
+        old_key_type = Oydid.get_keytype(old_doc["key"].split(":")[0]) rescue nil
         old_key_type.to_s == 'p256-pub' ? 'p256' : 'ed25519'
     end
 
@@ -466,8 +466,8 @@ class ProvidersController < ApplicationController
             # in Client-Managed-Secret-Mode the private keys never reach this
             # process and the document carries no derived keyAgreement entry, so
             # every private part is emitted only when it is actually present
-            doc_pub_mb = status["doc"]["key"].split(":").first rescue nil
-            rev_pub_mb = status["doc"]["key"].split(":").last rescue nil
+            doc_pub_mb = status["doc"]["key"].split(":")[0] rescue nil
+            rev_pub_mb = status["doc"]["key"].split(":")[1] rescue nil
             x25519_mb  = begin
                 ka = status["doc"]["doc"]["keyAgreement"].first
                 ka[:publicKeyMultibase] || ka["publicKeyMultibase"]
@@ -525,8 +525,8 @@ class ProvidersController < ApplicationController
     # private keys are managed by the client (not known to the repository)
     def update_keys(status)
         keys = []
-        doc_pub_mb = status["doc"]["key"].split(":").first rescue nil
-        rev_pub_mb = status["doc"]["key"].split(":").last rescue nil
+        doc_pub_mb = status["doc"]["key"].split(":")[0] rescue nil
+        rev_pub_mb = status["doc"]["key"].split(":")[1] rescue nil
 
         if !doc_pub_mb.nil?
             doc_key = {

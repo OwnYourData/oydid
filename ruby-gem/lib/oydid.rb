@@ -383,8 +383,8 @@ class Oydid
                 old_privateKey = nil
                 old_revocationKey = nil
                 old_did_key = did_info["doc"]["key"].to_s
-                old_publicDocKey = old_did_key.split(":").first.to_s
-                old_publicRevKey = old_did_key.split(":").last.to_s
+                old_publicDocKey = old_did_key.split(":")[0].to_s
+                old_publicRevKey = old_did_key.split(":")[1].to_s
 
                 verified, vmsg = verify_revocation_log(did_info, options[:log_revoke_old],
                                                        "log_revoke_old", options)
@@ -460,6 +460,16 @@ class Oydid
             publicKey = public_key(privateKey, options).first
             pubRevoKey = public_key(revocationKey, options).first
         end
+        # The "key" field is the control field of a did:oyd: it names who may
+        # update the document (slot 0) and who may revoke it (slot 1) - nothing
+        # else. Keys that are content rather than control (key agreement above
+        # all) belong in the payload as verification methods, where they are
+        # covered by the identifier hash just the same.
+        #
+        # The field is positional and has exactly two slots. Readers must use an
+        # explicit index; .last would silently return the wrong key if a third
+        # slot were ever appended, and the mistake would only surface at
+        # revocation time. A spec enforces this across the repository.
         did_key = publicKey + ":" + pubRevoKey
 
         # the document is assembled once, in the first phase of a CMSM flow -
@@ -736,7 +746,7 @@ class Oydid
         end
 
         did_key = did_info["doc"]["key"].to_s
-        pubRevKey = did_key.split(":").last.to_s
+        pubRevKey = did_key.split(":")[1].to_s
         subDid = {"doc": did_info["doc"]["doc"], "key": did_key}.to_json
         subDidHash = multi_hash(canonical(subDid), LOG_HASH_OPTIONS).first
 

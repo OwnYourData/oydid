@@ -18,7 +18,7 @@ module ApplicationHelper
         if didDoc.nil?
             return [false, "cannot parse did-document"]
         end
-        didPubKey = didDoc["key"].split(":").first rescue nil
+        didPubKey = didDoc["key"].split(":")[0] rescue nil
         if didPubKey.nil?
             return [false, "missing public document key in did-document"]
         end
@@ -177,7 +177,7 @@ module ApplicationHelper
                     currentDID["verification"] += JSON.pretty_generate(doc) + "\n"
                     currentDID["verification"] += "(Details: https://ownyourdata.github.io/oydid/#calculate_hash)" + "\n\n"
                 end
-                current_public_doc_key = currentDID["doc"]["key"].split(":").first rescue ""
+                current_public_doc_key = currentDID["doc"]["key"].split(":")[0] rescue ""
             when 0 # TERMINATE
                 currentDID["termination_log_id"] = i
 
@@ -287,7 +287,7 @@ module ApplicationHelper
                                             currentDID["message"] = "cannot retrieve " + next_doc_did.to_s
                                             return currentDID
                                         end
-                                        if pubKeys.include?(next_doc["key"].split(":").first)
+                                        if pubKeys.include?(next_doc["key"].split(":")[0])
                                             currentDID["verification"] += "⚠️  no key rotation in updated DID Document" + "\n"
                                         end
                                         currentDID["verification"] += "\n"
@@ -574,8 +574,8 @@ module ApplicationHelper
         # verificationMethod fragments, otherwise metadata and document point at
         # two different identifiers for one key.
         did_id = Oydid.document_id(result)
-        doc_key = result["doc"]["key"].split(":").first
-        rev_key = result["doc"]["key"].split(":").last
+        doc_key = result["doc"]["key"].split(":")[0]
+        rev_key = result["doc"]["key"].split(":")[1]
 
         case Multicodecs[code].name
         when 'ed25519-pub'

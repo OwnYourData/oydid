@@ -102,7 +102,7 @@ class DidsController < ApplicationController
                    status: 412
             return
         end
-        didPubKey = didDoc["key"].split(":").first rescue nil
+        didPubKey = didDoc["key"].split(":")[0] rescue nil
         if didPubKey.nil?
             render json: {"error": "missing public document key in did-document"},
                    status: 412
@@ -453,7 +453,7 @@ class DidsController < ApplicationController
                     end
 
                     # check valid signature in log create record
-                    doc_pubkey = did_obj["key"].split(":").first.to_s
+                    doc_pubkey = did_obj["key"].split(":")[0].to_s
                     success, msg = Oydid.verify(options[:log_create]["doc"], options[:log_create]["sig"], doc_pubkey)
                     if !success
                         render json: {"error": "invalid input data (create log has invalid signature)"},
@@ -570,10 +570,10 @@ class DidsController < ApplicationController
                 # perform sanity checks on input data =========
 
                 # check valid signature in update create record
-                doc_pubkey = did_obj["key"].split(":").first.to_s
+                doc_pubkey = did_obj["key"].split(":")[0].to_s
                 old_doc_location = Oydid.get_location(old_did)
                 old_didDocument = Oydid.retrieve_document_raw(old_did, "", old_doc_location, {})
-                old_doc_pubkey = old_didDocument.first["doc"]["key"].split(":").first.to_s
+                old_doc_pubkey = old_didDocument.first["doc"]["key"].split(":")[0].to_s
                 success, msg = Oydid.verify(options[:log_update]["doc"], options[:log_update]["sig"], old_doc_pubkey)
                 if !success
                     render json: {"error": "invalid input data (update log has invalid signature)"},
@@ -896,7 +896,7 @@ class DidsController < ApplicationController
                 "kid": Oydid.percent_encode("did:oyd:" + result["did"].to_s) + '#key-doc',
                 "kms": "local",
                 "type": "Ed25519", 
-                "publicKeyHex": Oydid.multi_decode(result["doc"]["key"].split(":").first).first.unpack('H*').first
+                "publicKeyHex": Oydid.multi_decode(result["doc"]["key"].split(":")[0]).first.unpack('H*').first
             }
 
             # revocation key
@@ -904,14 +904,14 @@ class DidsController < ApplicationController
                 "kid": Oydid.percent_encode("did:oyd:" + result["did"].to_s) + '#key-rev',
                 "kms": "local",
                 "type": "Ed25519", 
-                "publicKeyHex": Oydid.multi_decode(result["doc"]["key"].split(":").last).first.unpack('H*').first
+                "publicKeyHex": Oydid.multi_decode(result["doc"]["key"].split(":")[1]).first.unpack('H*').first
             }
         when 'p256-pub'
-            pubDocKey_jwk, msg = Oydid.public_key_to_jwk(result["doc"]["key"].split(":").first)
+            pubDocKey_jwk, msg = Oydid.public_key_to_jwk(result["doc"]["key"].split(":")[0])
             if pubDocKey_jwk.nil?
                 return {"error": "document key: " + msg.to_s}
             end
-            pubRevKey_jwk, msg = Oydid.public_key_to_jwk(result["doc"]["key"].split(":").last)
+            pubRevKey_jwk, msg = Oydid.public_key_to_jwk(result["doc"]["key"].split(":")[1])
             if pubRevKey_jwk.nil?
                 return {"error": "revocation key: " + msg.to_s}
             end

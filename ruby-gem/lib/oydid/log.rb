@@ -361,7 +361,7 @@ class Oydid
                     currentDID["verification"] += JSON.pretty_generate(doc) + "\n"
                     currentDID["verification"] += "(Details: https://ownyourdata.github.io/oydid/#calculate_hash)" + "\n\n"
                 end
-                current_public_doc_key = currentDID["doc"]["key"].split(":").first rescue ""
+                current_public_doc_key = currentDID["doc"]["key"].split(":")[0] rescue ""
 
             when 0 # TERMINATE
                 currentDID["termination_log_id"] = i
@@ -506,7 +506,7 @@ class Oydid
                                             return currentDID
                                         end
                                         next_doc = next_doc.first["doc"]
-                                        if pubKeys.include?(next_doc["key"].split(":").first)
+                                        if pubKeys.include?(next_doc["key"].split(":")[0])
                                             currentDID["verification"] += "⚠️  no key rotation in updated DID Document" + "\n"
                                         end
                                         currentDID["verification"] += "\n"

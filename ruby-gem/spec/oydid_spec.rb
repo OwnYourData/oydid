@@ -807,6 +807,51 @@ describe "OYDID handling" do
   # Which identifier a resolved DID document announces as its own. An update
   # mints a new did:oyd, but the identifier a relying party holds is the one it
   # asked for - that is the one the document has to carry.
+  # The "key" field is positional: "<public document key>:<public revocation key>".
+  # Reading it with .first/.last works only as long as it has exactly two slots -
+  # the day a third one is added (e.g. a key agreement key), .last silently
+  # returns the wrong key and the error only surfaces at revocation time.
+  # Every read must therefore use an explicit index.
+  describe "positional access to the key field" do
+    repo_root = File.expand_path("../../..", __FILE__)
+    sources = %w[
+      ruby-gem/lib
+      cli
+      repository/app
+      uni-registrar-driver-did-oyd/app
+    ].map { |d| File.join(repo_root, d) }.select { |d| File.directory?(d) }
+
+    ruby_files = sources.flat_map { |d| Dir.glob(File.join(d, "**", "*.rb")) }
+
+    it "finds sources to scan" do
+      skip "running outside the repository checkout" if ruby_files.empty?
+      expect(ruby_files).not_to be_empty
+    end
+
+    it "never reads a split key field with .last" do
+      skip "running outside the repository checkout" if ruby_files.empty?
+      offenders = ruby_files.flat_map do |file|
+        File.readlines(file).each_with_index.filter_map do |line, i|
+          "#{file.sub(repo_root + "/", "")}:#{i + 1}" if line =~ /split\((["'])\:\1\)\.last/
+        end
+      end
+      expect(offenders).to eq []
+    end
+
+    it "never reads a split key field with .first" do
+      skip "running outside the repository checkout" if ruby_files.empty?
+      offenders = ruby_files.flat_map do |file|
+        File.readlines(file).each_with_index.filter_map do |line, i|
+          next unless line =~ /split\((["'])\:\1\)\.first/
+          # the DID identifier itself is also colon-separated and legitimately
+          # read with .first - only the key field is at issue here
+          "#{file.sub(repo_root + "/", "")}:#{i + 1}" if line.include?('"key"') || line.include?("'key'") || line =~ /_key(s)?\.split/
+        end
+      end
+      expect(offenders).to eq []
+    end
+  end
+
   describe "document_id" do
     let(:first_did)  { "zQmSE1hzumtZ7AoK1qhHf4t5kiKsujMsJSHqoXtWrdd7K7W" }
     let(:second_did) { "zQmfEb3KgYZjZUPLTHPmFPdcV6peF5itB5NmJ9N6gaxxE8K" }

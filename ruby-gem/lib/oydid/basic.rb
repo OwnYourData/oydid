@@ -338,7 +338,7 @@ class Oydid
                 return [nil, msg]
                 exit
             end
-            pubKey = did_document["doc"]["key"].split(":").first rescue nil
+            pubKey = did_document["doc"]["key"].split(":")[0] rescue nil
             if pubKey.nil?
                 return [nil, "cannot resolve " + did.to_s]
             else
@@ -367,9 +367,9 @@ class Oydid
         # get current public key
         case key_type
         when "doc"
-            keys = [did_document["doc"]["key"].split(":").first] rescue nil
+            keys = [did_document["doc"]["key"].split(":")[0]] rescue nil
         when "rev"
-            keys = [did_document["doc"]["key"].split(":").last] rescue nil
+            keys = [did_document["doc"]["key"].split(":")[1]] rescue nil
         else
             return [nil, "invalid key type: " + key_type]
         end
