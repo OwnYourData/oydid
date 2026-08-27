@@ -100,3 +100,9 @@ repository/db/*.sqlite3-journal
 
 # build.sh --local regenerates this from ruby-gem/pkg
 repository/docker/local-gem/*.gem
+
+# The /log and /tmp rules above are anchored to the repository root and do
+# not reach the service subdirectories, which is how 2188 bootsnap cache
+# files and two development secrets ended up tracked.
+*/tmp/cache/
+*/tmp/development_secret.txt
