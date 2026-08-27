@@ -39,6 +39,11 @@ Markup Shorthands: markdown yes
         "href": "https://w3c-ccg.github.io/did-method-web/",
         "title": "did:web Method Specification",
         "publisher": "W3C Credentials Community Group"
+    },
+    "FIPS204": {
+        "href": "https://csrc.nist.gov/pubs/fips/204/final",
+        "title": "FIPS 204: Module-Lattice-Based Digital Signature Standard",
+        "publisher": "NIST"
     }
 }
 </pre>
@@ -192,6 +197,20 @@ An example DID with all associated information and representations:
 }
 ```
 </div>
+
+
+### Control Keys and Content Keys ### {#key_roles}
+
+The `key` member of the internal DID document is the control field of a `did:oyd`. It carries exactly two values, separated by a colon:
+
+* position 0 — the public **document key**: the key authorising an update, and the key against which the signature of the creation entry (`op` 2) is verified;
+* position 1 — the public **revocation key**: the key against which the signature of the revocation entry (`op` 1) is verified.
+
+No further positions are defined. An implementation reading this field MUST address the two values by position, and MUST NOT take the last colon-separated value as the revocation key. A reader written that way returns the wrong key without any error should the field ever be extended, and the document it produces fails only at revocation time — years after the mistake was made.
+
+Keys that do not control the log are content rather than control, and belong in the payload as verification methods; key agreement above all. The payload enters the identifier hash exactly as the `key` member does, so a key placed there carries the same integrity guarantee, can be rotated by an ordinary update, and leaves the two positions above untouched.
+
+Note: an implementation MAY derive a key agreement key from the private document key instead of holding one of its own, because an Ed25519 key converts to X25519. Key types that do not permit that conversion — post-quantum signature schemes in particular — require a separate key agreement key in the payload.
 
 
 ## Read (Resolve) ## {#read}
@@ -1011,7 +1030,25 @@ For long-term usage the following preventive measures have been taken:
 
 ### Cryptographic Agility ### {#cryptographic_agility}
 
-As described in the [[#operations]] section, currently only ed25519 public keys are supported. This can be easily extended by using other multicodec encoded keys. The multicodec table already has support for BLS keys for example, so adding support for it is a simple extension. Once good post quantum cryptography becomes more widely available extending OYDID to support that will also be fairly straight forward.
+Key material in this method is identified by Multicodec, so a further key type is added by recognising its code; `ed25519` and `p256` are supported today. The identifier does not change shape when the key type changes, because it is a hash of the document rather than a container for the key. A `did:oyd` therefore keeps its length whatever key it carries — the practical difference to methods that encode the key into the identifier itself, where a post-quantum key inflates the identifier by three orders of magnitude.
+
+#### Reach of a Quantum Adversary #### {#quantum_scope}
+
+The identifier, the log and the links between log entries are hash-based. Grover's algorithm halves their security level, which the digest sizes in [[#digests]] absorb; for the smaller BLAKE2b sizes the binding limit is their collision resistance, which applies without any quantum consideration.
+
+Not hash-based are the signatures and the encryption. Both public keys of a document are published, so an adversary able to solve the discrete logarithm recovers both private keys and can forge an update as well as a revocation. Migration to a quantum-resistant key type is an ordinary update ([[#update]]) and is authorised by the *existing* key — it is effective only while that key still holds, not afterwards.
+
+#### Requirements on a Post-Quantum Key Type #### {#pq_requirements}
+
+This specification does not define a post-quantum key type yet. Any key type added to this method MUST satisfy the three requirements below.
+
+**Deterministic signatures.** Signing MUST be deterministic. The termination entry commits to the hash of the revocation entry before that entry is published, so the revocation entry has to be reproducible byte for byte from the revocation key alone; the same condition that [[#cmsm_revocation_entry]] describes for secure elements. ML-DSA [[FIPS204]] specifies a deterministic variant alongside its default hedged one and an implementation MUST select it. A hedged signature verifies just as well, so the mistake is not detectable when signing and surfaces only when a revocation is rejected. Implementations SHOULD assert that signing one message twice yields identical bytes.
+
+**Fixed domain separation.** The context string, and the choice between the pure and the pre-hashed variant, enter the signature. Both MUST be fixed when the key type is specified, otherwise two conforming implementations produce different bytes for the same document. Absent a statement for a given key type, the context string is empty and the pure variant applies.
+
+**No downgrade in a mixed document.** A document MUST NOT be verifiable under either of two signature algorithms interchangeably, because its security is then that of the weaker one. A document carries one signature key type, or it carries a composite signature that MUST verify under every one of its components.
+
+Key agreement differs in this last respect: a hybrid key agreement combines both shared secrets in a single key derivation and holds as long as either component holds. A post-quantum key agreement key SHOULD therefore be hybrid, and resides in the payload as [[#key_roles]] requires.
 
 
 ## Privacy Aspects ## {#privacy}
