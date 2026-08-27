@@ -102,6 +102,9 @@ RSpec.describe "POST /1.0/createIdentifier (CMSM)", type: :request do
     expect(response).to have_http_status(200), response.body
     expect(phase["did"]).to start_with("did:oyd:")
     expect(phase["controllerKeyId"]).to end_with("#key-doc")
+    # the client signed the revocation record with a key this process never saw
+    # and cannot reproduce it; without this it could never update or revoke
+    expect(phase["log_revoke"]).to be_present
   end
 
   it "reports an unknown session as a client error, not a server fault" do

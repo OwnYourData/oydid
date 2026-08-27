@@ -223,6 +223,14 @@ class ProvidersController < ApplicationController
                 "keys": keys,
                 "services": []
             }
+            # In CMSM the revocation record is the only artefact the client
+            # cannot rebuild later: its signature was made by a key this process
+            # never saw, and a secure element does not have to sign
+            # deterministically. Without it the DID can neither be updated nor
+            # revoked, so hand it out - it is a log entry, not a secret.
+            if options[:cmsm]
+                retVal["log_revoke"] = status["revocation_log"]
+            end
 
             render json: retVal.to_json,
                    status: 200
