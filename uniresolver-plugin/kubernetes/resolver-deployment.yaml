@@ -9,7 +9,7 @@ metadata:
   name: resolver
   namespace: oydid
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: resolver
@@ -21,10 +21,14 @@ spec:
     spec:
       containers:
       - name: resolver
-        image: oydeu/oydid-resolver:250503
+        image: oydeu/oydid-resolver:260828
         ports:
         - containerPort: 3000
         env:
+          - name: WEB_CONCURRENCY
+            value: "2"
+          - name: RAILS_MAX_THREADS
+            value: "5"
           - name: LANG
             value: C.UTF-8
           - name: RAILS_LOG_TO_STDOUT
