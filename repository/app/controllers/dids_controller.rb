@@ -257,12 +257,7 @@ class DidsController < ApplicationController
         end
         result, read_msg = resolve_did_any(did, options)
         if result.nil?
-            if read_msg.to_s == "revoked"
-                render_resolution_error({"error" => REVOKED_ERROR, "message" => "revoked"})
-            else
-                render json: {"error": "not found"},
-                       status: 404
-            end
+            render_unresolvable(read_msg)
             return
         end
         if result["error"] != 0
@@ -332,12 +327,7 @@ class DidsController < ApplicationController
         end
         result, read_msg = resolve_did_any(did, options)
         if result.nil?
-            if read_msg.to_s == "revoked"
-                render_resolution_error({"error" => REVOKED_ERROR, "message" => "revoked"})
-            else
-                render json: {"error": "not found"},
-                       status: 404
-            end
+            render_unresolvable(read_msg)
             return
         end
         if result["error"] != 0
@@ -846,12 +836,7 @@ class DidsController < ApplicationController
             # retrieve_document collapses every non-200 answer of the hosting
             # repository into nil, so a remote 410 would otherwise be reported as
             # "not found" - keep the revocation distinguishable
-            if read_msg.to_s == "revoked"
-                render_resolution_error({"error" => REVOKED_ERROR, "message" => "revoked"})
-            else
-                render json: {"error": "not found"},
-                       status: 404
-            end
+            render_unresolvable(read_msg)
             return
         end
         if result["error"] != 0

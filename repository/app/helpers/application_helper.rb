@@ -453,6 +453,23 @@ module ApplicationHelper
                status: 200
     end
 
+    # A DID that could not be retrieved. Three outcomes have to stay apart:
+    # a revocation reported by the hosting repository, a failure of that
+    # repository (5xx, marked by the gem via Oydid.upstream_error?), and an
+    # identifier that is genuinely not there. Reporting the middle case as
+    # "not found" would claim the DID never existed.
+    def render_unresolvable(read_msg)
+        if read_msg.to_s == "revoked"
+            render_resolution_error({"error" => REVOKED_ERROR, "message" => "revoked"})
+        elsif Oydid.upstream_error?(read_msg)
+            render json: {"error": read_msg.to_s},
+                   status: 502
+        else
+            render json: {"error": "not found"},
+                   status: 404
+        end
+    end
+
     def render_resolution_error(result)
         status = http_status_for(result["error"])
         if result["error"].to_i == REVOKED_ERROR

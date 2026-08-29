@@ -1248,6 +1248,30 @@ class Oydid
         end
     end
 
+    # Marks a failure of the queried repository itself (HTTP 5xx) as opposed to
+    # a DID that is simply not stored there. Without the distinction a caller
+    # turns a broken upstream into "not found", which claims the identifier
+    # never existed - see upstream_error?.
+    UPSTREAM_ERROR_PREFIX = "upstream error"
+
+    def self.upstream_error?(message)
+        message.to_s.start_with?(UPSTREAM_ERROR_PREFIX)
+    end
+
+    # Failure message for a non-200 response: the repository's own error field
+    # when it sent one, otherwise a message naming status and URL. A 5xx gets
+    # the prefix above so callers can tell it apart from a missing DID.
+    def self.http_error_message(response, url)
+        msg = (response.parsed_response["error"].to_s rescue "")
+        return msg unless msg.to_s == ""
+        code = response.code.to_i rescue 0
+        if code >= 500
+            UPSTREAM_ERROR_PREFIX + " " + code.to_s + " from " + url.to_s
+        else
+            "invalid response from " + url.to_s
+        end
+    end
+
     def self.retrieve_document(doc_identifier, doc_file, doc_location, options)
         # in-process callers can supply the DID document directly (e.g. read from
         # a local database) to avoid any HTTP/file lookup
@@ -1271,11 +1295,7 @@ class Oydid
             end
             retVal = HTTParty.get(doc_location + "/doc/" + doc_identifier + option_str)
             if retVal.code != 200
-                msg = retVal.parsed_response["error"].to_s rescue ""
-                if msg.to_s == ""
-                    msg = "invalid response from " + doc_location.to_s + "/doc/" + doc_identifier.to_s
-                end
-                return [nil, msg]
+                return [nil, http_error_message(retVal, doc_location.to_s + "/doc/" + doc_identifier.to_s)]
             end
             if options.transform_keys(&:to_s)["trace"]
                 if options[:silent].nil? || !options[:silent]
@@ -1324,8 +1344,7 @@ class Oydid
             doc_location = doc_location.sub("%3A%2F%2F","://").sub("%3A", ":")
             retVal = HTTParty.get(doc_location + "/doc_raw/" + doc_hash)
             if retVal.code != 200
-                msg = retVal.parsed_response("error").to_s rescue "invalid response from " + doc_location.to_s + "/doc/" + doc_hash.to_s
-                return [nil, msg]
+                return [nil, http_error_message(retVal, doc_location.to_s + "/doc_raw/" + doc_hash.to_s)]
             end
             if options.transform_keys(&:to_s)["trace"]
                 if options[:silent].nil? || !options[:silent]

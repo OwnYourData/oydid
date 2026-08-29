@@ -224,6 +224,12 @@ class DidsController < ApplicationController
             }, 200]
         end
         if result.nil?
+            # a failure of the queried repository must not be reported as
+            # "not found" - that claims the identifier never existed. This is
+            # how an empty 500 from the repository used to surface as a 404.
+            if Oydid.upstream_error?(read_msg)
+                return [{"error": read_msg.to_s}, 502]
+            end
             return [{"error": "not found"}, 404]
         end
         if result["error"] != 0

@@ -44,10 +44,7 @@ class Oydid
             log_location = log_location.gsub("%2F%2F","//")
             retVal = HTTParty.get(log_location + "/log/" + did_hash)
             if retVal.code != 200
-                msg = retVal.parsed_response("error").to_s rescue 
-                        "invalid response from " + log_location.to_s + "/log/" + did_hash.to_s
-
-                return [nil, msg]
+                return [nil, http_error_message(retVal, log_location.to_s + "/log/" + did_hash.to_s)]
             end
             if options.transform_keys(&:to_s)["trace"]
                 if options[:silent].nil? || !options[:silent]
@@ -79,9 +76,7 @@ class Oydid
             log_location = log_location.gsub("%2F%2F","//")
             retVal = HTTParty.get(log_location + "/log/" + log_hash + "/item")
             if retVal.code != 200
-                msg = retVal.parsed_response("error").to_s rescue 
-                        "invalid response from " + log_location.to_s + "/log/" + log_hash.to_s + "/item"
-                return [nil, msg]
+                return [nil, http_error_message(retVal, log_location.to_s + "/log/" + log_hash.to_s + "/item")]
             end
             if options.transform_keys(&:to_s)["trace"]
                 if options[:silent].nil? || !options[:silent]
@@ -558,9 +553,22 @@ class Oydid
                 # handle DID Rotation
                 if (i == (currentDID["log"].length-1))
                     if options[:followAlsoKnownAs]
+                        # the payload of a DID Document is arbitrary JSON: an
+                        # Array or a scalar is valid and simply carries no
+                        # alsoKnownAs, so only a Hash can be inspected for it.
+                        # Without this guard a revoked DID whose document holds
+                        # e.g. [5] raised NoMethodError here, the repository
+                        # answered 500 with an empty body, and the resolver
+                        # degraded that to "not found" instead of "deactivated".
                         current_doc = currentDID["doc"]
-                        if current_doc["doc"].transform_keys(&:to_s).has_key?("alsoKnownAs")
-                            rotate_DID = current_doc["doc"].transform_keys(&:to_s)["alsoKnownAs"]
+                        doc_payload = current_doc.is_a?(Hash) ? current_doc["doc"] : nil
+                        doc_payload = doc_payload.transform_keys(&:to_s) if doc_payload.is_a?(Hash)
+                        if doc_payload.is_a?(Hash) && doc_payload.has_key?("alsoKnownAs")
+                            # DID Core defines alsoKnownAs as a set; older
+                            # documents wrote a bare String
+                            rotate_DID = doc_payload["alsoKnownAs"]
+                            rotate_DID = rotate_DID.first if rotate_DID.is_a?(Array)
+                            rotate_DID = rotate_DID.to_s
                             if rotate_DID.start_with?("did:")
                                 rotate_DID_method = rotate_DID.split(":").take(2).join(":")
                                 did_orig = currentDID["did"]
@@ -586,8 +594,14 @@ class Oydid
                                         currentDID["verification"] += "(Details: https://ownyourdata.github.io/oydid/#did_rotation)" + "\n\n"
                                     end
                                 when "did:oyd"
-                                    puts "try to resolve did:oyd with our own resolver"
-                                    puts "add verification text"
+                                    # DID Rotation to another did:oyd identifier
+                                    # is not implemented yet: resolving it needs
+                                    # a second pass through this resolver.
+                                    if verification_output
+                                        currentDID["verification"] += "DID rotation to: " + rotate_DID.to_s + "\n"
+                                        currentDID["verification"] += "⚠️ rotation to another did:oyd identifier is not supported yet\n"
+                                        currentDID["verification"] += "(Details: https://ownyourdata.github.io/oydid/#did_rotation)" + "\n\n"
+                                    end
                                 else
                                     # do nothing: DID Rotation is not supported for this DID method yet
                                 end

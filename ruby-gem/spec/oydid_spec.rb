@@ -519,6 +519,65 @@ describe "OYDID handling" do
   #   end
   # end
 
+  # regression: the payload of a DID Document is arbitrary JSON, not
+  # necessarily an object. A revoked DID whose payload is an Array used to
+  # raise NoMethodError in the alsoKnownAs lookup - the repository then
+  # answered 500 with an empty body and the resolver reported "not found"
+  # instead of "deactivated".
+  describe "dag_update with a non-object DID Document payload" do
+    def revoked_state(payload)
+      { "did" => "did:oyd:zQmPyjnkL52gQxBBhPuCFkf167MzpCKquqbu5Qt5ia2JGTr",
+        "doc" => { "doc" => payload, "key" => "", "log" => "" },
+        "log" => [{ "ts" => 1647732475, "op" => 1, "doc" => "zQmcVLwEtzU8By7TTeRFGvVUKm7HhZS6GgRTDFt51QNnans",
+                    "sig" => "", "previous" => [] }] }
+    end
+
+    it "does not raise for an Array payload" do
+      expect {
+        Oydid.dag_update(revoked_state([5]), { followAlsoKnownAs: true })
+      }.not_to raise_error
+    end
+
+    it "does not raise for a scalar payload" do
+      expect {
+        Oydid.dag_update(revoked_state("plain"), { followAlsoKnownAs: true })
+      }.not_to raise_error
+    end
+
+    it "accepts alsoKnownAs written as a set" do
+      state = revoked_state({ "alsoKnownAs" => ["did:oyd:zQmaBZTghndXTgxNwfbdpVLWdFf6faYE4oeuN2zzXdQt1kh"] })
+      expect {
+        Oydid.dag_update(state, { followAlsoKnownAs: true })
+      }.not_to raise_error
+    end
+  end
+
+  # a broken repository (5xx) has to stay distinguishable from a DID that is
+  # not stored there - otherwise the caller reports "not found" and thereby
+  # claims the identifier never existed
+  describe "failure messages for non-200 responses" do
+    it "marks a 5xx as an upstream error" do
+      reply = double(code: 500, parsed_response: "")
+      msg = Oydid.http_error_message(reply, "https://oydid.ownyourdata.eu/doc/zQmXY")
+      expect(Oydid.upstream_error?(msg)).to be true
+      expect(msg).to include("500")
+    end
+
+    it "passes the repository's own error through" do
+      reply = double(code: 410, parsed_response: { "error" => "revoked" })
+      msg = Oydid.http_error_message(reply, "https://oydid.ownyourdata.eu/doc/zQmXY")
+      expect(msg).to eq "revoked"
+      expect(Oydid.upstream_error?(msg)).to be false
+    end
+
+    it "does not mark a 4xx without an error field as upstream error" do
+      reply = double(code: 404, parsed_response: nil)
+      msg = Oydid.http_error_message(reply, "https://oydid.ownyourdata.eu/doc/zQmXY")
+      expect(msg).to start_with("invalid response from")
+      expect(Oydid.upstream_error?(msg)).to be false
+    end
+  end
+
   # main functionds
   Dir.glob(File.expand_path("../input/main/*_read.doc", __FILE__)).each do |input|
     it "execute read for #{input.split('/').last}" do
