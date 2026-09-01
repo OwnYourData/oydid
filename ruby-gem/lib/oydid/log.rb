@@ -127,7 +127,7 @@ class Oydid
                 if !position.nil?
                     dag.add_edge from: dag_log[position], to: dag_log[i]
                 end
-            end unless el["previous"] == []
+            end unless el["previous"].nil? || el["previous"] == []
             i += 1
         end unless logs.nil?
 
@@ -207,7 +207,7 @@ class Oydid
                         dag.add_edge from: dag_log[position], to: dag_log[i]
                     end
                 end
-            end unless el["previous"] == []
+            end unless el["previous"].nil? || el["previous"] == []
             i += 1
         end unless logs.nil?
 
@@ -467,10 +467,20 @@ class Oydid
                                 message = log_el["doc"].to_s
                                 signature = log_el["sig"]
                                 # public_key = current_public_doc_key.to_s
-                                extend_currentDID = currentDID.dup
-                                extend_currentDID["log"] = extend_currentDID["full_log"]
-                                # !!!TODO: check for delegates only at certain point in time
-                                pubKeys, msg = Oydid.getDelegatedPubKeysFromFullDidDocument(extend_currentDID, "doc")
+                                # SECURITY (fail-closed on delegation): an UPDATE
+                                # is authorised only by the document key of the
+                                # version it supersedes - the key continuity that
+                                # anchors the chain. Delegated keys (op=5) are NOT
+                                # honoured at resolution: they were collected from
+                                # the raw log with no authentication whatsoever, so
+                                # honouring them let anyone able to write a log
+                                # entry take over a revoked DID by injecting a
+                                # DELEGATE plus a self-signed UPDATE. No production
+                                # DID relies on a delegated key to resolve
+                                # (audit 2026-09-01), so this closes the hole at
+                                # zero cost.
+                                pubKeys = [current_public_doc_key.to_s]
+                                msg = ""
                                 signature_verification = false
                                 used_pubkey = ""
                                 pubKeys.each do |key|
@@ -515,7 +525,7 @@ class Oydid
                                         new_did_hash = new_doc_did.delete_prefix("did:oyd:")
                                         new_did_hash = new_did_hash.split(LOCATION_PREFIX).first.split(CGI.escape LOCATION_PREFIX).first
                                         new_did10 = new_did_hash[0,10]
-                                        new_doc = retrieve_document(new_doc_did, new_did10 + ".doc", new_doc_location, {}).first
+                                        new_doc = retrieve_document(new_doc_did, new_did10 + ".doc", new_doc_location, options).first
                                         currentDID["verification"] += "found UPDATE log record:" + "\n"
                                         currentDID["verification"] += JSON.pretty_generate(log_el) + "\n"
                                         currentDID["verification"] += "⛔ none of available public keys (" + pubKeys.join(", ") + ")\n"

@@ -254,10 +254,19 @@ module ApplicationHelper
                                 message = log_el["doc"].to_s
                                 signature = log_el["sig"]
                                 # public_key = current_public_doc_key.to_s
-                                extend_currentDID = currentDID.dup
-                                extend_currentDID["log"] = extend_currentDID["full_log"]
-                                # !!!TODO: check for delegates only at certain point in time
-                                pubKeys, msg = Oydid.getDelegatedPubKeysFromFullDidDocument(extend_currentDID, "doc")
+                                # SECURITY (fail-closed on delegation): an UPDATE
+                                # is authorised only by the document key of the
+                                # version it supersedes. Delegated keys (op=5) are
+                                # NOT honoured at resolution - they were collected
+                                # from the raw log with no authentication, so
+                                # honouring them let anyone able to write a log
+                                # entry take over a revoked DID via an injected
+                                # DELEGATE plus a self-signed UPDATE. No production
+                                # DID relies on a delegated key to resolve
+                                # (audit 2026-09-01). Mirrors the gem fix in
+                                # oydid/log.rb.
+                                pubKeys = [current_public_doc_key.to_s]
+                                msg = ""
                                 signature_verification = false
                                 used_pubkey = ""
                                 pubKeys.each do |key|
@@ -653,23 +662,28 @@ module ApplicationHelper
         logs = Log.where(did: didHash).pluck(:item).map { |i| JSON.parse(i) } rescue []
 
         # identify if TERMINATE entry has already revocation record
-        logs = add_next(logs)
+        logs = add_next(logs, [didHash])
         # add all log entries that came before (use previous)
         logs = add_previous(logs, [didHash])
 
         return logs
     end
 
-    def add_next(logs)
+    def add_next(logs, done = [])
         new_entries = []
         logs.each do |log|
             if log["op"] == 0 # TERMINATE
                 @log = Log.find_by_any_hash(remove_location(log["doc"])) rescue nil
-                if !@log.nil?
+                # cycle guard: a revocation record can point back to a DID we have
+                # already expanded (mutually-referencing logs), and without the
+                # `done` set add_next recursed until the stack overflowed and the
+                # endpoint answered 500. add_previous carries the same guard.
+                if !@log.nil? && !done.include?(@log.did)
+                    done << @log.did
                     tmp = Log.where(did: @log.did).pluck(:item).map { |i| JSON.parse(i) } rescue []
                     tmp.delete(log)
                     new_entries << tmp
-                    new_entries << add_next(tmp)
+                    new_entries << add_next(tmp, done)
                 end
             end
         end

@@ -552,6 +552,100 @@ describe "OYDID handling" do
     end
   end
 
+  # regression: a log entry with a missing "previous" field (e.g. junk op=5
+  # entries POSTed to the unauthenticated /log endpoint) made dag_did call
+  # nil.each - the repository then answered 500 with an empty body for every
+  # request to that DID. previous is optional; a missing one means no
+  # back-reference, exactly like an empty array.
+  describe "dag_did with a log entry missing 'previous'" do
+    let(:log) do
+      [ { "ts" => 0, "op" => 5, "doc" => "doc:123", "sig" => "z6M234" }, # no "previous"
+        { "ts" => 1, "op" => 2, "doc" => "zQmSVzALxVDs2Tqf5gh9XDWSL4L57YLi8H1XpvpizQPd79c", "sig" => "z", "previous" => [] },
+        { "ts" => 1, "op" => 0, "doc" => "zQmXRVzdjMnTz1WQVkVdJU1ZF9DPjcK5LM2GynpGzxbNAz6", "sig" => "z", "previous" => [] } ]
+    end
+
+    it "does not raise on a missing previous field" do
+      expect { Oydid.dag_did(log, { silent: true }) }.not_to raise_error
+    end
+
+    it "still resolves the DAG and finds the single CREATE entry" do
+      dag, create_index, _terminate_index, msg = Oydid.dag_did(log, { silent: true })
+      expect(msg).to eq ""
+      expect(dag).not_to be_nil
+      expect(create_index).to eq 1
+    end
+  end
+
+  # SECURITY regression (fail-closed on delegation): a DELEGATE entry (op=5) is
+  # collected from the raw log with no authentication. Honouring it at resolution
+  # let anyone able to write a log entry take over a revoked DID by injecting a
+  # DELEGATE plus a self-signed UPDATE. Resolution must authorise an UPDATE only
+  # by the superseded version's own document key - and must keep resolving a
+  # legitimate owner-signed update.
+  describe "DELEGATE keys are not honoured at resolution" do
+    HOPTS = { digest: "sha2-256", encode: "base58btc" }
+    class MemStore
+      def initialize(h); @h = h; end
+      def get(k); @h[k]; end
+    end
+    def h(e);   Oydid.multi_hash(Oydid.canonical(e.slice("ts","op","doc","sig","previous")), HOPTS).first; end
+    def sub(e); Oydid.multi_hash(Oydid.canonical(e.slice("ts","op","doc","sig")), HOPTS).first; end
+
+    # generate_base builds the CREATE/TERMINATE/REVOKE records and the keys
+    # without the network round-trip that Oydid.create makes via w3c (which
+    # WebMock blocks in the test env). doc_location "local" keeps the log
+    # reference free of an @location suffix.
+    def build_revoked_victim
+      dd, dk, dl, = Oydid.generate_base({ "purpose" => "victim" }, nil, "create",
+                                        { key_type: "ed25519", doc_location: "local" })
+      create = dl[:l1]
+      term1  = dl[:l2]
+      revoke = dl[:r1].merge("previous" => [h(create), h(term1)])
+      { vdid: dd[:did].delete_prefix("did:oyd:"), vdoc: dd[:didDocument], vpriv: dk[:privateKey],
+        create: create, term1: term1, revoke: revoke }
+    end
+
+    def build_v2
+      np    = { "service" => [{ "id" => "#x", "serviceEndpoint" => "https://new.example" }] }
+      apriv = Oydid.generate_private_key("", "ed25519-priv", {}).first
+      apub  = Oydid.public_key(apriv, {}).first
+      arpub = Oydid.public_key(Oydid.generate_private_key("", "ed25519-priv", {}).first, {}).first
+      nkey  = "#{apub}:#{arpub}"
+      r2    = { "ts" => 3, "op" => 1, "sig" => "z",
+                "doc" => Oydid.multi_hash(Oydid.canonical({ "doc" => np, "key" => nkey }.to_json), HOPTS).first }
+      term2 = { "ts" => 3, "op" => 0, "doc" => sub(r2), "sig" => Oydid.sign(sub(r2), apriv, HOPTS).first, "previous" => [] }
+      ndoc  = { "doc" => np, "key" => nkey, "log" => h(term2) }
+      { np: np, apriv: apriv, apub: apub, term2: term2, ndoc: ndoc,
+        ndid: Oydid.multi_hash(Oydid.canonical(ndoc.to_json), HOPTS).first }
+    end
+
+    def resolve(vic, v2, log)
+      store = MemStore.new(vic[:vdid] => { "doc" => vic[:vdoc], "log" => log },
+                           v2[:ndid]  => { "doc" => v2[:ndoc],  "log" => log })
+      r, = Oydid.read("did:oyd:#{vic[:vdid]}",
+                      { local_doc: vic[:vdoc], local_log: log, local_store: store, silent: true })
+      [r["error"].to_i, r.dig("doc", "doc")]
+    end
+
+    it "rejects a takeover via an injected DELEGATE + self-signed UPDATE" do
+      vic = build_revoked_victim; v2 = build_v2
+      deleg = { "ts" => 2, "op" => 5, "doc" => "doc:#{v2[:apub]}", "sig" => "", "previous" => [h(vic[:term1])] }
+      upd   = { "ts" => 3, "op" => 3, "doc" => v2[:ndid],
+                "sig" => Oydid.sign(v2[:ndid], v2[:apriv], HOPTS).first, "previous" => [h(vic[:revoke])] }
+      _err, doc = resolve(vic, v2, [vic[:create], vic[:term1], vic[:revoke], deleg, upd, v2[:term2]])
+      expect(doc).not_to eq v2[:np]
+    end
+
+    it "still resolves a legitimate owner-signed UPDATE" do
+      vic = build_revoked_victim; v2 = build_v2
+      upd = { "ts" => 3, "op" => 3, "doc" => v2[:ndid],
+              "sig" => Oydid.sign(v2[:ndid], vic[:vpriv], HOPTS).first, "previous" => [h(vic[:revoke])] }
+      err, doc = resolve(vic, v2, [vic[:create], vic[:term1], vic[:revoke], upd, v2[:term2]])
+      expect(err).to eq 0
+      expect(doc).to eq v2[:np]
+    end
+  end
+
   # a broken repository (5xx) has to stay distinguishable from a DID that is
   # not stored there - otherwise the caller reports "not found" and thereby
   # claims the identifier never existed

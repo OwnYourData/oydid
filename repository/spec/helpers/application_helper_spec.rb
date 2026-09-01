@@ -100,4 +100,21 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(helper.document_operation(["nonsense", nil], did)).to be_nil
     end
   end
+
+  # regression: add_next recursed without a cycle guard. Two DIDs whose TERMINATE
+  # records point at each other's revocation record made it recurse until the
+  # stack overflowed, and the endpoint answered 500 instead of resolving. Mirrors
+  # the `done` set that add_previous already carries.
+  describe "#local_retrieve_log with a revocation cycle" do
+    before do
+      Log.create!(did: "Acycle", oyd_hash: "pA", ts: 1,
+                  item: { "ts" => 1, "op" => 0, "doc" => "pB", "sig" => "s", "previous" => [] }.to_json)
+      Log.create!(did: "Bcycle", oyd_hash: "pB", ts: 1,
+                  item: { "ts" => 1, "op" => 0, "doc" => "pA", "sig" => "s", "previous" => [] }.to_json)
+    end
+
+    it "terminates instead of overflowing the stack" do
+      expect { helper.local_retrieve_log("Acycle") }.not_to raise_error
+    end
+  end
 end
