@@ -142,6 +142,14 @@ class Oydid
                 log_hash = hash_split[0]
                 log_location = hash_split[1]
             end
+            # D11: the log reference may carry its location as %40 (the
+            # W3C-conform form of @); split on both, exactly as the DID split
+            # above does.
+            if log_hash.include?(CGI.escape LOCATION_PREFIX)
+                hash_split = log_hash.split(CGI.escape LOCATION_PREFIX)
+                log_hash = hash_split[0]
+                log_location = hash_split[1]
+            end
         end
         if log_location == ""
             log_location = DEFAULT_LOCATION
@@ -152,6 +160,7 @@ class Oydid
         if log_array.nil?
             return [nil, msg]
         else
+            log_array = dedup_log(log_array)
             if options[:trace]
                 puts " .. Log retrieved"
             end

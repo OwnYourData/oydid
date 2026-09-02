@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    oydid (0.9.4)
+    oydid (0.9.5)
       ed25519 (~> 1.4.0)
       httparty (~> 0.24)
       json (~> 2.18.1)

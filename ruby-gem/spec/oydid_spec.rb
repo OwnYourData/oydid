@@ -646,6 +646,37 @@ describe "OYDID handling" do
     end
   end
 
+  # SECURITY regression: the append endpoint is unauthenticated, so a byte-identical
+  # log entry can be replayed with no signing key. A duplicated CREATE trips dag_did's
+  # "wrong number of CREATE entries" and a duplicated tangling TERMINATE its terminate
+  # count, making the DID unresolvable. dedup_log collapses byte-identical replays
+  # (keep-first) at ingestion; genuinely distinct fork entries survive and still fail
+  # closed as ambiguous.
+  describe "dedup_log collapses byte-identical replayed entries" do
+    let(:create_e) { { "ts" => 1, "op" => 2, "doc" => "zCreate", "sig" => "z", "previous" => [] } }
+    let(:term_e)   { { "ts" => 1, "op" => 0, "doc" => "zTerm",   "sig" => "z", "previous" => [] } }
+
+    it "removes a byte-identical duplicate, keeping the first" do
+      deduped = Oydid.dedup_log([create_e, term_e, create_e.dup])
+      expect(deduped.length).to eq 2
+      expect(deduped.count { |e| e["op"] == 2 }).to eq 1
+    end
+
+    it "lets a de-duplicated log resolve where the raw one fails" do
+      logs = [create_e, term_e, create_e.dup]
+      expect(Oydid.dag_did(logs, { silent: true }).last).to match(/wrong number of CREATE/)
+      dag, create_index, _t, msg = Oydid.dag_did(Oydid.dedup_log(logs), { silent: true })
+      expect(msg).to eq ""
+      expect(dag).not_to be_nil
+      expect(create_index).to eq 0
+    end
+
+    it "keeps genuinely distinct entries (a real fork is not collapsed)" do
+      fork = create_e.merge("doc" => "zCreate2")
+      expect(Oydid.dedup_log([create_e, fork, term_e]).length).to eq 3
+    end
+  end
+
   # a broken repository (5xx) has to stay distinguishable from a DID that is
   # not stored there - otherwise the caller reports "not found" and thereby
   # claims the identifier never existed

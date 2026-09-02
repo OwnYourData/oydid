@@ -113,6 +113,7 @@ module ApplicationHelper
         # did_identifier = did_identifier.split(LOCATION_PREFIX).first
         # did_identifier = did_identifier.split(CGI.escape(LOCATION_PREFIX)).first
         log_array = local_retrieve_log(did)
+        log_array = Oydid.dedup_log(log_array)
         currentDID["log"] = log_array
 
         # traverse log to get current DID state

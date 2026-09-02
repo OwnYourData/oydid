@@ -90,6 +90,21 @@ class Oydid
         end
     end
 
+    # collapse byte-identical log entries (keep first), keyed on the entry hash
+    # that `previous` references resolve to. A replayed CREATE or tangling
+    # TERMINATE would otherwise trip dag_did's CREATE/terminate counts and make
+    # the DID unresolvable - reachable through the unauthenticated append path
+    # with no signing key. Genuinely distinct fork entries (different hash) are
+    # kept and still fail closed as ambiguous.
+    def self.dedup_log(logs)
+        return logs unless logs.is_a?(Array)
+        seen = {}
+        logs.select do |el|
+            key = (canonical(el.slice("ts","op","doc","sig","previous")) rescue el.inspect)
+            seen.key?(key) ? false : (seen[key] = true)
+        end
+    end
+
     def self.dag_did(logs, options)
         dag = DAG.new
         dag_log = []
