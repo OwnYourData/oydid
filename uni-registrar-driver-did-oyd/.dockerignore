@@ -1,0 +1,9 @@
+tmp
+test
+node_modules
+
+# The Dockerfile does "COPY . ." , so anything left in the working directory
+# ends up in a published image. ".enc" means encoded, not encrypted.
+*_private_key.enc
+*_revocation_key.enc
+*_revocation.json

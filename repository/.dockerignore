@@ -1,1 +1,8 @@
 lib/tasks/auto_annotate_models.rake
+
+# A .gitignore is not a .dockerignore: the Dockerfile does "COPY . ." , so
+# anything left in the working directory ends up in a published image.
+tmp
+*_private_key.enc
+*_revocation_key.enc
+*_revocation.json

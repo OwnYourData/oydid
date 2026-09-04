@@ -78,6 +78,7 @@ ruby-gem/tmp/
 ruby-gem/pkg/
 ruby-gem/coverage/
 uniresolver-plugin/tmp/
+uni-registrar-driver-did-oyd/tmp/
 ~$*
 
 #pytest
@@ -106,3 +107,12 @@ repository/docker/local-gem/*.gem
 # files and two development secrets ended up tracked.
 */tmp/cache/
 */tmp/development_secret.txt
+*/tmp/local_secret.txt
+
+# Key material the CLI drops into the working directory. ".enc" means encoded,
+# not encrypted: these files hold the multibase private key in the clear, and
+# the revocation record is enough to take a DID down. Five test DIDs were
+# tracked here until 2026-09-04 - see the Docker context note below.
+*_private_key.enc
+*_revocation_key.enc
+*_revocation.json

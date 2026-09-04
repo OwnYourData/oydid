@@ -1,3 +1,8 @@
 tmp
 test
 node_modules
+
+# ".enc" means encoded, not encrypted - never into an image
+*_private_key.enc
+*_revocation_key.enc
+*_revocation.json
