@@ -58,7 +58,7 @@ class Oydid
             if retVal.code == 401
                 msg = "unauthorized (valid Bearer token required)"
             else
-                msg = retVal.parsed_response("error").to_s rescue "invalid response from " + vc_url.to_s
+                msg = http_error_message(retVal, vc_url)
             end
             return [nil, msg]
         end
@@ -338,7 +338,7 @@ class Oydid
             headers: { 'Content-Type' => 'application/json' },
             body: vc_data.to_json )
         if retVal.code != 200
-            err_msg = retVal.parsed_response("error").to_s rescue "invalid response from " + vc_url.to_s
+            err_msg = http_error_message(retVal, vc_url)
             return [nil, err_msg]
         end
         return [retVal["identifier"], ""]
@@ -355,7 +355,7 @@ class Oydid
         vp_url = vp_location.sub(/(\/)+$/,'') + "/presentations/" + identifier
         retVal = HTTParty.get(vp_url)
         if retVal.code != 200
-            msg = retVal.parsed_response("error").to_s rescue "invalid response from " + vp_url.to_s
+            msg = http_error_message(retVal, vp_url)
             return [nil, msg]
         end
         return [retVal.parsed_response, ""]
@@ -451,7 +451,7 @@ class Oydid
             headers: { 'Content-Type' => 'application/json' },
             body: vp_data.to_json )
         if retVal.code != 200
-            err_msg = retVal.parsed_response("error").to_s rescue "invalid response from " + vp_url.to_s
+            err_msg = http_error_message(retVal, vp_url)
             return [nil, err_msg]
         end
         return [vp["identifier"], ""]

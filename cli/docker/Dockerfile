@@ -1,10 +1,11 @@
 FROM ruby:3.2.8-alpine
 LABEL org.opencontainers.image.authors="Christoph Fabianek <christoph@ownyourdata.eu>"
 
-# NOTE: oydid.gemspec sets required_ruby_version >= 3.2.8 - an older base image
-# cannot install the gem at all. Keep in sync with docker/Dockerfile-local; the
-# only difference is that this file installs oydid from rubygems.org instead of
-# docker/local-gem/.
+# NOTE: oydid.gemspec sets required_ruby_version >= 3.2.0; this image pins a
+# concrete patch level so all four variants install the same interpreter. The
+# .arm64v8 files are byte-identical to their x86 counterpart except for the FROM
+# line - change one, change the other. The -local variants install oydid from
+# docker/local-gem/ instead of rubygems.org.
 RUN addgroup -S user && \
     adduser -S user -G user && \
     apk add --no-cache libsodium-dev openssl openssl-dev git make gcc musl-dev jq bash curl gdbm gdbm-dev enscript ghostscript && \

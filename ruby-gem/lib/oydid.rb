@@ -731,7 +731,7 @@ class Oydid
                 headers: { 'Content-Type' => 'application/json' },
                 body: did_data.to_json )
             if retVal.code != 200
-                err_msg = retVal.parsed_response("error").to_s rescue "invalid response from " + doc_location.to_s + "/doc"
+                err_msg = http_error_message(retVal, doc_location.to_s + "/doc")
                 return [false, err_msg]
             end
         else
@@ -894,7 +894,7 @@ class Oydid
                 headers: { 'Content-Type' => 'application/json' },
                 body: my_body.to_json )
             if retVal.code != 200
-                err_msg = retVal.parsed_response("error").to_s rescue "invalid response from " + doc_location.to_s + "/cmsm"
+                err_msg = http_error_message(retVal, doc_location.to_s + "/cmsm")
                 return [nil, err_msg]
             end
         else
@@ -1084,7 +1084,7 @@ class Oydid
             body: {"log": log}.to_json )
         code = retVal.code rescue 500
         if code != 200
-            err_msg = retVal.parsed_response["error"].to_s rescue "invalid response from " + source_location.to_s + "/log"
+            err_msg = http_error_message(retVal, source_location.to_s + "/log")
             return ["", err_msg]
         end
         log_hash = retVal.parsed_response["log"] rescue ""
@@ -1306,7 +1306,7 @@ class Oydid
                 headers: { 'Content-Type' => 'application/json' },
                 body: {"log": revoc_log}.to_json )
             if retVal.code != 200
-                msg = retVal.parsed_response("error").to_s rescue "invalid response from " + doc_location.to_s + "/log/" + did_hash.to_s
+                msg = http_error_message(retVal, doc_location.to_s + "/log/" + did_hash.to_s)
                 return [nil, msg]
             end
         else

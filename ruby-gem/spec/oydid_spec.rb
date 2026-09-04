@@ -701,6 +701,39 @@ describe "OYDID handling" do
       expect(msg).to start_with("invalid response from")
       expect(Oydid.upstream_error?(msg)).to be false
     end
+
+    # Only the reading paths used the helper. The writing ones built their
+    # message with parsed_response("error") - round brackets, so an
+    # ArgumentError, so the surrounding rescue swallowed whatever the
+    # repository had said. A rejected create then read as "invalid response
+    # from .../doc" and the actual reason never reached the caller.
+    it "passes the repository's error through when writing a DID" do
+      stub_request(:post, "https://oydid.ownyourdata.eu/doc").to_return(
+        status: 400,
+        headers: { "Content-Type" => "application/json" },
+        body: { "error" => "public key already controls an active DID" }.to_json)
+
+      retVal, msg = Oydid.create({ "id" => "spec" },
+                                 { doc_pwd: "spec-doc-pwd", rev_pwd: "spec-rev-pwd",
+                                   location: "https://oydid.ownyourdata.eu",
+                                   digest: "sha2-256", encode: "base58btc" })
+
+      expect(retVal).to be_nil
+      expect(msg).to eq("public key already controls an active DID")
+    end
+
+    it "marks a 5xx while writing as an upstream error" do
+      stub_request(:post, "https://oydid.ownyourdata.eu/doc").to_return(status: 502, body: "")
+
+      retVal, msg = Oydid.create({ "id" => "spec" },
+                                 { doc_pwd: "spec-doc-pwd", rev_pwd: "spec-rev-pwd",
+                                   location: "https://oydid.ownyourdata.eu",
+                                   digest: "sha2-256", encode: "base58btc" })
+
+      expect(retVal).to be_nil
+      expect(Oydid.upstream_error?(msg)).to be true
+      expect(msg).to include("502")
+    end
   end
 
   # main functionds
