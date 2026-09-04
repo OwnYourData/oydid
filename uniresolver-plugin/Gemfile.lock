@@ -122,7 +122,7 @@ GEM
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    json (2.18.1)
+    json (2.21.2)
     json-canonicalization (1.0.0)
     json-ld (3.3.2)
       htmlentities (~> 4.3)
@@ -132,7 +132,7 @@ GEM
       rack (>= 2.2, < 4)
       rdf (~> 3.3)
       rexml (~> 3.2)
-    jwt (3.1.2)
+    jwt (3.2.0)
       base64
     jwt-eddsa (0.9.0)
       base64
@@ -186,13 +186,13 @@ GEM
       racc (~> 1.4)
     openssl (3.3.3)
     ostruct (0.6.3)
-    oydid (0.9.5)
+    oydid (0.9.6)
       ed25519 (~> 1.4.0)
       httparty (~> 0.24)
-      json (~> 2.18.1)
+      json (>= 2.19.9, < 3)
       json-canonicalization (~> 1.0.0)
       json-ld (~> 3.3.2)
-      jwt (~> 3.1.2)
+      jwt (>= 3.2, < 4)
       jwt-eddsa (~> 0.9.0)
       multibases (~> 0.3.2)
       multicodecs (~> 1.0.0)
@@ -352,7 +352,7 @@ DEPENDENCIES
   sprockets
 
 RUBY VERSION
-  ruby 3.2.8p263
+  ruby 3.2.11
 
 BUNDLED WITH
   4.0.12
