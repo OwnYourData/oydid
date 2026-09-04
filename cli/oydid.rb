@@ -9,7 +9,7 @@ require 'oydid'
 
 LOCATION_PREFIX = "@"
 DEFAULT_LOCATION = "https://oydid.ownyourdata.eu"
-VERSION = "0.9.5"
+VERSION = "0.9.6"
 LOG_HASH_OPTIONS = {:digest => "sha2-256", :encode => "base58btc"}
 
 # internal functions -------------------------------
@@ -794,6 +794,9 @@ opt_parser = OptionParser.new do |opt|
   # DIDComm Options
   opt.on("--sign-did DID") do |sign_did|
     options[:sign_did] = sign_did
+  end
+  opt.on("--expect-did DID", "DID that must have signed the token") do |expect_did|
+    options[:expect_did] = expect_did.to_s
   end
   opt.on("--type TYPE") do |t|
     options[:didcomm_type] = t.to_s
@@ -1602,6 +1605,12 @@ when "jws"
     didcomm_signed_message, err_msg = Oydid.dcsm(content, private_key_encoded, options)
     puts didcomm_signed_message.to_s
 when "verify-jws"
+    # Without --expect-did this only proves that the DID named in the token
+    # signed it - and the token names that DID itself. Say so where it stays
+    # visible in a log, and keep it off stdout so piped output is unchanged.
+    if options[:expect_did].to_s == ""
+        warn "⚠ no --expect-did given: this only proves that the DID named in the token signed it"
+    end
     msg_verified, err_msg = Oydid.dcsm_verify(content, options)
     if !msg_verified.nil?
         if options[:json].nil? || !options[:json]
@@ -1616,6 +1625,7 @@ when "verify-jws"
         else
             puts JSON.pretty_generate("error": err_msg)
         end
+        exit(-1)
     end
 
 when "encrypt-message"
@@ -1634,6 +1644,14 @@ when "decrypt-jwt"
     puts JSON.pretty_generate(msg_decrypted.first)
 when "sign-message"
     msg_signed, msg = Oydid.msg_sign(content, options[:hmac_secret].to_s)
+    if msg_signed.nil?
+        if options[:json].nil? || !options[:json]
+            puts "⛔ " + msg.to_s
+        else
+            puts JSON.pretty_generate("error": msg.to_s)
+        end
+        exit(-1)
+    end
     puts msg_signed.to_s
 when "verify-signed-message"
     msg_verified, msg = Oydid.msg_verify_jws(content, options[:hmac_secret].to_s)

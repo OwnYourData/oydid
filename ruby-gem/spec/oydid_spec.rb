@@ -1186,4 +1186,116 @@ describe "OYDID handling" do
       end
     end
   end
+  # These four defects together made the whole DIDComm branch unusable and, in
+  # the HMAC case, forgeable. Nothing in the suite touched it before.
+  describe "DIDComm signing" do
+    let(:priv) { Oydid.generate_private_key("didcomm-spec-pwd", "ed25519-priv", {}).first }
+    let(:pub)  { Oydid.public_key(priv, {}).first }
+
+    # jwt < 3.2.0 verified an HS256 token against an empty key, so anybody could
+    # forge one (CVE-2026-45363). The CLI reaches here with "" whenever
+    # --hmac_secret is omitted, so the gem refuses the empty key itself.
+    it "refuses to sign with an empty HMAC secret" do
+      token, msg = Oydid.msg_sign({ "a" => 1 }, "")
+
+      expect(token).to be_nil
+      expect(msg).to eq("HMAC secret must not be empty")
+    end
+
+    it "refuses to verify a token forged with an empty HMAC key" do
+      header  = Base64.urlsafe_encode64('{"alg":"HS256"}').delete("=")
+      payload = Base64.urlsafe_encode64('{"sub":"attacker"}').delete("=")
+      digest  = OpenSSL::HMAC.digest("SHA256", "", "#{header}.#{payload}")
+      forged  = "#{header}.#{payload}.#{Base64.urlsafe_encode64(digest).delete('=')}"
+
+      decoded, msg = Oydid.msg_verify_jws(forged, "")
+
+      expect(decoded).to be_nil
+      expect(msg).to eq("HMAC secret must not be empty")
+    end
+
+    it "still round-trips an HMAC signature with a real secret" do
+      token, = Oydid.msg_sign({ "a" => 1 }, "s3cr3t")
+      decoded, msg = Oydid.msg_verify_jws(token, "s3cr3t")
+
+      expect(msg).to eq("")
+      expect(decoded.first).to eq({ "a" => 1 })
+    end
+
+    # jwt-eddsa signs with Ed25519::SigningKey; handing it the RbNaCl key raised
+    # JWT::EncodeError, so "oydid jws" could not produce a token at all.
+    it "signs a DIDComm message with the Ed25519 document key" do
+      token, msg = Oydid.dcsm({ "a" => 1 }, priv, { sign_did: "did:oyd:zSpec" })
+
+      expect(msg).to eq("")
+      _, _, digest = Oydid.multi_decode(pub).first.unpack("CCa*")
+      decoded = JWT.decode(token, Ed25519::VerifyKey.new(digest), true,
+                           { algorithms: Oydid::ED25519_ALGS })
+      expect(decoded.first).to eq({ "a" => 1 })
+      expect(decoded.last["kid"]).to eq("did:oyd:zSpec")
+    end
+
+    # w3c() lists "authentication" as a reference and uses symbol keys inside a
+    # verification method - the old code indexed a String with "publicKeyMultibase".
+    describe "authentication_key" do
+      let(:didDocument) do
+        { "authentication" => ["did:oyd:zSpec#key-doc"],
+          "verificationMethod" => [
+            { id: "did:oyd:zSpec#key-rev", publicKeyMultibase: "z6MkRev" },
+            { id: "did:oyd:zSpec#key-doc", publicKeyMultibase: "z6MkDoc" }
+          ] }
+      end
+
+      it "dereferences a referenced verification method" do
+        key, msg = Oydid.authentication_key(didDocument)
+
+        expect(key).to eq("z6MkDoc")
+        expect(msg).to eq("")
+      end
+
+      it "accepts an embedded verification method" do
+        key, = Oydid.authentication_key(
+          { "authentication" => [{ "publicKeyMultibase" => "z6MkEmbedded" }] })
+
+        expect(key).to eq("z6MkEmbedded")
+      end
+
+      # a DID created without --authentication has no such section; report it
+      # instead of raising NoMethodError on nil
+      it "reports a document without an authentication section" do
+        key, msg = Oydid.authentication_key(didDocument.reject { |k, _| k == "authentication" })
+
+        expect(key).to be_nil
+        expect(msg).to eq("no authentication key in DID document")
+      end
+    end
+
+    # dcsm_verify takes the public key from the token's own kid header, so a
+    # green result on its own says nothing about *who* signed. --expect-did is
+    # what turns it into an authorisation check.
+    describe "expect_did" do
+      let(:token) { Oydid.dcsm({ "a" => 1 }, priv, { sign_did: "did:oyd:zSigner" }).first }
+
+      it "treats the two spellings of the location separator as one DID" do
+        expect(Oydid.same_did?("did:oyd:zAbc%40example.com", "did:oyd:zAbc@example.com")).to be true
+      end
+
+      it "ignores a key fragment" do
+        expect(Oydid.same_did?("did:oyd:zAbc#key-doc", "did:oyd:zAbc")).to be true
+      end
+
+      it "separates different DIDs" do
+        expect(Oydid.same_did?("did:oyd:zAbc", "did:oyd:zDef")).to be false
+      end
+
+      # webmock lets no unstubbed request through, so this also shows that the
+      # mismatch is caught before the DID is resolved
+      it "refuses a token signed by another DID without resolving it" do
+        payload, msg = Oydid.dcsm_verify(token, { expect_did: "did:oyd:zSomeoneElse" })
+
+        expect(payload).to be_nil
+        expect(msg).to eq("token was signed by did:oyd:zSigner, expected did:oyd:zSomeoneElse")
+      end
+    end
+  end
 end

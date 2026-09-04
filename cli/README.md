@@ -47,6 +47,32 @@ read the information:
 oydid read {use output from above did:oyd:...}
 ```
 
+## DIDComm signed messages
+
+Signing needs a DID whose document lists the signing key for authentication, so
+create it with `--authentication` (this becomes part of the DID Document and
+therefore of the identifier - it cannot be added to an existing DID without
+`oydid update`, which mints a new identifier):
+```bash
+echo '{"id":"my-service"}' | oydid create --authentication
+```
+
+Wrap a payload in a DIDComm message and sign it with the document key:
+```bash
+echo '{"my":"message"}' | \
+  oydid message --type https://ownyourdata.eu/oydid/0.1/example --to $DID | \
+  oydid jws --sign-did $DID > token.jws
+```
+
+Verify it. **Always pass `--expect-did`**: the verifier takes the public key from
+the `kid` header of the token, so without it a successful verification only says
+that whoever controls *the DID named in the token* signed it - not that it was
+the DID you expected. `oydid` writes a warning to stderr when the option is
+missing and exits non-zero when verification fails:
+```bash
+oydid verify-jws --expect-did $DID < token.jws
+```
+
 ## Further Resources
 
 Read about the concept and examples: [OYDIDintro.pdf](https://github.com/OwnYourData/oydid/blob/main/docs/OYDIDintro.pdf)    

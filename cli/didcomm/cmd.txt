@@ -1,3 +1,6 @@
 echo '{"my":"message"}' | ../oydid.rb message --type https://ownyourdata.eu/oydid/0.1/example --to did:oyd:zQmcd1WLbrMQSa3SGcb1Vx3skv9Ah2JWSnueaojp8K4Nbux
 
 echo '{"my":"message"}' | ../oydid.rb message --type https://ownyourdata.eu/oydid/0.1/example --to did:oyd:zQmcd1WLbrMQSa3SGcb1Vx3skv9Ah2JWSnueaojp8K4Nbux | ../oydid.rb jws
+
+DID=did:oyd:zQmcd1WLbrMQSa3SGcb1Vx3skv9Ah2JWSnueaojp8K4Nbux
+echo '{"my":"message"}' | ../oydid.rb message --type https://ownyourdata.eu/oydid/0.1/example --to $DID | ../oydid.rb jws --sign-did $DID | ../oydid.rb verify-jws --expect-did $DID
