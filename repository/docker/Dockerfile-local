@@ -1,4 +1,4 @@
-FROM ruby:3.2.8
+FROM ruby:3.2.11
 LABEL org.opencontainers.image.authors="Christoph Fabianek <christoph@ownyourdata.eu>"
 
 WORKDIR /usr/src/app
