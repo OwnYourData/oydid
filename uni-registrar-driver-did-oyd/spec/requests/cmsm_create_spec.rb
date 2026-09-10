@@ -31,6 +31,10 @@ RSpec.describe "POST /1.0/createIdentifier (CMSM)", type: :request do
     end
 
     stub_request(:post, "#{host}/doc").to_return(as_json({}))
+
+    # The guardrail lookup phase 1 makes before the client signs anything.
+    # Free by default; the example about a reused key overrides this.
+    stub_request(:get, %r{\A#{Regexp.escape(host)}/key/}).to_return(as_json({ active: false }))
     stub_request(:post, %r{\A#{Regexp.escape(host)}/log/}).to_return(as_json({}))
 
     # While assembling the W3C representation the gem resolves the DID it is
@@ -105,6 +109,24 @@ RSpec.describe "POST /1.0/createIdentifier (CMSM)", type: :request do
     # the client signed the revocation record with a key this process never saw
     # and cannot reproduce it; without this it could never update or revoke
     expect(phase["log_revoke"]).to be_present
+  end
+
+  # A create that cannot succeed has to fail in phase 1: afterwards it costs the
+  # client three signatures, and with a secure element three round trips to
+  # hardware. And it is the client's key, so 400 - not 500, which is what the
+  # repository's rejection on write used to arrive as.
+  it "refuses phase 1 with a document key that already controls an active DID" do
+    _doc_priv, doc_pub = p256
+    _rev_priv, rev_pub = p256
+
+    stub_request(:get, "#{repository}/key/#{doc_pub}").to_return(
+      as_json({ active: true, did: "zQmSomeActiveDid" }))
+
+    start_flow(doc_pub, rev_pub)
+
+    expect(response).to have_http_status(400), response.body
+    expect(JSON.parse(response.body)["error"]).to eq(Oydid::KEY_IN_USE_ERROR)
+    expect(sessions).to be_empty
   end
 
   it "reports an unknown session as a client error, not a server fault" do

@@ -58,6 +58,32 @@ paths:
           description: successfully created/update DID Document
         "400":
           description: Bad request
+  /key/{pubkey}:
+    get:
+      summary: check whether a public document key already controls an active DID
+      tags:
+        - Documents
+      parameters:
+          - name: pubkey
+            in: path
+            required: true
+            schema:
+              type: string
+      responses:
+        "200":
+          description: lookup result; "active" false means the key is free here
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  public_key:
+                    type: string
+                  active:
+                    type: boolean
+                  did:
+                    type: string
+                    nullable: true
   /log/{id}:
     get:
       summary: retrieve log records

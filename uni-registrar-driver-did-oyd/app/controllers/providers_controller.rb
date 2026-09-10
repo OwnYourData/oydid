@@ -523,7 +523,12 @@ class ProvidersController < ApplicationController
     CLIENT_ERRORS = [
         "unknown or expired CMSM session",
         "missing signature in CMSM flow (sig)",
-        "invalid persisted data in CMSM flow"
+        "invalid persisted data in CMSM flow",
+        # A create with a document key that already controls an active DID. The
+        # repository rejects it on write and the gem now also before the client
+        # signs anything; either way it is the client's key, not a fault here.
+        # Compared against the gem's constant, not searched for in the text.
+        Oydid::KEY_IN_USE_ERROR
     ].freeze
 
     def client_error?(msg)

@@ -1147,6 +1147,79 @@ describe "OYDID handling" do
       status.transform_keys(&:to_s)
     end
 
+    # The write path rejects a reused document key, but a CMSM flow only writes
+    # after three signatures. With a secure element those are three round trips
+    # to hardware for a request that cannot succeed, so phase 1 asks first.
+    describe "document key already in use" do
+      let(:key_url) { "https://oydid.ownyourdata.eu/key/" + pub }
+
+      def remote_options(extra = {})
+        cmsm_options({ skip_publish: false,
+                       location: "https://oydid.ownyourdata.eu" }.merge(extra))
+      end
+
+      it "stops phase 1 when the repository reports the key as active" do
+        stub_request(:get, key_url).to_return(
+          status: 200,
+          headers: { "Content-Type" => "application/json" },
+          body: { "active" => true, "did" => "zQmSpec" }.to_json)
+
+        status, msg = Oydid.create({ "key" => pub }, remote_options)
+
+        expect(status).to be_nil
+        expect(msg).to eq(Oydid::KEY_IN_USE_ERROR)
+      end
+
+      it "continues when the key controls only revoked DIDs" do
+        stub_request(:get, key_url).to_return(
+          status: 200,
+          headers: { "Content-Type" => "application/json" },
+          body: { "active" => false }.to_json)
+
+        status, msg = Oydid.create({ "key" => pub }, remote_options)
+
+        expect(msg).to eq("cmsm")
+        expect(status.transform_keys(&:to_s)["with"]).to eq("key-doc")
+      end
+
+      # A repository that predates the endpoint answers 404. That must not stop
+      # a create - the write path still enforces the rule.
+      it "continues when the repository does not know the endpoint" do
+        stub_request(:get, key_url).to_return(status: 404, body: "")
+
+        status, msg = Oydid.create({ "key" => pub }, remote_options)
+
+        expect(msg).to eq("cmsm")
+      end
+
+      # A non-rotating update legitimately carries the document key of the
+      # version it replaces - the most common form of update. The guardrail is
+      # about create only, so the update path must not even ask.
+      it "asks nobody on update" do
+        stub_request(:get, key_url).to_return(
+          status: 200,
+          headers: { "Content-Type" => "application/json" },
+          body: { "active" => true }.to_json)
+        stub_request(:get, %r{\Ahttps://oydid\.ownyourdata\.eu/doc/}).to_return(status: 404, body: "")
+
+        status, msg = Oydid.update({ "key" => pub }, "did:oyd:zQmSpecUnknownDid", remote_options)
+
+        expect(status).to be_nil
+        expect(msg).not_to eq(Oydid::KEY_IN_USE_ERROR)
+        expect(a_request(:get, key_url)).not_to have_been_made
+      end
+
+      # skip_publish means the repository itself is calling: its own database
+      # decides, and asking the public repository about a local key would be
+      # both wrong and a needless request.
+      it "asks nobody when the caller stores the DID itself" do
+        status, msg = Oydid.create({ "key" => pub }, cmsm_options)
+
+        expect(msg).to eq("cmsm")
+        expect(a_request(:get, %r{/key/})).not_to have_been_made
+      end
+    end
+
     describe "cmsm_verify_signature" do
       it "accepts a signature made with the named key" do
         signature = Oydid.sign("hello", priv, {}).first

@@ -186,7 +186,25 @@ class DidsController < ApplicationController
         end
 
         render plain: "",
-               stauts: 200
+               status: 200
+    end
+
+    # Guardrail lookup: does this public document key already control an active
+    # DID here? A CMSM flow asks before the client signs anything - the write
+    # path enforces the rule either way, this only spares a secure element three
+    # signatures for a create that cannot succeed.
+    #
+    # Always 200: "no" is an answer, not a missing resource. A repository that
+    # predates this endpoint answers 404, and callers read that as "cannot tell"
+    # and carry on.
+    def key
+        public_key = Did.strip_location(params[:pubkey])
+        candidate = Did.find_by_public_key_active(public_key)
+        active = !candidate.nil? && !candidate.revoked?
+        render json: {"public_key": public_key,
+                      "active": active,
+                      "did": active ? candidate.did : nil},
+               status: 200
     end
 
     def delete

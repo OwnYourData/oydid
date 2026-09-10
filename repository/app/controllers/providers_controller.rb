@@ -82,6 +82,18 @@ class ProvidersController < ApplicationController
                        status: 400
                 return
             end
+
+            # Refuse a reused document key while the flow starts, not when it
+            # writes: a CMSM create only reaches local_store_did after three
+            # signatures, which with a secure element are three round trips to
+            # hardware for a request that cannot succeed. A resume carries no
+            # key, so this only applies to phase 1.
+            if options[:cmsm_session].to_s == "" &&
+               Did.key_in_active_use?(doc[:key].to_s.split(":").first)
+                render json: {"error": KEY_IN_USE_ERROR},
+                       status: 400
+                return
+            end
         else
             doc = {}
             options[:authentication] = true

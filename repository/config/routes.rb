@@ -13,6 +13,9 @@ Rails.application.routes.draw do
     match 'log/:did',             to: 'logs#create',            via: 'post', constraints: {did: /.*/}
     match 'doc/:did',             to: 'dids#delete',            via: 'delete', constraints: {did: /.*/}
 
+    # guardrail lookup: does this public document key control an active DID here?
+    match 'key/:pubkey',          to: 'dids#key',               via: 'get', constraints: {pubkey: /.*/}
+
     # CMSM Support (Client-Managed-Secret-Mode)
     match 'cmsm/:id',             to: 'cmsm#show',              via: 'get', constraints: {id: /.*/}
     match 'cmsm',                 to: 'cmsm#create',            via: 'post'

@@ -39,6 +39,12 @@ class Oydid
     JWS_SECURITY_SUITE = "https://w3id.org/security/suites/jws-2020/v1"
     DEFAULT_PUBLIC_RESOLVER = "https://dev.uniresolver.io/1.0/identifiers/"
 
+    # A public key controls at most one active DID at a time. The repository
+    # enforces this when a document is written; the constant lives here so every
+    # caller (repository, registrar driver, CLI) can recognise the rejection by
+    # comparison instead of searching the message text.
+    KEY_IN_USE_ERROR = "public key already controls an active DID"
+
     # Single-byte multicodec codes for the intermediate BLAKE2b digest sizes
     # (17-23 bytes), needed to keep a did:oyd identifier short enough for the
     # 50 character URL limit of the EU Digital Product Passport registry.
@@ -277,6 +283,25 @@ class Oydid
                     pubRevoKey = public_key(revocationKey, options).first
                 else
                     return [nil, nil, nil, "CMSM accepts at most two public keys"]
+                end
+
+                # Reject a reused document key before the client signs anything.
+                # The repository enforces the rule when the document is written,
+                # but a CMSM flow only writes after three signatures - with a
+                # secure element that is three round trips to hardware for a
+                # request that cannot succeed. A repository that does not know
+                # the endpoint answers 404 and the flow continues as before.
+                #
+                # Only for create: a non-rotating UPDATE legitimately carries
+                # the document key of the version it replaces, and that is the
+                # most common form of update.
+                #
+                # skip_publish means the caller is the repository itself: its own
+                # database, not the one at doc_location, decides - it checks in
+                # its CMSM controller before the flow starts.
+                if mode.to_s == "create" && !options[:skip_publish] &&
+                   key_in_active_use?(publicKey, write_location(options), options)
+                    return [nil, nil, nil, KEY_IN_USE_ERROR]
                 end
             else
                 # continue a persisted flow: the request carries the session and

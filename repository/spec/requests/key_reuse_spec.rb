@@ -32,6 +32,10 @@ RSpec.describe "one active DID per key", type: :request do
     status["did"].delete_prefix("did:oyd:").split("@").first
   end
 
+  def public_doc_key(status)
+    JSON.parse(status["doc"].to_json)["key"].split(":").first
+  end
+
   def revoke(status)
     log    = JSON.parse(status["log"].to_json)
     record = JSON.parse(status["revocation_log"].to_json)
@@ -73,6 +77,57 @@ RSpec.describe "one active DID per key", type: :request do
     publish(second)
     expect(response).to have_http_status(:success)
     expect(Did.find_by_did(identifier(second))).to be_present
+  end
+
+  # The lookup the guardrail offers to clients: a CMSM flow asks here before the
+  # client signs anything, instead of finding out on the write after three
+  # signatures. "no" is an answer, so this is always 200.
+  describe "GET /key/:pubkey" do
+    it "reports a key no DID carries as not active" do
+      free = Oydid.public_key(Oydid.generate_private_key("", "ed25519-priv", {}).first, {}).first
+      get "/key/" + free
+
+      expect(response).to have_http_status(200)
+      body = JSON.parse(response.body)
+      expect(body["active"]).to be false
+      expect(body["did"]).to be_nil
+    end
+
+    it "names the active DID a key controls" do
+      first = build("hello" => "world")
+      publish(first)
+      get "/key/" + public_doc_key(first)
+
+      body = JSON.parse(response.body)
+      expect(body["active"]).to be true
+      expect(body["did"]).to eq(identifier(first))
+    end
+
+    it "reports the key as free again once that DID is revoked" do
+      first = build("hello" => "world")
+      publish(first)
+      revoke(first)
+      get "/key/" + public_doc_key(first)
+
+      expect(JSON.parse(response.body)["active"]).to be false
+    end
+  end
+
+  # Without this the flow runs to the end and fails on the write - three
+  # signatures from a secure element for a create that cannot succeed.
+  it "refuses CMSM phase 1 with a key an active DID already carries" do
+    first = build("hello" => "world")
+    publish(first)
+    expect(response).to have_http_status(:success)
+
+    post "/1.0/createIdentifier", params: {
+      options: { cmsm: true, key_type: 'ed25519' },
+      key_hex: Oydid.key_to_hex(public_doc_key(first)).first
+    }, as: :json
+
+    expect(response).to have_http_status(400)
+    expect(JSON.parse(response.body)["error"]).to eq(KEY_IN_USE_ERROR)
+    expect(Cmsm.count).to eq(0)
   end
 
   it "leaves a DID with an unrelated key alone" do

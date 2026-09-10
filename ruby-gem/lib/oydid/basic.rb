@@ -1272,6 +1272,29 @@ class Oydid
         end
     end
 
+    # Where a document would be written: the explicit doc_location, the generic
+    # location, or the default repository - the same fallbacks publish uses.
+    def self.write_location(options)
+        loc = options[:doc_location].to_s
+        loc = options[:location].to_s if loc == ""
+        loc = DEFAULT_LOCATION if loc == ""
+        loc
+    end
+
+    # Ask a repository whether a public key already controls an active DID.
+    # Only a clear "yes" counts: a repository that does not know the endpoint
+    # (404), a non-HTTP location or an unreachable host must not block a create -
+    # the write path enforces the rule in any case, this is the early exit.
+    def self.key_in_active_use?(public_key, location, options = {})
+        return false if public_key.to_s == ""
+        return false unless location.to_s.start_with?("http")
+        retVal = HTTParty.get(location.to_s + "/key/" + public_key.to_s)
+        return false if retVal.code != 200
+        retVal.parsed_response["active"] == true
+    rescue StandardError
+        false
+    end
+
     def self.retrieve_document(doc_identifier, doc_file, doc_location, options)
         # in-process callers can supply the DID document directly (e.g. read from
         # a local database) to avoid any HTTP/file lookup
